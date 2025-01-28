@@ -19,7 +19,8 @@ router.post('/api/refresh');
 
 //user list 
 router.get("/api/userlist", Auth.UserList, Authentication.layer);
-
+router.get("/api/documentlist");
+router.get("/api/documentlist/:documentid");
 //document router
 router.post('/api/document', Document.zahiral);
 router.post('/api/documentpage1',);

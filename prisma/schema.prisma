@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum roles {
+  editor
+  accessor
+  zahiral
+}
+
+
+enum predicts {
+  normal
+  easily
+  high
+}
+
+enum riskeffects {
+  normal
+  easily
+  high
+}
+
+enum tests {
+  gb
+  mb
+}
+
+enum status {
+  pending
+  accessed
+  denied
+}
+
+enum shalguur {
+  tutgelzuuleh
+  ehluuleh
+}
+
+model User { //ner
+  id Int @id @default(autoincrement())
+  name String @unique
+  email String @unique
+  password String @db.VarChar(100)
+  profile Profile[]
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document[]
+}
+
+model Profile { //alban tushaal
+  id Int @id @default(autoincrement())
+  position String @unique
+  role roles
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+}
+
+model Document { // zorilgo, taniltsuulga
+  id Int @id @default(autoincrement())
+  purpose Json @unique
+  title Json @unique
+  statusinfo status 
+  schedule Schedule[]
+  result ResultPrediction[]
+  risk Risk[]
+  dependece Dependence[]
+  levels Level[]
+  tutgelzuuleh Tutgelzuuleh[]
+  testorchin Testorchin[]
+  testcase Testcase[]
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Schedule { // testiin bag, test hiih huvaari
+  id Int @id @default(autoincrement())
+  profile Json @unique
+  role roles
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model ResultPrediction {  //testiin ur dingiin taamaglal, haraat baidal
+  id Int @id @default(autoincrement())
+  result Json
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+
+model Risk { //ersdel
+  id Int @id @default(autoincrement())
+  risk Json
+  level predicts
+  effect riskeffects
+  reduce Json
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Dependence { // haraat baidal
+  id Int @id @default(autoincrement())
+  data Json
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Level { // testiin uy shat
+  id Int @id @default(autoincrement())
+  standby Json @unique
+  process Json @unique
+  finall Json @unique
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Tutgelzuuleh { // tutgelzuuleh, ahin ehluuleh shalguur
+  id Int @id @default(autoincrement())
+  type shalguur
+  shalguur Json @unique
+  created_at DateTime @default(now())
+  deleted_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Testorchin {
+  id Int @id @default(autoincrement())
+  bagtsh String @unique
+  torol tests
+  digit Int @unique
+  price String @unique
+  totalprice String @unique
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}
+
+model Testcase {
+  id Int @id @default(autoincrement())
+  angilal String @unique
+  torol String @unique
+  alham Json
+  urdun String @unique
+  hariutsah String @unique @db.VarChar(100)
+  created_at DateTime @default(now())
+  ended_at DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id])
+  documentId Int
+}

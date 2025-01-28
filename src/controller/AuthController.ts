@@ -2,12 +2,19 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import {hash, compare } from "bcrypt";
 import Joi from "joi";
-import jwt, { Secret, JwtPayload, sign } from 'jsonwebtoken';
+import jwt, { Secret, JwtPayload, sign, verify } from 'jsonwebtoken';
+import { CustomRequest } from '../middleware/middle';
 
 export const prisma = new PrismaClient();
 
-export const generateJwt = (seed: any) => {
-  return sign(seed, "JWT_SECRET");
+export const generateJwt = (payload: any) => {
+  return sign(
+    payload, 
+    process.env.JWT_SECRET || "JWT_SECRET",
+    { 
+      expiresIn: '1m'
+    }
+  );
 };
 
 const register = Joi.object({
@@ -56,7 +63,25 @@ export class Auth {
           res.status(401).json({ error: "Password incorrect" });
           return;
         }
-        res.status(200).json({ token: generateJwt({ email }) });
+
+        // Generate access token
+        const accessToken = generateJwt({ 
+          userId: record.id, 
+          email: record.email,
+        });
+
+        // Generate refresh token
+        const refreshToken = sign(
+          { userId: record.id },
+          process.env.REFRESH_TOKEN_SECRET || 'REFRESH_SECRET',
+          { expiresIn: '7d' }
+        );
+
+        res.status(200).json({ 
+          accessToken,
+          refreshToken,
+          expiresIn: 60
+        });
       } catch (error) {
         res.status(404).send("Not found");
       }
@@ -70,22 +95,46 @@ export class Auth {
       }
     }
 
-    static refresh = async (req:Request, res:Response): Promise<void> => {
-        try {
-            
-        } catch (error) {
-            
-        }
-    }
-
-    static UserList = async (req:Request, res:Response):Promise<void> => {
+    static refresh = async (req: Request, res: Response): Promise<void> => {
       try {
-        const record = await prisma.user.findMany()
+        const { refreshToken } = req.body;
+        
+        if (!refreshToken) {
+          res.status(401).json({ error: "Refresh token required" });
+          return;
+        }
+
+        const decoded = verify(
+          refreshToken,
+          process.env.REFRESH_TOKEN_SECRET || 'REFRESH_SECRET'
+        ) as JwtPayload;
+
+        // Generate new access token
+        const accessToken = generateJwt({ 
+          userId: decoded.userId,
+          email: decoded.email 
+        });
+
+        res.json({ 
+          accessToken,
+          expiresIn: 3600
+        });
+      } catch (error) {
+        res.status(401).json({ error: "Invalid refresh token" });
+      }
+    };
+
+    static UserList = async (req: CustomRequest, res: Response): Promise<void> => {
+      try {
+        // Access the decoded user info
+        const userId = req.user?.userId;
+        
+        const record = await prisma.user.findMany();
         if(record){
-          res.json(record)
+          res.json(record);
         }
       } catch (error) {
-        res.send(error)
+        res.send(error);
       }
     }
 }

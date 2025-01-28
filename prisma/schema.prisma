@@ -57,6 +57,7 @@ model User { //ner
   created_at DateTime @default(now())
   ended_at DateTime @default(now())
   document Document[]
+  refreshToken String? @db.Text
 }
 
 model Profile { //alban tushaal

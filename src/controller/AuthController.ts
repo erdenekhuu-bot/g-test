@@ -16,11 +16,6 @@ const register = Joi.object({
     password: Joi.string().min(6).required(),
 });
 
-const login = Joi.object({
-    username: Joi.string().required(),
-    password: Joi.string().required()
-})
-
 const refreshtoken = Joi.object({
   token: Joi.string().optional()
 })
@@ -53,7 +48,6 @@ export class Auth {
         const record = await prisma.user.findFirstOrThrow({
           where: { email },
         });
-        
         if (!record) {
           throw new Error("User didn't found");
         }

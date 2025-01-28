@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { Document } from "./controller/DocumenController";
 import { Auth } from "./controller/AuthController";
+import { Authentication } from "./middleware/middle";
 const router = Router()
 
 router.get('/', (req: Request, res: Response) => {
@@ -17,7 +18,7 @@ router.post('/api/refresh');
 
 
 //user list 
-router.get("/api/userlist", Auth.UserList);
+router.get("/api/userlist", Auth.UserList, Authentication.layer);
 
 //document router
 router.post('/api/document', Document.zahiral);

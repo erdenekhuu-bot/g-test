@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import {hash, compare } from "bcrypt";
 import Joi from "joi";
-import { sign } from "jsonwebtoken";
+import jwt, { Secret, JwtPayload, sign } from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 export const generateJwt = (seed: any) => {
   return sign(seed, "JWT_SECRET");

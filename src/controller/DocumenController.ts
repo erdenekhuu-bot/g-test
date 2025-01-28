@@ -21,7 +21,7 @@ export class Document {
         });
          res.send(value)
        } catch (error) {
-        
+          
        }
       };
 }

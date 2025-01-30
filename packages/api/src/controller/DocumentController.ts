@@ -63,7 +63,7 @@ export class Document {
             const document = await prisma.document.create({
                 data: {
                     title,
-                    state: state.toUpperCase()
+                    state: state.toUpperCase(),
                 }
             });
 
@@ -86,8 +86,17 @@ export class Document {
             if (error) {
                  res.status(400).json({ error: error.details[0].message });
             }
-        const record = await prisma.documentDetail.create(req.body);
-        
+        const {intro, aim} = req.body;
+        //const record = await prisma.documentDetail.create(req.body);
+        const record = await prisma.documentDetail.create({
+          data: {
+            intro,
+            aim,
+          },
+          include: {
+            document: true
+          }
+        });
         res.status(201).json({
           success: true,
           data: record

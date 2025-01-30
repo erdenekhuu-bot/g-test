@@ -72,7 +72,8 @@ model Document {
   isDeleted Boolean @default(false)
 
   //relation
-  detail DocumentDetail[] @relation("detail")
+  detail DocumentDetail? @relation("detail", fields: [detailId], references: [id])
+  detailId Int?
   permission Permission[] @relation("document")
   attribute DocumentAttribute[] @relation("attribute")
   budget DocumentBudget[] @relation("budget")
@@ -87,8 +88,7 @@ model DocumentDetail {
   aim String @db.VarChar(200)
 
   //foreign key
-  document Document @relation("detail", fields: [documentId], references: [id])
-  documentId Int
+  document Document[] @relation("detail")
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
   @@unique([intro, aim])

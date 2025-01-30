@@ -70,9 +70,15 @@ export class Authentication {
                   password: hashedPassword,
                 },
               });
-            res.json({status: "success"})
+              res.json({
+                success: true,
+                data: record
+              })
         } catch (error) {
-            res.status(500).send(error);
+          res.status(500).json({
+            success: false,
+            data: error
+        });
         }
     }
 

@@ -3,7 +3,7 @@ import { VerifyToken } from "../middleware/checkout";
 import { Authentication } from "../controller/AuthController";
 import { Document } from "../controller/DocumentController";
 
-export const router = Router()
+const router = Router()
 
 router.get("/api",Authentication.list);
 
@@ -33,3 +33,5 @@ router.post("/api/document/attribute", VerifyToken.checkout);
 router.post("/api/document/budget", VerifyToken.checkout);
 router.post("/api/document/risk", VerifyToken.checkout);
 router.post("/api/document/permission", VerifyToken.checkout);
+
+export default router;

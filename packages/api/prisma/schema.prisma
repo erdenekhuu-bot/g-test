@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStateEnum {
+  DENY
+  ACCESS
+  REJECT
+}
+
+enum PermissionKindEnum {
+  OPENING 
+  CLOSSING
+}
+
+enum riskLevel {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum affectionLevel {
+  LOW 
+  NORMAL
+  HIGH
+}
+
+enum States {
+  PENDING
+  DECLINED
+  ACCESSED
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100)
+  email String @db.VarChar(100)
+  password String @db.VarChar(200)
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+  //foreign key 
+  permission Permission[] @relation("user")
+}
+
+model UserIdAction {
+  id Int @id @default(autoincrement())
+
+  //foreign key 
+  permission Permission[] @relation("useridaction")
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model Document {
+  id Int @id @default(autoincrement())
+  title String @db.VarChar(100) @unique
+  state DocumentStateEnum
+  userCreatedId Int?
+  timeCreated DateTime @default(now())
+  timeUpdated DateTime @updatedAt
+  isDeleted Boolean @default(false)
+
+  //relation
+  detail DocumentDetail[] @relation("detail")
+  permission Permission[] @relation("document")
+  attribute DocumentAttribute[] @relation("attribute")
+  budget DocumentBudget[] @relation("budget")
+  riskassessment RiskAssessment[] @relation("assessent")
+  testcase TestCase[] @relation("testcase")
+  documentemployee DocumentEmployee[] @relation("documentemployee")
+}
+
+model DocumentDetail {
+  id Int @id @default(autoincrement())
+  intro String @db.VarChar(200)
+  aim String @db.VarChar(200)
+
+  //foreign key
+  document Document @relation("detail", fields: [documentId], references: [id])
+  documentId Int
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+  @@unique([intro, aim])
+}
+
+model Permission {
+  id Int @id @default(autoincrement())
+  kind PermissionKindEnum
+  state String @db.VarChar(100)
+
+  //relation
+  document Document @relation("document", fields: [documentId], references: [id])
+  documentId Int
+  department Department @relation("department", fields: [departmentId], references: [id])
+  departmentId Int
+  employee Employee @relation("employee", fields: [employeeId], references: [id])
+  employeeId Int
+  user User @relation("user", fields: [userId], references: [id])
+  userId Int
+  employeeAction EmployeeIdAction @relation("employeeaction", fields: [employeeactionId], references: [id])
+  employeeactionId Int
+  userIdAction UserIdAction @relation("useridaction", fields: [useridactionid], references: [id])
+  useridactionid Int
+  jobposition JobPosition[] @relation("jobposition")
+  timeCreated DateTime @default(now())
+  timeAction DateTime @updatedAt
+}
+
+model Department {
+  id Int @id @default(autoincrement())
+
+  //foreign key
+  permission Permission[] @relation("department")
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model JobPosition {
+  id Int @id @default(autoincrement())
+
+  //foreign key
+  permission Permission[] @relation("jobposition")
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model Employee {
+  id Int @id @default(autoincrement())
+  
+  //foreign key
+  permission Permission[] @relation("employee")
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model EmployeeIdAction {
+  id Int @id @default(autoincrement())
+  permission Permission[] @relation("employeeaction")
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model DocumentAttribute {
+  id Int @id @default(autoincrement())
+  categoryMain String @db.VarChar(250)
+  category String @db.VarChar(250)
+  value String @db.Text
+  orderIndex Int @default(1)
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+
+  //relation
+  document Document @relation("attribute", fields: [documentId], references: [id])
+  documentId Int
+  
+  @@unique([categoryMain, category, value, orderIndex])
+}
+
+model DocumentBudget {
+  id Int @id @default(autoincrement())
+  productCategory String @db.Text
+  product String @db.Text
+  amount Int @default(0)
+  priceUnit Int @default(0)
+  priceTotal Int @default(0)
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+
+  //relation
+  document Document @relation("budget", fields: [documentId], references: [id])
+  documentId Int
+}
+
+model DocumentEmployee {
+  id Int @id @default(autoincrement())
+
+  //relation
+  document Document @relation("documentemployee", fields: [documentId], references: [id])
+  documentId Int
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+}
+
+model RiskAssessment {
+  id Int @id @default(autoincrement())
+  riskDescription String @db.Text
+  riskLevel riskLevel
+  affectionLevel affectionLevel
+  mitigationStrategy String @db.Text
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+  
+  //relation
+  document Document @relation("assessent", fields: [documentId], references: [id])
+  documentId Int
+  @@unique([riskDescription, mitigationStrategy])
+}
+
+model TestCase {
+  id Int @id @default(autoincrement())
+ 
+  title String @db.VarChar(100)
+  description String @db.Text
+  state States
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+  //relation
+  document Document @relation("testcase", fields: [documentId], references: [id])
+  documentId Int
+
+
+  //foreign key
+  testcase TestCaseImage[] @relation("testcaseimage")
+
+
+  userCreatedId DateTime @default(now())
+  timeCreated DateTime @updatedAt
+}
+
+model TestCaseImage {
+  id Int @id @default(autoincrement())
+  file String
+
+  //relation
+  testcase TestCase @relation("testcaseimage", fields: [testcaseId], references: [id])
+  testcaseId Int
+  createdAt DateTime @default(now())
+  endedAt DateTime @updatedAt
+  @@unique([file])
+}

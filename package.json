@@ -1,40 +1,44 @@
 {
-  "name": "pro",
+  "name": "final",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/index.ts",
-    "start": "ts-node src/index.ts",
-    "build": "tsc",
-    "generate": "npx prisma migrate dev --name init",
-    "update": "npx prisma db push",
-    "pull": "npx prisma db pull"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "description": "",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
-    "@prisma/client": "^6.2.1",
-    "@types/bcrypt": "^5.0.2",
+    "@prisma/client": "^6.0.1",
     "@types/cors": "^2.8.17",
-    "@types/jsonwebtoken": "^9.0.8",
-    "bcrypt": "^5.1.1",
+    "@types/joi": "^17.2.3",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.1",
+    "axios": "^1.7.8",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.6",
+    "husky": "^9.1.7",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.1.9",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.12.0",
-    "prisma": "^6.2.1",
+    "lint-staged": "^15.2.10",
+    "prisma": "^6.0.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2",
+    "yup": "^1.4.0"
+  },
+  "scripts": {
+    "build": "yarn workspaces foreach run build",
+    "api:dev": "yarn workspace api run dev --watch --exec 'nodemon src/index.ts'",
+    "client:dev": "yarn workspace client run dev"
+  },
+  "lint-staged": {
+    "**/*.{ts,js,json}": "npx prettier --write --ignore-unknown"
+  },
+  "_moduleAliases": {
+    "@": "build"
   }
 }

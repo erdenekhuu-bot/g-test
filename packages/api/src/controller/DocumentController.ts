@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import Joi from "joi";
+import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
@@ -14,7 +15,8 @@ export class ValidateDocument {
     });
     static detail = Joi.object({
         intro: Joi.string().max(200).required(),
-        aim: Joi.string().max(200).required()
+        aim: Joi.string().max(200).required(),
+        documentId: Joi.string().required(),
     });
 }
 
@@ -64,9 +66,9 @@ export class Document {
                 data: {
                     title,
                     state: state.toUpperCase(),
+                    documentId: uuidv4()
                 }
             });
-
             res.status(201).json({
                 success: true,
                 data: document
@@ -86,17 +88,17 @@ export class Document {
             if (error) {
                  res.status(400).json({ error: error.details[0].message });
             }
-        const {intro, aim} = req.body;
-        //const record = await prisma.documentDetail.create(req.body);
+        const {intro, aim, documentId} = req.body;
         const record = await prisma.documentDetail.create({
           data: {
             intro,
             aim,
+            document: {
+              connect: documentId
+            }
           },
-          include: {
-            document: true
-          }
         });
+        console.log(record)
         res.status(201).json({
           success: true,
           data: record

@@ -44,6 +44,7 @@ enum States {
 
 model User {
   id Int @id @default(autoincrement())
+  documentId String @db.Uuid
   name String @db.VarChar(100)
   email String @db.VarChar(100)
   password String @db.VarChar(200)
@@ -64,6 +65,7 @@ model UserIdAction {
 
 model Document {
   id Int @id @default(autoincrement())
+  documentId String @db.Uuid
   title String @db.VarChar(100) @unique
   state DocumentStateEnum
   userCreatedId Int?
@@ -79,6 +81,7 @@ model Document {
   riskassessment RiskAssessment[] @relation("assessent")
   testcase TestCase[] @relation("testcase")
   documentemployee DocumentEmployee[] @relation("documentemployee")
+  @@unique([documentId])
 }
 
 model DocumentDetail {
@@ -87,8 +90,8 @@ model DocumentDetail {
   aim String @db.VarChar(200)
 
   //foreign key
-  document Document @relation("detail", fields: [documentId], references: [id])
-  documentId Int
+  document Document @relation("detail", fields: [detailId], references: [documentId])
+  detailId String @db.Uuid
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
   @@unique([intro, aim])

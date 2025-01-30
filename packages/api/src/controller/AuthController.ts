@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import jwt, { Secret, JwtPayload, sign, verify } from 'jsonwebtoken';
 import Joi from "joi";
 import {hash, compare } from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 
 export class ValidateExpression {
     static register = Joi.object({
@@ -31,10 +32,12 @@ export const generateJwt = (payload: any) => {
   };
 
 const prisma = new PrismaClient();
+export const documentId = uuidv4();
 
 export class Authentication {
-
+  
     static list = async (req:Request, res:Response)=> {
+        
         try {
             const record = await prisma.user.findMany()
             res.json({
@@ -56,7 +59,7 @@ export class Authentication {
               }
               const { email, name, password } = req.body;
               const existingUser = await prisma.user.findFirst({
-                where: { email }
+              where: { email }
                 });
             
                 if (existingUser) {
@@ -68,6 +71,7 @@ export class Authentication {
                   email,
                   name,
                   password: hashedPassword,
+                  documentId: documentId
                 },
               });
               res.json({
@@ -75,7 +79,7 @@ export class Authentication {
                 data: record
               })
         } catch (error) {
-          res.status(500).json({
+            res.status(500).json({
             success: false,
             data: error
         });
@@ -113,8 +117,7 @@ export class Authentication {
   
           res.json({ 
             accessToken,
-            refreshToken,
-            expiresIn: 60
+            refreshToken
           });
         } catch (error) {
           res.status(404).send("Not found");

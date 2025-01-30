@@ -99,4 +99,9 @@ export class Document {
         });
       }
     }
+    //abstract
+    static attribute = ()=>{}
+    static budget=()=>{}
+    static risk=()=>{}
+    static permission=()=>{}
 }

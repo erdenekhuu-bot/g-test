@@ -62,13 +62,14 @@ export class Document {
             if (existingDocument) {
                  res.status(400).json({ error: "Document already exists" });
             }
-            const document = await prisma.document.create({
-                data: {
-                    title,
-                    state: state.toUpperCase(),
-                    documentId: uuidv4()
-                }
-            });
+            // const document = await prisma.document.create({
+            //     data: {
+            //         title,
+            //         state: state.toUpperCase(),
+            //         documentId: uuidv4()
+            //     }
+            // });
+            const document=null
             res.status(201).json({
                 success: true,
                 data: document

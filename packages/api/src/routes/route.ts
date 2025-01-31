@@ -16,10 +16,7 @@ router.post("/api/register", Authentication.regsiter);
 router.patch("/api/patching", VerifyToken.checkout, Authentication.patch);
 router.delete("/api/deleting");
 
-//search by ajax
 router.get("/api/search/index");
-router.get("/api/search/employee");
-router.get("/api/search/order");
 
 //view detail
 router.get("/api/detail/:order");

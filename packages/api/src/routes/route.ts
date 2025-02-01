@@ -3,9 +3,9 @@ import { VerifyToken } from "../middleware/checkout";
 import { Authentication } from "../controller/AuthController";
 import { Document } from "../controller/DocumentController";
 
-const router = Router()
+const router = Router();
 
-router.get("/api",Authentication.list);
+router.get("/api", Authentication.list);
 
 //refreshing
 router.post("/api/refresh", Authentication.refresh);

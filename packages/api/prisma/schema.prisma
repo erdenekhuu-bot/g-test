@@ -43,7 +43,7 @@ enum States {
 }
 
 model User {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   name String @db.VarChar(100)
   email String @db.VarChar(100)
   password String @db.VarChar(200)
@@ -54,7 +54,7 @@ model User {
 }
 
 model UserIdAction {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
 
   //foreign key 
   permission Permission[] @relation("useridaction")
@@ -63,8 +63,7 @@ model UserIdAction {
 }
 
 model Document {
-  id Int @id @default(autoincrement())
-  documentId Int
+  id String @id @default(uuid())
   title String @db.VarChar(100) @unique
   state DocumentStateEnum
   userCreatedId Int?
@@ -83,43 +82,43 @@ model Document {
 }
 
 model DocumentDetail {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   intro String @db.VarChar(200)
   aim String @db.VarChar(200)
 
   //foreign key
   document Document @relation("detail", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
   @@unique([intro, aim])
 }
 
 model Permission {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   kind PermissionKindEnum
   state String @db.VarChar(100)
 
   //relation
   document Document @relation("document", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
   department Department @relation("department", fields: [departmentId], references: [id])
-  departmentId Int
+  departmentId String
   employee Employee @relation("employee", fields: [employeeId], references: [id])
-  employeeId Int
+  employeeId String
   user User @relation("user", fields: [userId], references: [id])
-  userId Int
+  userId String
   employeeAction EmployeeIdAction @relation("employeeaction", fields: [employeeactionId], references: [id])
-  employeeactionId Int
+  employeeactionId String
   userIdAction UserIdAction @relation("useridaction", fields: [useridactionid], references: [id])
-  useridactionid Int
+  useridactionid String
   jobposition JobPosition[] @relation("jobposition")
   timeCreated DateTime @default(now())
   timeAction DateTime @updatedAt
 }
 
 model Department {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
 
   //foreign key
   permission Permission[] @relation("department")
@@ -128,7 +127,7 @@ model Department {
 }
 
 model JobPosition {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
 
   //foreign key
   permission Permission[] @relation("jobposition")
@@ -137,7 +136,7 @@ model JobPosition {
 }
 
 model Employee {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   
   //foreign key
   permission Permission[] @relation("employee")
@@ -146,14 +145,14 @@ model Employee {
 }
 
 model EmployeeIdAction {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   permission Permission[] @relation("employeeaction")
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
 }
 
 model DocumentAttribute {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   categoryMain String @db.VarChar(250)
   category String @db.VarChar(250)
   value String @db.Text
@@ -163,13 +162,13 @@ model DocumentAttribute {
 
   //relation
   document Document @relation("attribute", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
   
   @@unique([categoryMain, category, value, orderIndex])
 }
 
 model DocumentBudget {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
   productCategory String @db.Text
   product String @db.Text
   amount Int @default(0)
@@ -180,21 +179,21 @@ model DocumentBudget {
 
   //relation
   document Document @relation("budget", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
 }
 
 model DocumentEmployee {
-  id Int @id @default(autoincrement())
+   id String @id @default(uuid())
 
   //relation
   document Document @relation("documentemployee", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
 }
 
 model RiskAssessment {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   riskDescription String @db.Text
   riskLevel riskLevel
   affectionLevel affectionLevel
@@ -204,12 +203,12 @@ model RiskAssessment {
   
   //relation
   document Document @relation("assessent", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
   @@unique([riskDescription, mitigationStrategy])
 }
 
 model TestCase {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
  
   title String @db.VarChar(100)
   description String @db.Text
@@ -218,7 +217,7 @@ model TestCase {
   endedAt DateTime @updatedAt
   //relation
   document Document @relation("testcase", fields: [documentId], references: [id])
-  documentId Int
+  documentId String
 
 
   //foreign key
@@ -230,12 +229,12 @@ model TestCase {
 }
 
 model TestCaseImage {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   file String
 
   //relation
   testcase TestCase @relation("testcaseimage", fields: [testcaseId], references: [id])
-  testcaseId Int
+  testcaseId String
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
   @@unique([file])

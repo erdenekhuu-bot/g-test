@@ -24,11 +24,21 @@ router.post("/api/detail/download");
 
 //document
 router.get("/api/documentlist", VerifyToken.checkout, Document.list);
+router.get(
+  "/api/documentlist/:title",
+  VerifyToken.checkout,
+  Document.viewDetail
+);
 router.post("/api/document/create", VerifyToken.checkout, Document.create);
 router.post("/api/document/detail", VerifyToken.checkout, Document.detail);
-router.post("/api/document/attribute", VerifyToken.checkout);
+router.post(
+  "/api/document/attribute",
+  VerifyToken.checkout,
+  Document.attribute
+);
 router.post("/api/document/budget", VerifyToken.checkout);
-router.post("/api/document/risk", VerifyToken.checkout);
+router.post("/api/document/risk", VerifyToken.checkout, Document.risk);
 router.post("/api/document/permission", VerifyToken.checkout);
+router.post("/api/document/testcase", VerifyToken.checkout, Document.testcase);
 
 export default router;

@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import Joi from "joi";
+import Joi, { date } from "joi";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
 const DocumentStateEnum = ["DENY", "ACCESS", "REJECT"];
+
+const States = ["DENY", "ACCESS", "REJECT"];
 
 export class ValidateDocument {
   static create = Joi.object({
@@ -20,12 +22,57 @@ export class ValidateDocument {
     aim: Joi.string().max(200).required(),
     documentId: Joi.string().required(),
   });
+  static attribute = Joi.object({
+    id: Joi.string().required(),
+    categoryMain: Joi.string().max(250).required(),
+    category: Joi.string().max(250).required(),
+    value: Joi.string().optional(),
+  });
+  static risk = Joi.object({
+    id: Joi.string().required(),
+    riskDescription: Joi.string().required(),
+    riskLevel: Joi.number().required(),
+    affectionLevel: Joi.number().required(),
+    mitigationStrategy: Joi.string().optional(),
+  });
+  static testcase = Joi.object({
+    id: Joi.string().required(),
+    title: Joi.string().max(100).required(),
+    description: Joi.string().required(),
+    state: Joi.string()
+      .valid(...DocumentStateEnum)
+      .required(),
+  });
 }
 
 export class Document {
   static list = async (req: Request, res: Response): Promise<void> => {
     try {
       const record = await prisma.document.findMany();
+      res.json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static viewDetail = async (req: Request, res: Response) => {
+    try {
+      const { title } = req.params;
+      const record = await prisma.document.findFirst({
+        where: {
+          title: title,
+        },
+        include: {
+          detail: true,
+          attribute: true,
+          riskassessment: true,
+        },
+      });
       res.json({
         success: true,
         data: record,
@@ -71,7 +118,6 @@ export class Document {
       });
     }
   };
-
   static detail = async (req: Request, res: Response) => {
     try {
       const { error } = ValidateDocument.detail.validate(req.body);
@@ -83,13 +129,95 @@ export class Document {
         data: {
           intro,
           aim,
-          document: {
-            connect: documentId,
-          },
+          documentId: documentId,
         },
       });
-      console.log(record);
       res.status(201).json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static attribute = async (req: Request, res: Response) => {
+    try {
+      const { error } = ValidateDocument.attribute.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+      }
+      const { categoryMain, category, value, id } = req.body;
+      const record = await prisma.documentAttribute.create({
+        data: {
+          categoryMain: categoryMain,
+          category: category,
+          value: value,
+          documentId: id,
+        },
+      });
+      res.json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static risk = async (req: Request, res: Response) => {
+    try {
+      const { error } = ValidateDocument.risk.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+      }
+      const {
+        id,
+        riskDescription,
+        riskLevel,
+        affectionLevel,
+        mitigationStrategy,
+      } = req.body;
+      const record = await prisma.riskAssessment.create({
+        data: {
+          riskDescription: riskDescription,
+          riskLevel: riskLevel,
+          affectionLevel: affectionLevel,
+          mitigationStrategy: mitigationStrategy,
+          documentId: id,
+        },
+      });
+      res.json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static testcase = async (req: Request, res: Response) => {
+    try {
+      const { error } = ValidateDocument.testcase.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+      }
+      const { id, title, description, state } = req.body;
+      const record = await prisma.testCase.create({
+        data: {
+          title: title,
+          description: description,
+          state: state,
+          documentId: id,
+        },
+      });
+      res.json({
         success: true,
         data: record,
       });

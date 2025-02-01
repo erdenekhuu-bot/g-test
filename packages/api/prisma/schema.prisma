@@ -24,18 +24,6 @@ enum PermissionKindEnum {
   CLOSSING
 }
 
-enum riskLevel {
-  LOW
-  NORMAL
-  HIGH
-}
-
-enum affectionLevel {
-  LOW 
-  NORMAL
-  HIGH
-}
-
 enum States {
   PENDING
   DECLINED
@@ -89,8 +77,6 @@ model DocumentDetail {
   //foreign key
   document Document @relation("detail", fields: [documentId], references: [id])
   documentId String
-  createdAt DateTime @default(now())
-  endedAt DateTime @updatedAt
   @@unique([intro, aim])
 }
 
@@ -152,13 +138,11 @@ model EmployeeIdAction {
 }
 
 model DocumentAttribute {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
   categoryMain String @db.VarChar(250)
   category String @db.VarChar(250)
   value String @db.Text
   orderIndex Int @default(1)
-  createdAt DateTime @default(now())
-  endedAt DateTime @updatedAt
 
   //relation
   document Document @relation("attribute", fields: [documentId], references: [id])
@@ -168,14 +152,12 @@ model DocumentAttribute {
 }
 
 model DocumentBudget {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
   productCategory String @db.Text
   product String @db.Text
   amount Int @default(0)
   priceUnit Int @default(0)
   priceTotal Int @default(0)
-  createdAt DateTime @default(now())
-  endedAt DateTime @updatedAt
 
   //relation
   document Document @relation("budget", fields: [documentId], references: [id])
@@ -195,11 +177,9 @@ model DocumentEmployee {
 model RiskAssessment {
   id String @id @default(uuid())
   riskDescription String @db.Text
-  riskLevel riskLevel
-  affectionLevel affectionLevel
+  riskLevel Int @default(1)
+  affectionLevel Int @default(1)
   mitigationStrategy String @db.Text
-  createdAt DateTime @default(now())
-  endedAt DateTime @updatedAt
   
   //relation
   document Document @relation("assessent", fields: [documentId], references: [id])
@@ -222,8 +202,6 @@ model TestCase {
 
   //foreign key
   testcase TestCaseImage[] @relation("testcaseimage")
-
-
   userCreatedId DateTime @default(now())
   timeCreated DateTime @updatedAt
 }

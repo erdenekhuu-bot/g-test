@@ -2,6 +2,7 @@ import { Router } from "express";
 import { VerifyToken } from "../middleware/checkout";
 import { Authentication } from "../controller/AuthController";
 import { Document } from "../controller/DocumentController";
+import { TestTypes } from "../controller/TypeController";
 
 const router = Router();
 
@@ -29,6 +30,8 @@ router.get(
   VerifyToken.checkout,
   Document.viewDetail
 );
+router.get("/api/types", VerifyToken.checkout, TestTypes.list);
+router.post("/api/types/create", VerifyToken.checkout, TestTypes.setName);
 router.post("/api/document/create", VerifyToken.checkout, Document.create);
 router.post("/api/document/detail", VerifyToken.checkout, Document.detail);
 router.post(

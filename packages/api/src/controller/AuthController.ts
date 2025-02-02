@@ -65,6 +65,9 @@ export class Authentication {
           email,
           name,
           password: hashedPassword,
+          // employee: {
+          //   create: {},
+          // },
         },
       });
       res.json({

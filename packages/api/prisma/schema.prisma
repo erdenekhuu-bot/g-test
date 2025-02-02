@@ -30,6 +30,12 @@ enum States {
   ACCESSED
 }
 
+enum EmployeeRole {
+  EMPLOYEE 
+  AUTHOR
+  DISTRIBUTOR
+}
+
 model User {
   id String @id @default(uuid())
   name String @db.VarChar(100)
@@ -39,6 +45,7 @@ model User {
   endedAt DateTime @updatedAt
   //foreign key 
   permission Permission[] @relation("user")
+  employee Employee?
 }
 
 model UserIdAction {
@@ -104,7 +111,14 @@ model Permission {
 }
 
 model Department {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
+  parentId       Int      @map("parent_id")
+  name           String?  @db.VarChar(255)
+  description    String?  @db.VarChar(255)
+  authDivision   Boolean  @default(false) @map("auth_division") @db.Boolean
+  isDeleted      Boolean  @default(false) @map("is_deleted") @db.Boolean
+  timeCreated    DateTime @default(now()) @map("time_created")
+  parentsNesting String?  @map("parents_nesting") @db.VarChar(255)
 
   //foreign key
   permission Permission[] @relation("department")
@@ -113,7 +127,13 @@ model Department {
 }
 
 model JobPosition {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
+  departmentId Int               @map("department_id") @db.Integer
+  jobGroupId   Int?              @map("job_group_id") @db.Integer
+  name         String?           @db.VarChar(100)
+  description  String?           @db.VarChar(255)
+  isDeleted    Boolean           @default(false) @map("is_deleted") @db.Boolean
+  timeCreated  DateTime          @default(now()) @map("time_created")
 
   //foreign key
   permission Permission[] @relation("jobposition")
@@ -122,10 +142,22 @@ model JobPosition {
 }
 
 model Employee {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
+  firstname         String?   @db.VarChar(80)
+  lastname          String?   @db.VarChar(80)
+  familyName        String?   @map("family_name") @db.VarChar(80)
+  gender            String?  @db.VarChar(10)
+  regNum            String?   @unique @map("reg_num") @db.VarChar(10)
+  birthDate         DateTime? @map("birth_date") @db.Date
+  employmentStateId Int?     @map("employment_state_id") @db.Integer
+  stateId           Int?     @map("state_id") @db.Integer
+  authUserId        Int?     @unique @map("auth_user_id") @db.Integer
+  isDeleted         Boolean  @default(false) @map("is_deleted") @db.Boolean
   
   //foreign key
   permission Permission[] @relation("employee")
+  user User @relation(fields: [employeeId], references: [id])
+  employeeId String @unique
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
 }
@@ -187,14 +219,33 @@ model RiskAssessment {
   @@unique([riskDescription, mitigationStrategy])
 }
 
+// model TestCase {
+//   id String @id @default(uuid())
+ 
+//   title String @db.VarChar(100)
+//   description String @db.Text
+//   state States
+//   createdAt DateTime @default(now())
+//   endedAt DateTime @updatedAt
+//   //relation
+//   document Document @relation("testcase", fields: [documentId], references: [id])
+//   documentId String
+
+
+//   //foreign key
+//   testcase TestCaseImage[] @relation("testcaseimage")
+//   userCreatedId DateTime @default(now())
+//   timeCreated DateTime @updatedAt
+// }
+
 model TestCase {
   id String @id @default(uuid())
  
-  title String @db.VarChar(100)
-  description String @db.Text
-  state States
-  createdAt DateTime @default(now())
-  endedAt DateTime @updatedAt
+  category String @db.VarChar(100)
+  types String @db.VarChar(100)
+  steps String @db.Text
+  result String @db.VarChar(100)
+  division String @db.VarChar(100)
   //relation
   document Document @relation("testcase", fields: [documentId], references: [id])
   documentId String
@@ -216,4 +267,9 @@ model TestCaseImage {
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt
   @@unique([file])
+}
+
+model TypesTest {
+  id String @id @default(uuid())
+  name String @db.VarChar(100) @map("testtype")
 }

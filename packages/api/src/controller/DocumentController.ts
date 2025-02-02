@@ -37,11 +37,11 @@ export class ValidateDocument {
   });
   static testcase = Joi.object({
     id: Joi.string().required(),
-    title: Joi.string().max(100).required(),
-    description: Joi.string().required(),
-    state: Joi.string()
-      .valid(...DocumentStateEnum)
-      .required(),
+    category: Joi.string().max(100).required(),
+    types: Joi.string().max(100).required(),
+    steps: Joi.string().required(),
+    result: Joi.string().max(100).required(),
+    division: Joi.string().max(100).required(),
   });
 }
 
@@ -71,6 +71,7 @@ export class Document {
           detail: true,
           attribute: true,
           riskassessment: true,
+          testcase: true,
         },
       });
       res.json({
@@ -208,12 +209,14 @@ export class Document {
       if (error) {
         res.status(400).json({ error: error.details[0].message });
       }
-      const { id, title, description, state } = req.body;
+      const { id, category, types, steps, result, division } = req.body;
       const record = await prisma.testCase.create({
         data: {
-          title: title,
-          description: description,
-          state: state,
+          category: category,
+          types: types,
+          steps: steps,
+          result: result,
+          division: division,
           documentId: id,
         },
       });

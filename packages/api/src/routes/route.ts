@@ -23,15 +23,13 @@ router.get("/api/search/index");
 router.get("/api/detail/:order");
 router.post("/api/detail/download");
 
-//document
+//all document route
 router.get("/api/documentlist", VerifyToken.checkout, Document.list);
 router.get(
   "/api/documentlist/:title",
   VerifyToken.checkout,
   Document.viewDetail
 );
-router.get("/api/types", VerifyToken.checkout, TestTypes.list);
-router.post("/api/types/create", VerifyToken.checkout, TestTypes.setName);
 router.post("/api/document/create", VerifyToken.checkout, Document.create);
 router.post("/api/document/detail", VerifyToken.checkout, Document.detail);
 router.post(
@@ -39,9 +37,13 @@ router.post(
   VerifyToken.checkout,
   Document.attribute
 );
-router.post("/api/document/budget", VerifyToken.checkout);
+router.post("/api/document/budget", VerifyToken.checkout, Document.budget);
 router.post("/api/document/risk", VerifyToken.checkout, Document.risk);
 router.post("/api/document/permission", VerifyToken.checkout);
 router.post("/api/document/testcase", VerifyToken.checkout, Document.testcase);
+
+//all types route
+router.post("/api/types/create", VerifyToken.checkout, TestTypes.setName);
+router.get("/api/types", VerifyToken.checkout, TestTypes.list);
 
 export default router;

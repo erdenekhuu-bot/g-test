@@ -43,6 +43,14 @@ export class ValidateDocument {
     result: Joi.string().max(100).required(),
     division: Joi.string().max(100).required(),
   });
+  static budget = Joi.object({
+    id: Joi.string().required(),
+    productCategory: Joi.string().required(),
+    product: Joi.string().required(),
+    amount: Joi.number().required(),
+    priceUnit: Joi.number().optional(),
+    priceTotal: Joi.number().optional(),
+  });
 }
 
 export class Document {
@@ -72,6 +80,7 @@ export class Document {
           attribute: true,
           riskassessment: true,
           testcase: true,
+          budget: true,
         },
       });
       res.json({
@@ -221,6 +230,35 @@ export class Document {
         },
       });
       res.json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static budget = async (req: Request, res: Response) => {
+    try {
+      const { error } = ValidateDocument.budget.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+      }
+      const { id, productCategory, product, amount, priceTotal, priceUnit } =
+        req.body;
+      const record = await prisma.documentBudget.create({
+        data: {
+          productCategory: productCategory,
+          product: product,
+          amount: amount,
+          priceTotal: priceTotal,
+          priceUnit: priceUnit,
+          documentId: id,
+        },
+      });
+      res.status(201).json({
         success: true,
         data: record,
       });

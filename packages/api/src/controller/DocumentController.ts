@@ -51,6 +51,13 @@ export class ValidateDocument {
     priceUnit: Joi.number().optional(),
     priceTotal: Joi.number().optional(),
   });
+  static schedules = Joi.object({
+    id: Joi.string().required(),
+    employee: Joi.string().required(),
+    role: Joi.string().max(100).required(),
+    created: Joi.date().required(),
+    ended: Joi.date().required(),
+  });
 }
 
 export class Document {
@@ -81,6 +88,11 @@ export class Document {
           riskassessment: true,
           testcase: true,
           budget: true,
+          schedule: {
+            include: {
+              employee: true,
+            },
+          },
         },
       });
       res.json({
@@ -260,6 +272,62 @@ export class Document {
       });
       res.status(201).json({
         success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static schedules = async (req: Request, res: Response) => {
+    try {
+      const { error } = ValidateDocument.schedules.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+      }
+      const { employee, role, created, ended, id } = req.body;
+      const findemployee = await prisma.employee.findFirst({
+        where: {
+          lastname: employee,
+        },
+      });
+      if (!findemployee) {
+        res.status(404).json({ error: "Employee not found" });
+      }
+      const finddocument = await prisma.document.findFirst({
+        where: { id: id },
+      });
+      const record = await prisma.schedule.create({
+        data: {
+          role: role,
+          created: new Date(created),
+          ended: new Date(ended),
+          employee: {
+            connect: { id: findemployee?.id },
+          },
+          document: {
+            connect: { id: finddocument?.id },
+          },
+        },
+      });
+      res.status(201).json({
+        success: true,
+        data: record,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: error,
+      });
+    }
+  };
+  static schedulelist = async (req: Request, res: Response) => {
+    try {
+      const record = await prisma.schedule.findMany();
+      res.json({
+        success: false,
         data: record,
       });
     } catch (error) {

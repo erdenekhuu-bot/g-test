@@ -65,9 +65,13 @@ export class Authentication {
           email,
           name,
           password: hashedPassword,
-          // employee: {
-          //   create: {},
-          // },
+          employee: {
+            create: {
+              firstname: "gmobile",
+              lastname: "gmoblie",
+              gender: "male",
+            },
+          },
         },
       });
       res.json({

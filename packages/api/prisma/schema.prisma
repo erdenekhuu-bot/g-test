@@ -74,6 +74,7 @@ model Document {
   riskassessment RiskAssessment[] @relation("assessent")
   testcase TestCase[] @relation("testcase")
   documentemployee DocumentEmployee[] @relation("documentemployee")
+  schedule Schedule[] @relation("schedules")
 }
 
 model DocumentDetail {
@@ -87,8 +88,16 @@ model DocumentDetail {
   @@unique([intro, aim])
 }
 
+model Schedule {
+  id String @id @default(uuid())
+  role String @db.VarChar(100)
+  created DateTime @default(now())
+  ended DateTime @updatedAt
+  employee Employee[] @relation("employees")
+  document Document[] @relation("schedules")
+}
 model Permission {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
   kind PermissionKindEnum
   state String @db.VarChar(100)
 
@@ -155,6 +164,7 @@ model Employee {
   isDeleted         Boolean  @default(false) @map("is_deleted") @db.Boolean
   
   //foreign key
+  schedule Schedule[] @relation("employees")
   permission Permission[] @relation("employee")
   user User @relation(fields: [employeeId], references: [id])
   employeeId String @unique
@@ -163,7 +173,7 @@ model Employee {
 }
 
 model EmployeeIdAction {
-   id String @id @default(uuid())
+  id String @id @default(uuid())
   permission Permission[] @relation("employeeaction")
   createdAt DateTime @default(now())
   endedAt DateTime @updatedAt

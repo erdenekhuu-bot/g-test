@@ -3,6 +3,7 @@ import { VerifyToken } from "../middleware/checkout";
 import { Authentication } from "../controller/AuthController";
 import { Document } from "../controller/DocumentController";
 import { TestTypes } from "../controller/TypeController";
+import { Employee } from "../controller/EmployeeController";
 
 const router = Router();
 
@@ -41,9 +42,11 @@ router.post("/api/document/budget", VerifyToken.checkout, Document.budget);
 router.post("/api/document/risk", VerifyToken.checkout, Document.risk);
 router.post("/api/document/permission", VerifyToken.checkout);
 router.post("/api/document/testcase", VerifyToken.checkout, Document.testcase);
-
+router.post("/api/document/schedule", VerifyToken.checkout, Document.schedules);
 //all types route
 router.post("/api/types/create", VerifyToken.checkout, TestTypes.setName);
 router.get("/api/types", VerifyToken.checkout, TestTypes.list);
 
+router.get("/api/employee", VerifyToken.checkout, Employee.list);
+router.get("/api/schedule/list", VerifyToken.checkout, Document.schedulelist);
 export default router;

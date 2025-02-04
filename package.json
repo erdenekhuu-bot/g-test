@@ -31,8 +31,8 @@
     "yup": "^1.4.0"
   },
   "scripts": {
-    "build": "yarn workspaces foreach run build",
-    "api:dev": "yarn workspace api run dev --watch --exec 'nodemon src/index.ts'",
+    "build": "yarn workspaces run build",
+    "api:dev": "yarn workspace api run dev",
     "client:dev": "yarn workspace client run dev"
   },
   "lint-staged": {

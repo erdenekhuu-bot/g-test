@@ -1,52 +1,51 @@
-import { Router } from "express";
+import { Router, Request } from "express";
 import { VerifyToken } from "../middleware/checkout";
-import { Authentication } from "../controller/AuthController";
-import { Document } from "../controller/DocumentController";
 import { TestTypes } from "../controller/TypeController";
-import { Employee } from "../controller/EmployeeController";
+import {
+  login,
+  loginTest,
+  generate,
+  trigger,
+  refresh,
+} from "../controller/AuthController";
+import {
+  viewDetail,
+  attribute,
+  budget,
+  risk,
+  testcase,
+  schedules,
+  create,
+  list,
+  setTrigger,
+  setMiddle,
+} from "../controller/DocumentController";
 
 const router = Router();
 
-router.get("/api", Authentication.list);
+router.post("/api/refresh", refresh);
 
-//refreshing
-router.post("/api/refresh", Authentication.refresh);
-
-//authientication route
-router.post("/api/login", Authentication.login);
-router.post("/api/register", Authentication.regsiter);
-router.patch("/api/patching", VerifyToken.checkout, Authentication.patch);
-router.delete("/api/deleting");
+router.post("/api/login/test", loginTest);
+router.post("/api/login/generate", generate);
+router.post("/api/login/encrypt", trigger);
+router.post("/api/login", login);
 
 router.get("/api/search/index");
+router.post("/api/document/download");
 
-//view detail
-router.get("/api/detail/:order");
-router.post("/api/detail/download");
+router.get("/api/documentlist", list);
+router.get("/api/documentlist/:title", viewDetail);
 
-//all document route
-router.get("/api/documentlist", VerifyToken.checkout, Document.list);
-router.get(
-  "/api/documentlist/:title",
-  VerifyToken.checkout,
-  Document.viewDetail
-);
-router.post("/api/document/create", VerifyToken.checkout, Document.create);
-router.post("/api/document/detail", VerifyToken.checkout, Document.detail);
-router.post(
-  "/api/document/attribute",
-  VerifyToken.checkout,
-  Document.attribute
-);
-router.post("/api/document/budget", VerifyToken.checkout, Document.budget);
-router.post("/api/document/risk", VerifyToken.checkout, Document.risk);
+router.post("/api/document/create", create);
+router.post("/api/document/attribute", attribute);
+router.post("/api/document/budget", budget);
+router.post("/api/document/risk", risk);
 router.post("/api/document/permission", VerifyToken.checkout);
-router.post("/api/document/testcase", VerifyToken.checkout, Document.testcase);
-router.post("/api/document/schedule", VerifyToken.checkout, Document.schedules);
-//all types route
-router.post("/api/types/create", VerifyToken.checkout, TestTypes.setName);
-router.get("/api/types", VerifyToken.checkout, TestTypes.list);
+router.post("/api/document/testcase", testcase);
+router.post("/api/document/schedule", schedules);
+router.patch("/api/document/trigger/:title", setMiddle);
+router.patch("/api/document/end/:title", setTrigger);
+router.post("/api/types/create", TestTypes.setName);
+router.get("/api/types", TestTypes.list);
 
-router.get("/api/employee", VerifyToken.checkout, Employee.list);
-router.get("/api/schedule/list", VerifyToken.checkout, Document.schedulelist);
 export default router;

@@ -8,10 +8,11 @@
     "packages/*"
   ],
   "dependencies": {
-    "@prisma/client": "^6.0.1",
+    "@prisma/client": "^6.3.0",
     "@types/cors": "^2.8.17",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.10.1",
     "axios": "^1.7.8",
     "cors": "^2.8.5",
@@ -23,6 +24,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "lint-staged": "^15.2.10",
+    "multer": "^1.4.5-lts.1",
     "prisma": "^6.0.1",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
@@ -33,7 +35,9 @@
   "scripts": {
     "build": "yarn workspaces run build",
     "api:dev": "yarn workspace api run dev",
-    "client:dev": "yarn workspace client run dev"
+    "client:dev": "yarn workspace client run dev",
+    "db:migrate": "yarn workspace api run migrate",
+    "db:update": "yarn workspace api run update"
   },
   "lint-staged": {
     "**/*.{ts,js,json}": "npx prettier --write --ignore-unknown"

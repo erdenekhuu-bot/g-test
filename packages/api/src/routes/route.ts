@@ -30,9 +30,7 @@ router.post("/api/login/generate", generate);
 router.post("/api/login/encrypt", trigger);
 router.post("/api/login", login);
 
-router.get("/api/search/index");
 router.post("/api/document/download");
-
 router.get("/api/documentlist", list);
 router.get("/api/documentlist/:title", viewDetail);
 

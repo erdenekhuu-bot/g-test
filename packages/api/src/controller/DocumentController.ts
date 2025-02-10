@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateExpression } from "../schema/validation";
+import { filterDepartment } from "../usable/use";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,16 @@ export const list = async (req: Request, res: Response): Promise<void> => {
     const record = await prisma.document.findMany({
       include: {
         userData: true,
+        userCreatedId: {
+          include: {
+            employee: {
+              include: {
+                authUser: true,
+                jobPosition: true
+              },
+            }
+          }
+        }
       },
     });
     res.json({
@@ -57,63 +68,156 @@ export const viewDetail = async (
     });
   }
 };
-export const create = async (req: Request, res: Response) => {
+// export const create = async (req: Request, res: Response) => {
+//   try {
+//     const { error } = ValidateExpression.create.validate(req.body);
+//     if (error) {
+//       res.status(400).json({ error: error.details[0].message });
+//     }
+//     const { title, state, employee, intro, aim, jobposition, authId } = req.body;
+//     const documents = req.body.data;
+//     if (!Array.isArray(documents) || documents.length === 0) {
+//       res.status(400).json({ error: "Invalid or empty documents" });
+//       return;
+//     }
+   
+//     const existingDocument = await prisma.document.findUnique({
+//       where: {
+//         title,
+//       },
+//     });
+//     if (existingDocument) {
+//       res.status(400).json({ error: "Document already exists" });
+//     }
+//     const findEmployee = await prisma.employee.findFirst({
+//       where: {
+//         firstname: employee.split(" ")[0].substring(2),
+//       },
+//       include: {
+//         jobPosition: true,
+//         department: true
+//       },
+//     });
+//     const departmentFilter = findEmployee?.department?.name;
+//     const index = "ТӨ-" + filterDepartment(departmentFilter);
+//     const permission = await prisma.userData.findUnique({
+//       where: {
+//         authUserId: parseInt((findEmployee?.authUserId ?? "0").toString()),
+//       },
+//     });
+//     const document = await prisma.document.create({
+//       data: {
+//         title,
+//         state: state.toUpperCase(),
+//         index: index,
+//         id: uuidv4(),
+//         userDataId: permission?.authUserId,
+//         userCreatedId: {
+//           connect: {
+//             id: authId
+//           }
+//         }
+//       },
+//     });
+
+//     const detail = await prisma.documentDetail.create({
+//       data: {
+//         intro: intro,
+//         aim: aim,
+//         documentId: document.id,
+//       },
+//     });
+//     res.status(200).json({
+//       success: true,
+//       data: document,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       data: error,
+//     });
+//   }
+// };
+
+
+
+export const create = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { error } = ValidateExpression.create.validate(req.body);
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
+    const documents = req.body.data;
+
+    if (!Array.isArray(documents) || documents.length === 0) {
+      res.status(400).json({ error: "Invalid or empty documents" });
+      return; 
     }
 
-    const { title, state, employee, intro, aim, jobposition } = req.body;
+    const titles = [...new Set(documents.map((doc: any) => doc.title))];
 
-    const existingDocument = await prisma.document.findUnique({
-      where: {
-        title,
-      },
+   
+    const existingDocuments = await prisma.document.findMany({
+      where: { title: { in: titles } },
+      select: { title: true },
     });
-    if (existingDocument) {
-      res.status(400).json({ error: "Document already exists" });
+
+    const existingTitles = new Set(existingDocuments.map((doc: any) => doc.title));
+    const newDocuments = documents.filter((doc: any) => !existingTitles.has(doc.title));
+
+    if (newDocuments.length === 0) {
+      res.status(400).json({ error: "All documents already exist" });
+      return; 
     }
-    const findEmployee = await prisma.employee.findFirst({
-      where: {
-        firstname: employee.split(" ")[0].substring(2),
-      },
-      include: {
-        jobPosition: true,
-      },
+
+    const employeeNames = [...new Set(newDocuments.map((doc: any) => doc.employee.split(" ")[0].substring(2)))];
+
+    const employees = await prisma.employee.findMany({
+      where: { firstname: { in: employeeNames } },
+      include: { department: true },
     });
-    const permission = await prisma.userData.findUnique({
-      where: {
-        authUserId: parseInt((findEmployee?.authUserId ?? "0").toString()),
-      },
-    });
-    const document = await prisma.document.create({
-      data: {
-        title,
-        state: state.toUpperCase(),
+
+   
+    const employeeMap = new Map(employees.map((emp) => [emp.firstname, emp]));
+    const documentsData = newDocuments.map((doc: any) => {
+      const employee = employeeMap.get(doc.employee.split(" ")[0].substring(2));
+      const departmentFilter = employee?.department?.name;
+      const index = "ТӨ-" + filterDepartment(departmentFilter);
+
+      return {
         id: uuidv4(),
-        userDataId: permission?.authUserId,
-      },
+        title: doc.title,
+        state: doc.state?.toUpperCase() || "DENY", 
+        index,
+        userDataId: employee?.authUserId ?? null, 
+        userCreatedId: doc.authId,
+      };
     });
 
-    const detail = await prisma.documentDetail.create({
-      data: {
-        intro: intro,
-        aim: aim,
-        documentId: document.id,
-      },
-    });
-    res.status(201).json({
+    const record = await prisma.document.createMany({
+      data: newDocuments.map((doc: any) => {
+        const employee = employeeMap.get(doc.employee.split(" ")[0].substring(2));
+        const departmentFilter = employee?.department?.name;
+        const index = "ТӨ-" + filterDepartment(departmentFilter);
+  
+        return {
+          id: uuidv4(),
+          title: doc.title,
+          state: doc.state?.toUpperCase() || "DENY", 
+          index,
+        };
+      })
+    })
+    
+    res.status(200).json({
       success: true,
-      data: document,
+      data: record
+     
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      data: error,
+      error: error,
     });
   }
 };
+
 export const attribute = async (req: Request, res: Response) => {
   try {
     const { error } = ValidateExpression.attribute.validate(req.body);

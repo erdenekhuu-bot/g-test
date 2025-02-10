@@ -15,12 +15,13 @@ export class ValidateExpression {
     title: Joi.string().required(),
     state: Joi.string()
       .valid(...DocumentStateEnum)
-      .required(),
+      .optional(),
     userCreatedId: Joi.number().optional(),
     aim: Joi.string().max(200).required(),
     intro: Joi.string().max(200).required(),
     employee: Joi.string().max(80).optional(),
     jobposition: Joi.string().max(100).optional(),
+    authId: Joi.number().optional()
   });
   static detail = Joi.object({
     intro: Joi.string().max(200).required(),

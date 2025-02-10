@@ -6,7 +6,7 @@ import AuthUserSyncService from "./service/modules/sync_authuser_service";
 import EmployeeSyncService from "./service/modules/sync_employee_service";
 import DepartmentSyncService from "./service/modules/sync_department_service";
 import JobPositionSyncService from "./service/modules/sync_jobposition_service";
-import userRouter from "./routes/UsersRoute";
+import fileRouter from "./routes/FileRoute";
 
 dotenv.config();
 
@@ -27,7 +27,7 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 app.use(router);
-app.use(userRouter);
+app.use(fileRouter)
 
 app.listen(port, async () => {
   console.log(`Running on ${port}`);

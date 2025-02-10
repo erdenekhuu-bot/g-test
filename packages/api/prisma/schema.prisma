@@ -46,10 +46,9 @@ model User {
   isDeleted   Boolean   @default(false) @map("is_deleted") @db.Boolean
   timeCreated DateTime  @default(now()) @map("time_created")
   employee    Employee?
-
+  document Document[] @relation("user_document")
   @@map("auth_user")
 
-  //foreign key 
 }
 
 model UserData {
@@ -63,14 +62,18 @@ model UserData {
 model Document {
   id String @id @default(uuid())
   title String @db.VarChar(100) @unique
-  state DocumentStateEnum
-  userCreatedId Int?
+  state String @default("DENY")
+  index String?
+  order String?
+  // userCreatedId Int?
+  userCreatedId User[] @relation("user_document")
   timeCreated DateTime @default(now())
   timeUpdated DateTime @updatedAt
   isDeleted Boolean @default(false)
   userDataId Int?
 
   //relation
+  // user User[] @relation("user_document")
   detail DocumentDetail[] @relation("detail")
   permission Permission[] @relation("document")
   attribute DocumentAttribute[] @relation("attribute")
@@ -80,6 +83,7 @@ model Document {
   documentemployee DocumentEmployee[] @relation("documentemployee")
   schedule Schedule[] @relation("schedules")
   userData UserData? @relation(fields: [userDataId], references: [authUserId],onDelete: Cascade)
+  @@unique([index, order, state])
 }
 
 model DocumentDetail {
@@ -331,6 +335,17 @@ model Role {
   @@map("role")
 }
 
-model EmployeePermission {
-  id String @id @default(uuid())
+model File {
+  id          Int      @id @default(autoincrement())
+  service     String?  @map("service") @db.VarChar(50)
+  serviceId   Int      @map("service_id") @db.Integer
+  idNestLevel Int      @map("id_nest_level") @db.Integer
+  fileType    String?  @map("file_type") @db.VarChar(50)
+  mimeType    String?  @map("mime_type") @db.VarChar(50)
+  name        String?  @map("name") @db.VarChar(255)
+  fileName    String?  @map("file_name") @db.VarChar(255)
+  extension   String?  @map("extension") @db.VarChar(10)
+  timeCreated DateTime @default(now()) @map("time_created") @db.Timestamptz()
+
+  @@map("file")
 }

@@ -48,13 +48,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const record = await prisma.user.findFirstOrThrow({
       where: { username },
     });
+
+  
+    
     if (!record) {
       res.status(404).json("User didn't found");
     }
-    const isPasswordValid = await compare(password, record.password!);
-    if (!isPasswordValid) {
-      res.json({ error: "Password incorrect" });
-    }
+    
+    // const isPasswordValid = await compare(password, record.password!);
+    // if (!isPasswordValid) {
+    //   res.json({ error: "Password incorrect" });
+    // }
 
     const accessToken = generateJwt({
       userId: record.id,
@@ -70,6 +74,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.json({
       accessToken,
       refreshToken,
+      record
     });
   } catch (error) {
     res.status(500).json({

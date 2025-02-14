@@ -32,7 +32,6 @@ export class EmployeeSyncService {
   baseURL: string | undefined;
 
   constructor() {
-    // this.baseURL = process.env.ERP_HRM_BASE_URL;
     this.baseURL = "http://192.168.35.89:3080";
   }
 
@@ -69,7 +68,7 @@ export class EmployeeSyncService {
 
     const department = await prisma.department.findUnique({
       where: {
-        id: parseInt(data.departmentId ?? 0),
+        id: parseInt(data?.departmentId),
       },
     });
 
@@ -79,7 +78,7 @@ export class EmployeeSyncService {
 
     const jobPosition = await prisma.jobPosition.findUnique({
       where: {
-        id: parseInt(data.jobPositionId ?? 0),
+        id: parseInt(data.jobPositionId),
       },
     });
     console.log(employee);

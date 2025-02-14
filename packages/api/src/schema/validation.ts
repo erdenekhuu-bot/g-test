@@ -4,8 +4,8 @@ const DocumentStateEnum = ["DENY", "ACCESS", "REJECT"];
 
 export class ValidateExpression {
   static login = Joi.object({
-    username: Joi.string().required(),
-    password: Joi.string().allow(null),
+    username: Joi.string().optional(),
+    password: Joi.string().allow(null).optional(),
   });
 
   static patching = Joi.object({
@@ -21,7 +21,7 @@ export class ValidateExpression {
     intro: Joi.string().max(200).required(),
     employee: Joi.string().max(80).optional(),
     jobposition: Joi.string().max(100).optional(),
-    authId: Joi.number().optional()
+    authId: Joi.number().optional(),
   });
   static detail = Joi.object({
     intro: Joi.string().max(200).required(),

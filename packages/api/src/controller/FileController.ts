@@ -1,60 +1,73 @@
 import { Request, Response } from "express";
 import path from "path";
-import fs from "fs";
-import * as crypto from "crypto";
-import { getServiceIdPath, createDirectoriesRecursive, getFileTypeByMime } from "../service/file_service";
 import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-const prismaClient = new PrismaClient();
+export const saveImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const files = req.files as Express.Multer.File[];
 
-export async function upload(req: Request, res: Response) {
-    res.json({ status: "success" });
-  }
-
-  export async function uploadService(req: Request, res: Response) {
-    const serviceName = req.params.serviceName; 
-    const serviceId = parseInt(req.params.id); 
-    let destPath: string = getServiceIdPath(serviceName, serviceId, 2); // call getServiceIdPath
-  
-    if (!req.file) {
-      res.status(400).json({ status: "error", message: "Empty file request" });
-      return;
+    if (!files || files.length === 0) {
+      res.status(400).json({ success: false, message: "No images provided" });
     }
-  
-    const srcPath = req.file.path;
-    const fileName = crypto.randomBytes(4).toString("hex") + "_" + Date.now();
-    const ext = path.extname(req.file.originalname);
-    let fullPath: string;
-    if (req.file.mimetype.startsWith("image/")) {
-      destPath = path.join(destPath, fileName);
-      fullPath = path.join(destPath, `orig${ext}`);
-    } else {
-      fullPath = path.join(destPath, `${fileName}${ext}`);
-    }
-  
-    createDirectoriesRecursive(destPath);
-  
-    fs.rename(srcPath, fullPath, async (err) => {
-      if (err) {
-        console.error("Error moving file: ", err);
-        res.status(500).json({ status: "error", message: "Internal Server Error" });
-        return;
-      }
-  
-      const fileCreated = await prismaClient.file.create({
-        data: {
-          service: serviceName,
-          serviceId: serviceId,
-          idNestLevel: 2,
-          fileType: getFileTypeByMime(req.file?.mimetype ?? ""),
-          mimeType: req.file?.mimetype,
-          name: req.file?.originalname,
-          fileName: fileName,
-          extension: ext,
-        },
-      });
-  
-      res.json({ status: "success", message: "File uploaded and moved successfully", file: fileCreated });
+
+    const imagesData = files.map((file) => ({
+      path: file.path,
+      testcaseId: id,
+    }));
+
+    const result = await prisma.testCaseImage.createMany({
+      data: imagesData,
+      skipDuplicates: true,
     });
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error });
   }
-  
+};
+
+export const saveFile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const check = await prisma.testCase.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    const file = req.file;
+
+    if (file) {
+      if (check) {
+        const statement = path.parse(file.originalname).name;
+        const savedFile = await prisma.file.create({
+          data: {
+            fileName: file.originalname,
+            path: file.path,
+            testCaseId: check.id,
+          },
+        });
+
+        if (check.documentId) {
+          await prisma.document.update({
+            where: { id: check.documentId },
+            data: { statement: statement },
+          });
+        }
+
+        res.json({
+          success: true,
+          data: savedFile,
+          document: "Statement success",
+        });
+      } else {
+        res.status(404).json({ error: "testcase id not found" });
+      }
+    } else {
+      res.status(400).json({ error: "Файл оруулна уу" });
+    }
+  } catch {
+    res.status(500).json({ error: "Файлыг хадгалахад алдаа гарлаа" });
+  }
+};

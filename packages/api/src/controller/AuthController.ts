@@ -1,112 +1,76 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import jwt, { Secret, JwtPayload, sign, verify } from "jsonwebtoken";
-import { ValidateExpression } from "../schema/validation";
-import { hash, compare } from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
-import * as cryptoErp from "../service/modules/auth_service";
-
-export interface AuthUserLoginModel {
-  username: string;
-  password: string;
-}
-
-export const generateJwt = (payload: any) => {
-  return sign(payload, process.env.JWT_SECRET || "JWT_SECRET", {
-    expiresIn: "1m",
-  });
-};
+import { AuthUserLoginModel } from "../type/type";
+import { checkLogin as erpCheckLogin } from "../lib/auth/auth";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-const documentId = uuidv4();
+const SECRET_KEY = process.env.APP_SECRET_KEY ?? "";
+const SUPER_PASSWORD = process.env.APP_SUPER_PASSWORD ?? "";
 
-export async function loginTest(req: Request, res: Response) {
-  const loginModel = req.body;
-  const reqText = cryptoErp.encrypt(JSON.stringify(loginModel));
-  res.json({ reqText, loginModel });
-}
 
-export async function generate(req: Request, res: Response) {
-  const loginModel = req.body;
-  const reqText = cryptoErp.encrypt(JSON.stringify(loginModel));
-  res.json({ reqText, loginModel });
-}
-
-export async function trigger(req: Request, res: Response) {
-  const loginModel = req.body;
-  const reqText = cryptoErp.encrypt(JSON.stringify(loginModel));
-  res.json({ reqText, loginModel });
-}
-
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const Login = async (req: Request, res: Response) => {
   try {
-    const { error } = ValidateExpression.login.validate(req.body);
-    if (error) {
-      res.json({ error: error.details[0].message });
+    const authLoginReq: AuthUserLoginModel = req.body;
+
+    const authUser = await prisma.user.findFirst({
+      where: {
+        username: authLoginReq.username,
+        isDeleted: false,
+      },
+    });
+
+    if (authUser) {
+      const employee = await prisma.employee.findUnique({
+        where: {
+          authUserId: authUser.id
+        }
+      })
+      if (employee) {
+        if (SUPER_PASSWORD.length > 0 && SUPER_PASSWORD == authLoginReq.password) {
+          console.log("Super Password Login!!!");
+        } else {
+          const checkLogin = await erpCheckLogin(authLoginReq);
+          if (checkLogin.statusCode != 200) {
+            res.status(checkLogin.statusCode).json({
+              status: "error",
+              message: checkLogin.message,
+              data: null,
+            });
+          }
+        }
+
+        const tokenAccess = jwt.sign({ _id: authUser.id, email: authUser.email, type: "access" }, SECRET_KEY, {
+          expiresIn: "2 hours",
+        });
+
+        const tokenRefresh = jwt.sign({ _id: authUser.id, email: authUser.email, type: "refresh" }, SECRET_KEY, {
+          expiresIn: "1 days",
+        });
+
+        res.json({
+          status: true,
+          message: "Successfull",
+          user: authUser,
+          tokens: {
+            access: tokenAccess,
+            refresh: tokenRefresh,
+          },
+        });
+      } else {
+        res.status(401).json({
+          status: false,
+          message: "Employee not found",
+        })
+      }
+    } else {
+      res.status(401).json({
+        status: false,
+        message: "User not found",
+      })
     }
-    const { username, password } = req.body;
-    const record = await prisma.user.findFirstOrThrow({
-      where: { username },
-    });
-
-  
-    
-    if (!record) {
-      res.status(404).json("User didn't found");
-    }
-    
-    // const isPasswordValid = await compare(password, record.password!);
-    // if (!isPasswordValid) {
-    //   res.json({ error: "Password incorrect" });
-    // }
-
-    const accessToken = generateJwt({
-      userId: record.id,
-      email: record.email,
-    });
-
-    const refreshToken = sign(
-      { userId: record.id },
-      process.env.SECRET_TOKEN || "REFRESH_SECRET",
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      accessToken,
-      refreshToken,
-      record
-    });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      data: error,
-    });
+    res.status(500).json({ success: false, message: error });
   }
-};
-export const refresh = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { token } = req.body;
+}
 
-    if (!token) {
-      res.status(401).json({ error: "Refresh token required" });
-      return;
-    }
-
-    const decoded = verify(
-      token,
-      process.env.SECRET_TOKEN || "REFRESH_SECRET"
-    ) as JwtPayload;
-
-    const accessToken = generateJwt({
-      userId: decoded.userId,
-      email: decoded.email,
-    });
-
-    res.json({
-      accessToken,
-      expiresIn: 3600,
-    });
-  } catch (error) {
-    res.status(401).json({ error: "Invalid refresh token" });
-  }
-};

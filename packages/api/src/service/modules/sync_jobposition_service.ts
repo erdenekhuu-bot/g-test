@@ -55,7 +55,7 @@ export class JobPositionSyncService {
 
     const department = await prisma.department.findUnique({
       where: {
-        id: parseInt(data.departmentId ?? 0),
+        id: parseInt(data.departmentId),
       },
     });
     if (!department) {
@@ -64,7 +64,7 @@ export class JobPositionSyncService {
 
     const jobGroup = await prisma.jobPositionGroup.findUnique({
       where: {
-        id: parseInt(data.level_group_id ?? 0),
+        id: parseInt(data.level_group_id),
       },
     });
     console.log(jobPosition);

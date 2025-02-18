@@ -4,6 +4,7 @@ import fs from "fs";
 import multer from "multer";
 const uploadImagesDir = path.join(__dirname, "..", "public", "images");
 const uploadFilesDir = path.join(__dirname, "..", "public", "files");
+const filePath = path.join(__dirname, 'files', 'example.pdf');
 
 if (!fs.existsSync(uploadImagesDir)) {
      fs.mkdirSync(uploadImagesDir, { recursive: true });

@@ -31,8 +31,10 @@ export class JobPositionSyncService {
   }
 
   async syncList() {
-    const response: AxiosResponse = await axios.post(
-      `${this.baseURL}/_sys/job/position/by/last/id`
+    const response = await axios.post(
+      `${this.baseURL}/_sys/job/position/by/time/updated`,
+      {},
+      { timeout: 10000 }  // 10 секундийн хугацаа
     );
     const { status, data } = response;
     console.log(typeof data);

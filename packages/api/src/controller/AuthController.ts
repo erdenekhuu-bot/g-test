@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuthUserLoginModel } from "../type/type";
-import { checkLogin as erpCheckLogin } from "../lib/auth/auth";
+import { checkLogin as erpCheckLogin } from "../../lib/auth/auth";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.APP_SECRET_KEY ?? "";
+const REFRESH_KEY = process.env.APP_REFRESH_KEY ?? "";
 const SUPER_PASSWORD = process.env.APP_SUPER_PASSWORD ?? "";
-
 
 export const Login = async (req: Request, res: Response) => {
   try {
@@ -23,11 +23,14 @@ export const Login = async (req: Request, res: Response) => {
     if (authUser) {
       const employee = await prisma.employee.findUnique({
         where: {
-          authUserId: authUser.id
-        }
-      })
+          authUserId: authUser.id,
+        },
+      });
       if (employee) {
-        if (SUPER_PASSWORD.length > 0 && SUPER_PASSWORD == authLoginReq.password) {
+        if (
+          SUPER_PASSWORD.length > 0 &&
+          SUPER_PASSWORD == authLoginReq.password
+        ) {
           console.log("Super Password Login!!!");
         } else {
           const checkLogin = await erpCheckLogin(authLoginReq);
@@ -40,13 +43,21 @@ export const Login = async (req: Request, res: Response) => {
           }
         }
 
-        const tokenAccess = jwt.sign({ _id: authUser.id, email: authUser.email, type: "access" }, SECRET_KEY, {
-          expiresIn: "2 hours",
-        });
+        const tokenAccess = jwt.sign(
+          { _id: authUser.id, email: authUser.email, type: "access" },
+          SECRET_KEY
+          // {
+          //   expiresIn: "1 h",
+          // }
+        );
 
-        const tokenRefresh = jwt.sign({ _id: authUser.id, email: authUser.email, type: "refresh" }, SECRET_KEY, {
-          expiresIn: "1 days",
-        });
+        const tokenRefresh = jwt.sign(
+          { _id: authUser.id, email: authUser.email, type: "refresh" },
+          SECRET_KEY,
+          {
+            expiresIn: "1 days",
+          }
+        );
 
         res.json({
           status: true,
@@ -61,16 +72,60 @@ export const Login = async (req: Request, res: Response) => {
         res.status(401).json({
           status: false,
           message: "Employee not found",
-        })
+        });
       }
     } else {
       res.status(401).json({
         status: false,
         message: "User not found",
-      })
+      });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
-}
+};
 
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res
+        .status(403)
+        .json({ success: false, message: "Refresh token required" });
+      return;
+    }
+    jwt.verify(refreshToken, SECRET_KEY, async (err: any, decoded: any) => {
+      if (err) {
+        res
+          .status(403)
+          .json({ success: false, message: "Invalid refresh token" });
+        return;
+      }
+      const userId = decoded._id;
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        res.status(403).json({ success: false, message: "User not found" });
+        return;
+      }
+      const newAccessToken = jwt.sign(
+        { _id: user.id, email: user.email, type: "access" },
+        SECRET_KEY,
+        {
+          expiresIn: "2h",
+        }
+      );
+
+      res.json({
+        success: true,
+        accessToken: newAccessToken,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error });
+  }
+};

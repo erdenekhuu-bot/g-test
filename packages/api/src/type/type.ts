@@ -1,3 +1,6 @@
+import { JwtPayload } from "jsonwebtoken";
+import { Request } from "express";
+
 export interface AuthUserLoginModel {
      username: string;
      password: string;
@@ -16,3 +19,12 @@ export interface AuthUserPayloadModel {
      email: string;
      isDeleted: boolean;
 }
+
+
+
+
+interface AuthRequest extends Request {
+     token: JwtPayload;
+}
+
+export type { AuthRequest };

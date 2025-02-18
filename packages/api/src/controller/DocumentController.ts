@@ -7,37 +7,39 @@ const prisma = new PrismaClient();
 
 export const filter = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { generate, firstname, pagination, statement } = req.body
+    const { generate, firstname, pagination, statement } = req.body;
 
     const paginationOptions = {
-      skip: pagination && pagination.page ? (pagination.page - 1) * (pagination.pageSize || 10) : 0,
+      skip:
+        pagination && pagination.page
+          ? (pagination.page - 1) * (pagination.pageSize || 10)
+          : 0,
       take: pagination && pagination.pageSize ? pagination.pageSize : 10,
     };
 
-    const employees = firstname ? await prisma.employee.findMany({
-      where: { firstname: { contains: firstname } },
-      include: { authUser: true }
-    }) : [];
-
+    const employees = firstname
+      ? await prisma.employee.findMany({
+          where: { firstname: { contains: firstname } },
+          include: { authUser: true },
+        })
+      : [];
 
     const doc = await prisma.document.findMany({
       ...paginationOptions,
       where: {
-        ...(generate
-          ? { generate: { contains: generate } }
-          : {}
-        ),
-        ...(statement
-          ? { statement: { contains: statement } }
-          : {}
-        ),
+        ...(generate ? { generate: { contains: generate } } : {}),
+        ...(statement ? { statement: { contains: statement } } : {}),
         ///dsadsadsadsad
         authuserId:
-          employees.length > 0 ?
-            {
-              in: [...employees.map(e => e.authUser?.id).filter(e => e != null)],
-            } : {
-            },
+          employees.length > 0
+            ? {
+                in: [
+                  ...employees
+                    .map((e) => e.authUser?.id)
+                    .filter((e) => e != null),
+                ],
+              }
+            : {},
       },
       include: {
         user: {
@@ -45,12 +47,12 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
             employee: {
               select: {
                 lastname: true,
-                firstname: true
-              }
-            }
-          }
-        }
-      }
+                firstname: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     res.status(201).json({
@@ -58,25 +60,23 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
       data: doc,
       count: await prisma.document.count({
         where: {
-          ...(generate
-            ? { generate: { contains: generate } }
-            : {}
-          ),
-          ...(statement
-            ? { statement: { contains: statement } }
-            : {}
-          ),
+          ...(generate ? { generate: { contains: generate } } : {}),
+          ...(statement ? { statement: { contains: statement } } : {}),
           authuserId:
-            employees.length > 0 ?
-              {
-                in: [...employees.map(e => e.authUser?.id).filter(e => e != null)],
-              } : {
-              },
+            employees.length > 0
+              ? {
+                  in: [
+                    ...employees
+                      .map((e) => e.authUser?.id)
+                      .filter((e) => e != null),
+                  ],
+                }
+              : {},
         },
       }),
       page: paginationOptions.skip,
-      pageSize: paginationOptions.take
-    })
+      pageSize: paginationOptions.take,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -85,7 +85,10 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const viewDetail = async (req: Request, res: Response): Promise<void> => {
+export const viewDetail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params;
     const parsedId = parseInt(id);
@@ -94,16 +97,60 @@ export const viewDetail = async (req: Request, res: Response): Promise<void> => 
         id: parsedId,
       },
       include: {
-        attribute: true,
-        riskassessment: true,
-        testcase: true,
-        budget: true,
-        userData: true,
+        user: {
+          select: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+              },
+            },
+          },
+        },
         detail: true,
-        test: true,
-        schedule: {
+        attribute: true,
+        budget: true,
+        riskassessment: true,
+        testcase: {
           include: {
-            employee: true,
+            testCaseDes: true,
+            testCaseImage: true,
+            file: true,
+          },
+        },
+        documentemployee: {
+          include: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+              },
+            },
+            jobPosition: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        test: {
+          include: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+              },
+            },
+            jobPosition: {
+              select: {
+                name: true,
+              },
+            },
+            department: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -126,25 +173,25 @@ export const create = async (req: Request, res: Response) => {
 
     const user = await prisma.employee.findUnique({
       where: {
-        authUserId: authuserId
-      }
-    })
+        authUserId: authuserId,
+      },
+    });
     if (user) {
       const department = await prisma.department.findUnique({
         where: {
-          id: user.departmentId
-        }
-      })
+          id: user.departmentId,
+        },
+      });
 
       if (department && department.name) {
         const initials = department.name
           .split(" ")
-          .map(word => word.charAt(0).toUpperCase())
+          .map((word) => word.charAt(0).toUpperCase())
           .join("");
 
         const text = "-ТӨ-" + initials;
         const lastDocument = await prisma.document.findFirst({
-          orderBy: { generate: "desc" }
+          orderBy: { generate: "desc" },
         });
 
         const lastNumber = lastDocument?.generate
@@ -168,27 +215,29 @@ export const create = async (req: Request, res: Response) => {
             aim,
             documentId: document.id,
           },
-        })
+        });
         res.status(201).json({
           success: true,
           data: document,
         });
       } else {
-        res.status(500).json({ success: false, data: "department name in not null", });
+        res
+          .status(500)
+          .json({ success: false, data: "department name in not null" });
       }
     } else {
-      res.status(500).json({ success: false, data: "department in not null", });
+      res.status(500).json({ success: false, data: "department in not null" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, data: error, });
+    res.status(500).json({ success: false, data: error });
   }
 };
 
 export const step1create = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
-    const { employeeId, jobPositionId, role, firstname } = req.body;
+    const { stepId, employeeId, jobPositionId, role, departmentId } = req.body;
 
     const document = await prisma.document.findUnique({
       where: {
@@ -196,81 +245,90 @@ export const step1create = async (req: Request, res: Response) => {
       },
     });
 
-    const employees = await prisma.employee.findMany({
-      where: firstname ? { firstname: { contains: firstname } } : undefined
-    });
+    //editing
+    // const employee = await prisma.employee.findFirst({
+    //   where: {
+    //     id: employeeId,
+    //   },
+    //   select: {
+    //     id: true,
+    //     jobPosition: true,
+    //   },
+    // });
 
-    const selectedEmployeeId = employees.length > 0 ? employees[0].id : null;
-    const selectedJobPositionId = employees.length > 0 ? employees[0].jobPositionId : null;
-    const SelectedDepartmentId = employees.length > 0 ? employees[0].departmentId : null;
-    if (selectedEmployeeId || selectedJobPositionId || SelectedDepartmentId) {
-      if (id) {
-        if (document) {
-          const object = {
-            employeeId: selectedEmployeeId ?? 0,
-            jobPositionId: selectedJobPositionId ?? 0,
-            departmentId: SelectedDepartmentId ?? 0,
-            role,
-            documentId: document.id,
-          }
-          // const list = data.map((model: any) => ({
-          //   employeeId: model.employeeId,
-          //   jobPositionId: model.jobPositionId,
-          //   role: model.role,
-          //   documentId: document.id
-          // }));
+    if (document) {
+      const createstep = await prisma.test.create({
+        data: {
+          employeeId,
+          jobPositionId,
+          departmentId,
+          role,
+          documentId: document.id,
+          timeCreated: new Date(),
+        },
+      });
+      // const createstep = await prisma.test.update({
+      //   where: {
+      //     id: stepId,
+      //   },
+      //   data: {
+      //     employeeId: employee?.id,
+      //     jobPositionId: employee?.jobPosition?.id,
+      //     departmentId: employee?.jobPosition?.departmentId,
+      //     role,
+      //     documentId: document.id,
+      //     timeCreated: new Date(),
+      //   },
+      // });
 
-          const createstep = await prisma.test.create({
-            data: object
-          });
+      const list = await prisma.test.findMany({
+        where: {
+          documentId: parsedId,
+        },
+        include: {
+          employee: {
+            select: {
+              firstname: true,
+              lastname: true,
+            },
+          },
+          jobPosition: {
+            select: {
+              name: true,
+            },
+          },
+          department: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
 
-          res.status(201).json({
-            success: true,
-            data: createstep,
-            test: await prisma.test.findMany({
-              where: {
-                id: createstep.id
-              },
-              include: {
-                department: {
-                  select: {
-                    name: true
-                  }
-                },
-                jobPosition: {
-                  select: {
-                    name: true
-                  }
-                },
-              }
-            }),
-          });
-        } else {
-          res.status(400).json({ success: false, message: "Document not found" });
-        }
-      } else {
-        res.status(400).json({ success: false, message: "id not found" });
-      }
+      res.status(201).json({
+        success: true,
+        data: createstep,
+        test: list,
+      });
     } else {
-      res.status(400).json({ success: false, message: "firstname not found" });
+      res.status(400).json({ success: false, message: "data not found" });
     }
-
   } catch (error) {
-    res.status(500).json({ success: false, data: error, });
+    res.status(500).json({ success: false, data: error });
   }
-}
+};
 
 export const attribute = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
     const { orderIndex, category, value, categoryMain } = req.body;
 
     const document = await prisma.document.findUnique({
       where: {
-        id: parsedId
-      }
-    })
+        id: parsedId,
+      },
+    });
     if (document) {
       const createAttribute = await prisma.documentAttribute.create({
         data: {
@@ -278,64 +336,79 @@ export const attribute = async (req: Request, res: Response) => {
           category,
           value,
           orderIndex,
-          documentId: document.id
-        }
-      })
+          documentId: document.id,
+        },
+      });
+      const list = await prisma.documentAttribute.findMany({
+        where: {
+          documentId: parsedId,
+        },
+      });
       res.status(201).json({
         success: true,
         data: createAttribute,
+        list: list,
       });
     } else {
       res.status(400).json({ success: false, message: "Document not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, data: error, });
+    res.status(500).json({ success: false, data: error });
   }
-}
+};
 
 export const risk = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
-    const { riskDescription, riskLevel, affectionLevel, mitigationStrategy } = req.body;
+    const { riskDescription, riskLevel, affectionLevel, mitigationStrategy } =
+      req.body;
 
     const document = await prisma.document.findUnique({
       where: {
-        id: parsedId
-      }
+        id: parsedId,
+      },
     });
     if (document) {
       const risk = await prisma.riskAssessment.create({
         data: {
-          riskDescription,
-          riskLevel,
-          affectionLevel,
-          mitigationStrategy,
-          documentId: document.id
-        }
-      })
+          riskDescription: riskDescription || null,
+          riskLevel: riskLevel || null,
+          affectionLevel: affectionLevel || null,
+          mitigationStrategy: mitigationStrategy || null,
+          documentId: document.id,
+        },
+      });
+
+      const list = await prisma.riskAssessment.findMany({
+        where: {
+          documentId: parsedId,
+        },
+      });
       res.status(201).json({
         success: true,
         data: risk,
+        list: list,
       });
     } else {
       res.status(400).json({ success: false, message: "Document not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
 export const budget = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
-    const { productCategory, product, amount, priceUnit, priceTotal } = req.body;
+    const { productCategory, product, amount, priceUnit, priceTotal } =
+      req.body;
 
     const document = await prisma.document.findUnique({
       where: {
-        id: parsedId
-      }
+        id: parsedId,
+      },
     });
 
     if (document) {
@@ -346,31 +419,37 @@ export const budget = async (req: Request, res: Response) => {
           amount,
           priceUnit,
           priceTotal,
-          documentId: document.id
-        }
+          documentId: document.id,
+        },
+      });
+      const list = await prisma.documentBudget.findMany({
+        where: {
+          documentId: parsedId,
+        },
       });
       res.status(201).json({
         success: true,
         data: budget,
+        list: list,
       });
     } else {
       res.status(400).json({ success: false, message: "Document not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
 export const testteam = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
     const { employeeId, jobPositionId, role, startedDate, endDate } = req.body;
 
     const document = await prisma.document.findUnique({
       where: {
-        id: parsedId
-      }
+        id: parsedId,
+      },
     });
 
     if (document) {
@@ -381,33 +460,54 @@ export const testteam = async (req: Request, res: Response) => {
           role,
           startedDate,
           endDate,
-          documentId: document.id
-        }
+          documentId: document.id,
+        },
+      });
+
+      const list = await prisma.documentEmployee.findMany({
+        where: {
+          documentId: parsedId,
+        },
+        include: {
+          employee: {
+            select: {
+              lastname: true,
+              firstname: true,
+            },
+          },
+          jobPosition: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
       res.status(201).json({
-        success: true, data: testteam,
+        success: true,
+        data: testteam,
+        list: list,
       });
     } else {
       res.status(400).json({ success: false, message: "Document not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
 export const testcase = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const parsedId = parseInt(id);
     const { category, types, steps, result, division, testType } = req.body;
 
     if (!id) {
-      res.status(444).json({ success: false, message: "not found Id !!!" })
+      res.status(444).json({ success: false, message: "not found Id !!!" });
     }
     const document = await prisma.document.findUnique({
       where: {
-        id: parsedId
-      }
+        id: parsedId,
+      },
     });
     if (document) {
       const testcase = await prisma.testCase.create({
@@ -418,68 +518,78 @@ export const testcase = async (req: Request, res: Response) => {
           result,
           division,
           testType: TestcaseEnum.CREATED,
-          documentId: document.id
-        }
-      })
+          documentId: document.id,
+        },
+      });
+
+      const list = await prisma.testCase.findMany({
+        where: {
+          documentId: parsedId,
+        },
+      });
       res.status(201).json({
-        success: true, data: testcase,
+        success: true,
+        data: testcase,
+        list: list,
       });
     } else {
       res.status(400).json({ success: false, message: "Document not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
 export const tesctDesc = async (req: Request, res: Response) => {
   try {
-    const { id } = (req.params);
+    const { id } = req.params;
     const { startedDescription, endedDescription } = req.body;
 
     const check = await prisma.testCase.findUnique({
       where: {
-        id: id
-      }
-    })
+        id: id,
+      },
+    });
     if (check?.testType === "STARTED") {
       const create = await prisma.tesctCaseDes.create({
         data: {
           startedDescription,
-          testCaseId: check.id
-        }
-      })
-      res.status(201).json({ status: true, data: create })
+          testCaseId: check.id,
+        },
+      });
+      res.status(201).json({ status: true, data: create });
     } else if (check?.testType === "ENDED") {
       const create = await prisma.tesctCaseDes.create({
         data: {
           endedDescription,
-          testCaseId: check.id
-        }
-      })
+          testCaseId: check.id,
+        },
+      });
       res.status(201).json({ success: true, data: create });
     } else {
-      res.status(400).json({ succes: false, error: "error" })
+      res.status(400).json({ succes: false, error: "error" });
     }
   } catch (error) {
-    res.status(500).json({ status: false, message: error })
+    res.status(500).json({ status: false, message: error });
   }
-
-}
+};
 
 export const state = async (req: Request, res: Response) => {
   try {
     const { authuserId, state, pagination, generate, statement } = req.body;
     const employee = await prisma.employee.findUnique({
       where: {
-        authUserId: authuserId
-      }
-    })
+        authUserId: authuserId,
+      },
+    });
     if (!employee) {
-      res.status(404).json({ success: false, message: "employee not found" })
+      res.status(404).json({ success: false, message: "employee not found" });
     }
     const paginationOptions = {
-      skip: pagination && pagination.page ? (pagination.page - 1) * (pagination.pageSize || 10) : 0,
+      skip:
+        pagination && pagination.page
+          ? (pagination.page - 1) * (pagination.pageSize || 10)
+          : 0,
       take: pagination && pagination.pageSize ? pagination.pageSize : 10,
     };
 
@@ -496,30 +606,30 @@ export const state = async (req: Request, res: Response) => {
       ...paginationOptions,
       where: whereCondition,
       include: {
-        document: true
+        document: true,
       },
     });
     const totalCount = await prisma.test.count({
-      where: whereCondition
+      where: whereCondition,
     });
     res.status(201).json({
       success: true,
       data: test,
       count: totalCount,
       page: paginationOptions.skip,
-      pageSize: paginationOptions.take
-    })
+      pageSize: paginationOptions.take,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
 export const team = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const team = await prisma.documentEmployee.findMany({
       where: {
-        documentId: parseInt(id)
+        documentId: parseInt(id),
       },
       select: {
         document: {
@@ -528,18 +638,18 @@ export const team = async (req: Request, res: Response) => {
             testcase: {
               select: {
                 category: true,
-                steps: true
-              }
-            }
-          }
+                steps: true,
+              },
+            },
+          },
         },
         employee: {
           select: {
             firstname: true,
-            lastname: true
-          }
+            lastname: true,
+          },
         },
-      }
+      },
     });
 
     const groupedData = Object.values(
@@ -559,25 +669,20 @@ export const team = async (req: Request, res: Response) => {
       }, {})
     );
 
-    res.status(201).json({ success: true, data: groupedData })
+    res.status(201).json({ success: true, data: groupedData });
   } catch (error) {
-    res.status(500).json({ success: false, message: error })
+    res.status(500).json({ success: false, message: error });
   }
-}
+};
 
-
-// export const team = async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//   } catch (error) {
-
-//   }
-// }
-
-// export const team = async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//   } catch (error) {
-
-//   }
-// }
+export const employee = async (req: Request, res: Response) => {
+  const employee = await prisma.employee.findMany({
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      jobPosition: true,
+    },
+  });
+  res.json({ success: true, data: employee });
+};

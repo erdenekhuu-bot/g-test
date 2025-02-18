@@ -101,20 +101,19 @@ model Document {
 
 model Test {
   id            String   @id @default(uuid())
-  employeeId    Int
-  jobPositionId Int
-  departmentId  Int
-  role          String   @db.VarChar(200)
-  documentId    Int
+  employeeId    Int?
+  jobPositionId Int?
+  departmentId  Int?
+  role          String?  @db.VarChar(200)
+  documentId    Int?
   timeCreated   DateTime @default(now())
   timeUpdated   DateTime @updatedAt
-  isDeleted     Boolean  @default(false)
 
   //relation
-  document    Document    @relation(fields: [documentId], references: [id])
-  jobPosition JobPosition @relation(fields: [jobPositionId], references: [id])
-  department  Department  @relation(fields: [departmentId], references: [id])
-  Employee    Employee    @relation(fields: [employeeId], references: [id])
+  document    Document?    @relation(fields: [documentId], references: [id])
+  jobPosition JobPosition? @relation(fields: [jobPositionId], references: [id])
+  department  Department?  @relation(fields: [departmentId], references: [id])
+  employee    Employee?    @relation(fields: [employeeId], references: [id])
 }
 
 model DocumentDetail {
@@ -239,7 +238,7 @@ model Employee {
   authUser                User?                    @relation(fields: [authUserId], references: [id], onDelete: Cascade)
   schedule                Schedule[]               @relation("employees")
   jobPosition             JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
-  department              Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  department              Department?              @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   departmentEmployeeRoles DepartmentEmployeeRole[]
   createdAt               DateTime                 @default(now())
   endedAt                 DateTime                 @updatedAt
@@ -310,10 +309,10 @@ model DocumentEmployee {
 
 model RiskAssessment {
   id                 String @id @default(uuid())
-  riskDescription    String @db.Text
-  riskLevel          Risk
-  affectionLevel     Risk
-  mitigationStrategy String @db.Text
+  riskDescription    String? @db.Text
+  riskLevel          Risk?
+  affectionLevel     Risk?
+  mitigationStrategy String? @db.Text
 
   //relation
   document   Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
@@ -336,23 +335,23 @@ model TestCase {
   documentId Int
 
   //foreign key
-  testcase    TestCaseImage[] @relation("testcaseimage")
-  testCaseDes TesctCaseDes[]
-  timeCreated DateTime        @default(now())
-  startDate   DateTime?
-  endDate     DateTime?
-  testType    TestcaseEnum
-  File        File[]
+  testCaseDes   TesctCaseDes[]
+  timeCreated   DateTime        @default(now())
+  startDate     DateTime?
+  endDate       DateTime?
+  testType      TestcaseEnum
+  file          File[]
+  testCaseImage TestCaseImage[]
 }
 
 model TestCaseImage {
   id         String   @id @default(uuid())
   path       String   @db.Text
-  testcaseId String
+  testCaseId String
   createdAt  DateTime @default(now())
 
   //relation
-  testcase TestCase @relation("testcaseimage", fields: [testcaseId], references: [id], onDelete: Cascade)
+  testCase TestCase? @relation(fields: [testCaseId], references: [id])
 }
 
 model TesctCaseDes {
@@ -375,14 +374,3 @@ model File {
   testCaseId String
   TestCase   TestCase @relation(fields: [testCaseId], references: [id])
 }
-
-// model Role {
-//   id   String @id @default(uuid())
-//   role String @db.VarChar(50)
-
-//   @@map("role")
-// }
-
-// model EmployeePermission {
-//   id String @id @default(uuid())
-// }

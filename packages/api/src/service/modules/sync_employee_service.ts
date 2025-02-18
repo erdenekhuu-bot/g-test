@@ -41,7 +41,17 @@ export class EmployeeSyncService {
 
   async syncEmployees() {
     const response: AxiosResponse = await axios.post(
-      `${this.baseURL}/_sys/employee/by/last/id`
+      `${this.baseURL}/_sys/employee/by/time/updated`, {
+      "timeUpdated": "2024-11-12T00:00:00.000Z"
+    },
+      {
+        timeout: 60000,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+
+      }
     );
     const { status, data } = response;
     if (status !== 200) {
@@ -75,13 +85,12 @@ export class EmployeeSyncService {
     if (!department) {
       return;
     }
-
+    console.log("parseInt(data.jobPositionId)", parseInt(data.jobPositionId, 0));
     const jobPosition = await prisma.jobPosition.findUnique({
       where: {
-        id: parseInt(data.jobPositionId),
+        id: parseInt(data.jobPositionId, 0),
       },
     });
-    console.log(employee);
     if (!employee) {
       try {
         employee = await prisma.employee.create({

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export const filter = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { generate, firstname, pagination, statement } = req.body;
+    const { generate, firstname, pagination, statement, authUserId } = req.body;
 
     const paginationOptions = {
       skip:
@@ -19,9 +19,9 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
 
     const employees = firstname
       ? await prisma.employee.findMany({
-          where: { firstname: { contains: firstname } },
-          include: { authUser: true },
-        })
+        where: { firstname: { contains: firstname } },
+        include: { authUser: true },
+      })
       : [];
 
     const doc = await prisma.document.findMany({
@@ -29,21 +29,20 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
       where: {
         ...(generate ? { generate: { contains: generate } } : {}),
         ...(statement ? { statement: { contains: statement } } : {}),
-        ///dsadsadsadsad
-        authuserId:
+        authUserId:
           employees.length > 0
             ? {
-                in: [
-                  ...employees
-                    .map((e) => e.authUser?.id)
-                    .filter((e) => e != null),
-                ],
-              }
+              in: [
+                ...employees
+                  .map((e) => e.authUser?.id)
+                  .filter((e) => e != null),
+              ],
+            }
             : {},
       },
       include: {
         user: {
-          include: {
+          select: {
             employee: {
               select: {
                 lastname: true,
@@ -55,25 +54,12 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
+    const filteredDocs = doc.filter((d) => d.authUserId === authUserId);
+    const totalCount = filteredDocs.length;
     res.status(201).json({
       success: true,
-      data: doc,
-      count: await prisma.document.count({
-        where: {
-          ...(generate ? { generate: { contains: generate } } : {}),
-          ...(statement ? { statement: { contains: statement } } : {}),
-          authuserId:
-            employees.length > 0
-              ? {
-                  in: [
-                    ...employees
-                      .map((e) => e.authUser?.id)
-                      .filter((e) => e != null),
-                  ],
-                }
-              : {},
-        },
-      }),
+      data: filteredDocs,
+      count: totalCount,
       page: paginationOptions.skip,
       pageSize: paginationOptions.take,
     });
@@ -115,7 +101,6 @@ export const viewDetail = async (
           include: {
             testCaseDes: true,
             testCaseImage: true,
-            file: true,
           },
         },
         documentemployee: {
@@ -202,7 +187,7 @@ export const create = async (req: Request, res: Response) => {
 
         const document = await prisma.document.create({
           data: {
-            authuserId,
+            authUserId: authuserId,
             generate,
             title,
             state: state.toUpperCase(),
@@ -237,24 +222,13 @@ export const step1create = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = parseInt(id);
-    const { stepId, employeeId, jobPositionId, role, departmentId } = req.body;
+    const { employeeId, jobPositionId, role, departmentId } = req.body;
 
     const document = await prisma.document.findUnique({
       where: {
         id: parsedId,
       },
     });
-
-    //editing
-    // const employee = await prisma.employee.findFirst({
-    //   where: {
-    //     id: employeeId,
-    //   },
-    //   select: {
-    //     id: true,
-    //     jobPosition: true,
-    //   },
-    // });
 
     if (document) {
       const createstep = await prisma.test.create({
@@ -267,19 +241,6 @@ export const step1create = async (req: Request, res: Response) => {
           timeCreated: new Date(),
         },
       });
-      // const createstep = await prisma.test.update({
-      //   where: {
-      //     id: stepId,
-      //   },
-      //   data: {
-      //     employeeId: employee?.id,
-      //     jobPositionId: employee?.jobPosition?.id,
-      //     departmentId: employee?.jobPosition?.departmentId,
-      //     role,
-      //     documentId: document.id,
-      //     timeCreated: new Date(),
-      //   },
-      // });
 
       const list = await prisma.test.findMany({
         where: {
@@ -675,14 +636,3 @@ export const team = async (req: Request, res: Response) => {
   }
 };
 
-export const employee = async (req: Request, res: Response) => {
-  const employee = await prisma.employee.findMany({
-    select: {
-      id: true,
-      firstname: true,
-      lastname: true,
-      jobPosition: true,
-    },
-  });
-  res.json({ success: true, data: employee });
-};

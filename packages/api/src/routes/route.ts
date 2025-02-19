@@ -12,33 +12,29 @@ import {
   tesctDesc,
   state,
   team,
-  employee,
-  // schedules,
   create,
   filter,
-  // setTrigger,
-  // setMiddle,
 } from "../controller/DocumentController";
 import {
   updateDetail,
   testcaseupdate,
   documentUpdate,
   listUpdate,
+  updateTest,
+  updateDocument,
 } from "../controller/DocumentUpController";
 import { pdfdownload } from "../controller/FileController";
 import { deleteStep, deleteRisk } from "../controller/DocumentDelController";
+import { employee } from "../controller/EmployeeController";
 const router = Router();
 
 router.post("/api/login", Login);
 router.post("/api/refresh", refreshToken);
 
-// router.post("/api/login/test", loginTest);
-// router.post("/api/login/generate", generate);
-// router.post("/api/login/encrypt", trigger);
-// router.post("/api/login", login);
+router.get("/api/document/team/:id", team);
+router.get("/api/document/list/:id", viewDetail);
 
 router.post("/api/document/filter", VerifyToken, filter);
-router.get("/api/document/list/:id", viewDetail);
 router.post("/api/document/step/:id", step1create);
 router.post("/api/document/create", create);
 router.post("/api/document/attribute/:id", attribute);
@@ -47,19 +43,19 @@ router.post("/api/document/budget/:id", budget);
 router.post("/api/document/employee/:id", testteam);
 router.post("/api/document/testcase/:id", testcase);
 router.post("/api/document/testcasedes/:id", tesctDesc);
+router.post("/api/document/state", state);
+
+router.patch("/api/document/update/:id", updateDocument);
 router.patch("/api/document/testcase/update/:id", testcaseupdate);
 router.patch("/api/document/detail/update/:id", updateDetail);
 router.patch("/api/document/update/:id", documentUpdate);
-router.post("/api/document/state", state);
-router.get("/api/document/team/:id", team);
 router.patch("/api/document/updateList/:id", listUpdate);
-router.get("/api/download/:id", pdfdownload);
-// router.get("/api/employee", employee);
-router.post("/api/employee", employee);
+router.patch("/api/document/updateStep/:id", updateTest);
+
 router.delete("/api/document/step/:id", deleteStep);
 router.delete("/api/document/risk/:id", deleteRisk);
-// router.get("/api/document/update/:title", update);
 
-// router.post("/api/document/permission", VerifyToken.checkout);
+router.get("/api/download/:id", pdfdownload);
+router.get("/api/employee", employee);
 
 export default router;

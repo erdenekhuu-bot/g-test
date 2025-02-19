@@ -9,12 +9,14 @@ interface JobPositionGroupRawType {
 }
 
 interface JobPositionRawType {
-  id: string;
-  departmentId: string;
-  level_group_id: string;
+  id: number;
+  departmentId: number;
+  jobGroupId: number;
   name: string;
-  status: string;
-  fullname: string;
+  description: string;
+  isDeleted: boolean;
+  timeCreated: Date;
+  timeUpdate: Date
 }
 
 const prisma = new PrismaClient();
@@ -33,8 +35,8 @@ export class JobPositionSyncService {
   async syncList() {
     const response = await axios.post(
       `${this.baseURL}/_sys/job/position/by/time/updated`,
-      {},
-      { timeout: 10000 }  // 10 секундийн хугацаа
+      { "timeUpdated": "2024-11-12T00:00:00.000Z" },
+      { timeout: 20000 }  // 10 секундийн хугацаа
     );
     const { status, data } = response;
     console.log(typeof data);
@@ -51,35 +53,21 @@ export class JobPositionSyncService {
   async syncJobPosition(data: JobPositionRawType) {
     let jobPosition = await prisma.jobPosition.findUnique({
       where: {
-        id: parseInt(data.id),
-      },
-    });
-
-    const department = await prisma.department.findUnique({
-      where: {
-        id: parseInt(data.departmentId),
-      },
-    });
-    if (!department) {
-      return;
-    }
-
-    const jobGroup = await prisma.jobPositionGroup.findUnique({
-      where: {
-        id: parseInt(data.level_group_id),
+        id: data.id,
       },
     });
     console.log(jobPosition);
     if (!jobPosition) {
       jobPosition = await prisma.jobPosition.create({
         data: {
-          id: parseInt(data.id),
-          departmentId: department.id,
-          jobGroupId: jobGroup ? jobGroup.id : null,
+          id: data.id,
+          departmentId: data.departmentId,
+          jobGroupId: data ? data.jobGroupId : null,
           name: data.name,
-          description: data.fullname,
-          isDeleted: false,
-          timeCreated: new Date(),
+          description: data.description,
+          isDeleted: data.isDeleted,
+          timeCreated: data.timeCreated,
+          timeUpdate: data.timeUpdate,
         },
       });
       console.log(`${jobPosition.id}. ${jobPosition.name} == created`);
@@ -89,12 +77,13 @@ export class JobPositionSyncService {
           id: jobPosition.id,
         },
         data: {
-          departmentId: parseInt(data.departmentId),
-          jobGroupId: parseInt(data.level_group_id),
+          departmentId: data.departmentId,
+          jobGroupId: data ? data.jobGroupId : null,
           name: data.name,
-          description: data.fullname,
-          isDeleted: false,
-          timeCreated: new Date(),
+          description: data.description,
+          isDeleted: data.isDeleted,
+          timeCreated: data.timeCreated,
+          timeUpdate: data.timeUpdate
         },
       });
       console.log(`${jobPosition.id}, ${jobPosition.name} == updated`);

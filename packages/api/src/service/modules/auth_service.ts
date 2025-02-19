@@ -75,12 +75,12 @@ export async function savePermission(
   authUserId: number,
   permissions: string[]
 ) {
-  const authUserData = await prisma.userData.findUnique({
+  const authUserData = await prisma.authUserData.findUnique({
     where: { authUserId: authUserId },
   });
   const now = new Date();
   if (!authUserData) {
-    await prisma.userData.create({
+    await prisma.authUserData.create({
       data: {
         authUserId: authUserId,
         permissions: permissions,
@@ -88,7 +88,7 @@ export async function savePermission(
       },
     });
   } else {
-    await prisma.userData.update({
+    await prisma.authUserData.update({
       where: { authUserId: authUserId },
       data: { permissions: permissions, timeUpdated: now },
     });

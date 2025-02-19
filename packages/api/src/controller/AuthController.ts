@@ -13,7 +13,7 @@ export const Login = async (req: Request, res: Response) => {
   try {
     const authLoginReq: AuthUserLoginModel = req.body;
 
-    const authUser = await prisma.user.findFirst({
+    const authUser = await prisma.authUser.findFirst({
       where: {
         username: authLoginReq.username,
         isDeleted: false,
@@ -104,7 +104,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       }
       const userId = decoded._id;
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.authUser.findUnique({
         where: { id: userId },
       });
 

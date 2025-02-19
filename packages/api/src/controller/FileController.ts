@@ -31,10 +31,10 @@ export const saveImage = async (req: Request, res: Response): Promise<void> => {
 export const saveFile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    const check = await prisma.testCase.findUnique({
+    const parsedId = parseInt(id);
+    const check = await prisma.document.findUnique({
       where: {
-        id: id,
+        id: parsedId,
       },
     });
     const file = req.file;
@@ -46,13 +46,13 @@ export const saveFile = async (req: Request, res: Response) => {
           data: {
             fileName: file.originalname,
             path: file.path,
-            testCaseId: check.id,
+            documentId: check.id,
           },
         });
 
-        if (check.documentId) {
+        if (savedFile) {
           await prisma.document.update({
-            where: { id: check.documentId },
+            where: { id: savedFile.documentId },
             data: { statement: statement },
           });
         }

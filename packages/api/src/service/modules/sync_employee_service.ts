@@ -11,19 +11,24 @@ interface EmployeeStatetRawType {
 }
 
 interface EmployeeRawType {
-  id: string;
-  departmentId: string;
-  jobPositionId: string;
-  authUserId: string;
-  familyName: string;
-  lastname: string;
+  id: number;
+  departmentId: number;
+  jobPositionId: number;
   firstname: string;
-  gender: string | null;
-  birthDate: string;
-  regNum: string;
-  image_url: string | null;
-  status: string | null;
-  current_state_id: string;
+  lastname: string
+  familyName: string
+  gender: string
+  regNum: string
+  birthDate: Date
+  stateId: number
+  authUserId: number
+  isDeleted: boolean
+  userCreatedId: number
+  timeCreated: Date
+  timeUpdated: Date
+  note: string
+  //
+
 }
 
 const prisma = new PrismaClient();
@@ -40,18 +45,10 @@ export class EmployeeSyncService {
   }
 
   async syncEmployees() {
-    const response: AxiosResponse = await axios.post(
-      `${this.baseURL}/_sys/employee/by/time/updated`, {
-      "timeUpdated": "2024-11-12T00:00:00.000Z"
-    },
-      {
-        timeout: 60000,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-
-      }
+    const response = await axios.post(
+      `${this.baseURL}/_sys/employee/by/time/updated`,
+      { "timeUpdated": "2024-11-12T00:00:00.000Z" },
+      { timeout: 20000 }
     );
     const { status, data } = response;
     if (status !== 200) {
@@ -66,46 +63,31 @@ export class EmployeeSyncService {
   async syncEmployee(data: EmployeeRawType) {
     let employee = await prisma.employee.findUnique({
       where: {
-        id: parseInt(data.id),
+        id: data.id,
       },
     });
 
-    const authUser = await prisma.user.findUnique({
-      where: {
-        id: parseInt(data.authUserId ?? "0"),
-      },
-    });
-
-    const department = await prisma.department.findUnique({
-      where: {
-        id: parseInt(data?.departmentId),
-      },
-    });
-
-    if (!department) {
-      return;
-    }
-    console.log("parseInt(data.jobPositionId)", parseInt(data.jobPositionId, 0));
-    const jobPosition = await prisma.jobPosition.findUnique({
-      where: {
-        id: parseInt(data.jobPositionId, 0),
-      },
-    });
+    console.log(employee);
     if (!employee) {
       try {
         employee = await prisma.employee.create({
           data: {
-            id: parseInt(data.id),
-            departmentId: department.id,
-            jobPositionId: jobPosition ? jobPosition.id : null,
+            id: data.id,
+            departmentId: data.departmentId,
+            jobPositionId: data.jobPositionId ?? null,
             firstname: data.firstname,
             lastname: data.lastname,
             familyName: data.familyName,
             regNum: data.regNum,
-            birthDate: new Date(data.birthDate),
-            stateId: null,
-            authUserId: authUser ? authUser.id : null,
-            isDeleted: data.status != "A",
+            gender: data.gender ?? null,
+            birthDate: data.birthDate,
+            stateId: data.stateId ?? null,
+            authUserId: data.authUserId ?? null,
+            isDeleted: data.isDeleted,
+            note: data.note ?? null,
+            userCreatedId: data.userCreatedId ?? null,
+            timeCreated: data.timeCreated,
+            timeUpdated: data.timeUpdated
           },
         });
         console.log(`${data.id}. ${data.firstname} == created`);
@@ -120,16 +102,22 @@ export class EmployeeSyncService {
             id: employee.id,
           },
           data: {
-            departmentId: department.id,
-            jobPositionId: jobPosition ? jobPosition.id : null,
+            id: data.id,
+            departmentId: data.departmentId,
+            jobPositionId: data.jobPositionId ?? null,
             firstname: data.firstname,
             lastname: data.lastname,
             familyName: data.familyName,
             regNum: data.regNum,
-            birthDate: new Date(data.birthDate),
-            stateId: null,
-            authUserId: authUser ? authUser.id : null,
-            isDeleted: data.status != "A",
+            gender: data.gender ?? null,
+            birthDate: data.birthDate,
+            stateId: data.stateId ?? null,
+            authUserId: data.authUserId ?? null,
+            isDeleted: data.isDeleted,
+            note: data.note ?? null,
+            userCreatedId: data.userCreatedId ?? null,
+            timeCreated: data.timeCreated,
+            timeUpdated: data.timeUpdated
           },
         });
         console.log(`${employee.id}. ${employee.firstname} == updated`);

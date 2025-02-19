@@ -42,78 +42,52 @@ export const updateDetail = async (req: Request, res: Response) => {
   }
 };
 
-export const testcaseupdate = async (req: Request, res: Response) => {
+export const updateTest = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { testType } = req.body;
-    if (testType === TestcaseEnum.STARTED) {
-      const update = await prisma.testCase.update({
-        where: {
-          id: id,
-        },
-        data: {
-          startDate: new Date(),
-          testType: testType.toUpperCase(),
-        },
-      });
-      res.status(201).json({
-        success: true,
-        data: update,
-      });
-    } else if (testType === TestcaseEnum.ENDED) {
-      const update = await prisma.testCase.update({
-        where: {
-          id: id,
-        },
-        data: {
-          endDate: new Date(),
-          testType: testType.toUpperCase(),
-        },
-      });
-      res.status(201).json({
-        success: true,
-        data: update,
-      });
-    } else {
-      res.status(400).json({ success: false, message: "error" });
-    }
+    const { employeeId, jobPositionId, departmentId, role } = req.body;
+    const update = await prisma.test.update({
+      where: {
+        id: id,
+      },
+      data: {
+        employeeId,
+        jobPositionId,
+        departmentId,
+        role,
+        timeUpdated: new Date(),
+      },
+    });
+    res.status(201).json({
+      success: true,
+      data: update,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
 };
 
-export const documentUpdate = async (req: Request, res: Response) => {
+export const updateDocument = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = Number(id);
     const { title, statement } = req.body;
-    const DENY = "DENY";
-    if (DENY) {
-      const update = await prisma.document.update({
-        where: {
-          id: parsedId,
-          state: DENY,
-        },
-        data: {
-          title,
-          statement,
-        },
-      });
-      res.status(201).json({
-        success: true,
-        data: update,
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: "cant edit",
-      });
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, data: error });
-  }
+    const update = await prisma.document.update({
+      where: {
+        id: parsedId,
+      },
+      data: {
+        title,
+        statement,
+        timeUpdated: new Date(),
+      },
+    });
+    res.status(201).json({
+      success: true,
+      data: update,
+    });
+  } catch (error) {}
 };
-
 export const listUpdate = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -188,5 +162,77 @@ export const listUpdate = async (req: Request, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error });
+  }
+};
+
+export const testcaseupdate = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { testType } = req.body;
+    if (testType === TestcaseEnum.STARTED) {
+      const update = await prisma.testCase.update({
+        where: {
+          id: id,
+        },
+        data: {
+          startDate: new Date(),
+          testType: testType.toUpperCase(),
+        },
+      });
+      res.status(201).json({
+        success: true,
+        data: update,
+      });
+    } else if (testType === TestcaseEnum.ENDED) {
+      const update = await prisma.testCase.update({
+        where: {
+          id: id,
+        },
+        data: {
+          endDate: new Date(),
+          testType: testType.toUpperCase(),
+        },
+      });
+      res.status(201).json({
+        success: true,
+        data: update,
+      });
+    } else {
+      res.status(400).json({ success: false, message: "error" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error });
+  }
+};
+
+export const documentUpdate = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const parsedId = Number(id);
+    const { title, statement } = req.body;
+    const DENY = "DENY";
+    if (DENY) {
+      const update = await prisma.document.update({
+        where: {
+          id: parsedId,
+          state: DENY,
+        },
+        data: {
+          title,
+          statement,
+        },
+      });
+      res.status(201).json({
+        success: true,
+        data: update,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "cant edit",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, data: error });
   }
 };

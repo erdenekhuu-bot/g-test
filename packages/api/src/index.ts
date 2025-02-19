@@ -6,6 +6,7 @@ import AuthUserSyncService from "./service/modules/sync_authuser_service";
 import EmployeeSyncService from "./service/modules/sync_employee_service";
 import DepartmentSyncService from "./service/modules/sync_department_service";
 import JobPositionSyncService from "./service/modules/sync_jobposition_service";
+import JobPositionGroupSyncService from "./service/modules/sync_jobPositionGroup_service";
 import fileRouter from "./routes/FileRoute";
 
 dotenv.config();
@@ -14,9 +15,10 @@ const authUserSyncService = new AuthUserSyncService();
 const employeeSyncService = new EmployeeSyncService();
 const departmentSyncService = new DepartmentSyncService();
 const jobposition = new JobPositionSyncService();
+const jobPositionGroup = new JobPositionGroupSyncService();
 const app = express();
 const port = process.env.PORT;
-// jobposition
+// employeeSyncService
 //   .sync()
 //   .then(() => {
 //     console.log("Fetch completed");

@@ -8,6 +8,7 @@ interface AuthUserRawType {
   mobile: string;
   email: string;
   status: string;
+  isDelete: boolean
 }
 
 const prisma = new PrismaClient();
@@ -35,14 +36,14 @@ export class AuthUserSyncService {
   }
 
   async syncAuthUser(data: AuthUserRawType) {
-    let AuthUser = await prisma.user.findUnique({
+    let AuthUser = await prisma.authUser.findUnique({
       where: {
         id: parseInt(data.id),
       },
     });
 
     if (!AuthUser) {
-      AuthUser = await prisma.user.create({
+      AuthUser = await prisma.authUser.create({
         data: {
           id: parseInt(data.id),
           username: data.username,
@@ -53,7 +54,7 @@ export class AuthUserSyncService {
       });
       console.log(`${AuthUser.id}. ${AuthUser.username} == created`);
     } else {
-      AuthUser = await prisma.user.update({
+      AuthUser = await prisma.authUser.update({
         where: {
           id: AuthUser.id,
         },
@@ -61,7 +62,7 @@ export class AuthUserSyncService {
           username: data.username,
           mobile: data.mobile,
           email: data.email,
-          isDeleted: data.status != "0",
+          isDeleted: data.isDelete,
         },
       });
       console.log(`${AuthUser.id}, ${AuthUser.username} == updated`);

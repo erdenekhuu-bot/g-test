@@ -4,7 +4,10 @@ import { RequestHandler } from "express";
 import { uploadFile, uploadImage } from "../middleware/File";
 const fileRouter = express.Router();
 
-const imagesMiddleware = uploadImage.array("images", 20) as unknown as RequestHandler;
+const imagesMiddleware = uploadImage.array(
+  "images",
+  20
+) as unknown as RequestHandler;
 fileRouter.post("/api/imageupload/:id", imagesMiddleware, saveImage);
 fileRouter.post("/api/fileupload/:id", uploadFile.single("file"), saveFile);
 

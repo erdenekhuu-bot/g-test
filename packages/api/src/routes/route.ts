@@ -22,6 +22,8 @@ import {
   listUpdate,
   updateTest,
   updateDocument,
+  SentTest,
+  approv
 } from "../controller/DocumentUpController";
 import { pdfdownload } from "../controller/FileController";
 import { deleteStep, deleteRisk } from "../controller/DocumentDelController";
@@ -33,6 +35,7 @@ router.post("/api/refresh", refreshToken);
 
 router.get("/api/document/team/:id", team);
 router.get("/api/document/list/:id", viewDetail);
+router.post("/api/document/sent/:id", SentTest)
 
 router.post("/api/document/filter", VerifyToken, filter);
 router.post("/api/document/step/:id", step1create);
@@ -44,6 +47,7 @@ router.post("/api/document/employee/:id", testteam);
 router.post("/api/document/testcase/:id", testcase);
 router.post("/api/document/testcasedes/:id", tesctDesc);
 router.post("/api/document/state", state);
+router.patch("/api/document/approv/:id", approv)
 
 router.patch("/api/document/update/:id", updateDocument);
 router.patch("/api/document/testcase/update/:id", testcaseupdate);
@@ -56,6 +60,6 @@ router.delete("/api/document/step/:id", deleteStep);
 router.delete("/api/document/risk/:id", deleteRisk);
 
 router.get("/api/download/:id", pdfdownload);
-router.get("/api/employee", employee);
+router.post("/api/employee", employee);
 
 export default router;

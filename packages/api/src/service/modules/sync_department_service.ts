@@ -35,7 +35,6 @@ class DepartmentSyncService {
       { timeout: 20000 }
     );
     const { status, data } = response;
-    console.log(typeof data);
 
     if (status !== 200) {
       return;
@@ -66,30 +65,41 @@ class DepartmentSyncService {
           isDeleted: data.isDeleted,
           parentsNesting: data ? data.parentsNesting : null,
           timeCreated: data.timeCreated,
-          timeUpdate: data.timeUpdated
+          timeUpdated: data.timeUpdated
 
         },
       });
       console.log(`${department.id}. ${department.name} == created`);
     } else {
-      department = await prisma.department.update({
-        where: {
-          id: department.id,
-        },
-        data: {
-          parentId: data.parentId,
-          name: data.name,
-          description: data ? data.description : null,
-          authDivision: data.authDivision,
-          isDeleted: data.isDeleted,
-          parentsNesting: data ? data.parentsNesting : null,
-          timeCreated: data.timeCreated,
-          timeUpdate: data.timeUpdated
-        },
-      });
-      console.log(`${department.id}. ${department.name} == updated`);
-    }
+      const isChanged =
+        department.id !== data.id ||
+        department.parentId !== data.parentId ||
+        department.name !== data.name ||
+        department.description !== data.description ||
+        department.authDivision !== data.authDivision ||
+        department.isDeleted !== data.isDeleted ||
+        department.parentsNesting !== data.parentsNesting;
 
+
+      if (isChanged) {
+        department = await prisma.department.update({
+          where: {
+            id: department.id,
+          },
+          data: {
+            parentId: data.parentId,
+            name: data.name,
+            description: data ? data.description : null,
+            authDivision: data.authDivision,
+            isDeleted: data.isDeleted,
+            parentsNesting: data ? data.parentsNesting : null,
+            timeCreated: data.timeCreated,
+            timeUpdated: data.timeUpdated
+          },
+        });
+        console.log(`${department.id}. ${department.name} == updated`);
+      }
+    }
     // if (data.leader_id && parseInt(data.leader_id) > 0) {
     //   this.derDataList.push({
     //     departmentId: department.id,
@@ -102,29 +112,29 @@ class DepartmentSyncService {
     //     employeeId: parseInt(data.sign_leader_id),
     //   });
     // }
+
+
+    // async syncDepartmentAdminRole() {
+    //   const role = "authority";
+    //   let der;
+    //   for (const derData of this.derDataList) {
+    //     der = await prisma.departmentEmployeeRole.findFirst({
+    //       where: { ...derData, role },
+    //     });
+    //     if (der) {
+    //       if (der.isDeleted == true) {
+    //         der = await prisma.departmentEmployeeRole.update({
+    //           where: { id: der.id },
+    //           data: { isDeleted: false },
+    //         });
+    //       }
+    //     } else {
+    //       der = await prisma.departmentEmployeeRole.create({
+    //         data: { ...derData, role },
+    //       });
+    //     }
+    //   }
+    // }
   }
-
-  // async syncDepartmentAdminRole() {
-  //   const role = "authority";
-  //   let der;
-  //   for (const derData of this.derDataList) {
-  //     der = await prisma.departmentEmployeeRole.findFirst({
-  //       where: { ...derData, role },
-  //     });
-  //     if (der) {
-  //       if (der.isDeleted == true) {
-  //         der = await prisma.departmentEmployeeRole.update({
-  //           where: { id: der.id },
-  //           data: { isDeleted: false },
-  //         });
-  //       }
-  //     } else {
-  //       der = await prisma.departmentEmployeeRole.create({
-  //         data: { ...derData, role },
-  //       });
-  //     }
-  //   }
-  // }
 }
-
 export default DepartmentSyncService;

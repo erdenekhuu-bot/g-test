@@ -2,7 +2,11 @@ import express, { Request, Response } from "express";
 import { saveFile, saveImage } from "../controller/FileController";
 import { RequestHandler } from "express";
 import { uploadFile, uploadImage } from "../middleware/File";
+import { PrismaClient } from "@prisma/client";
+
 const fileRouter = express.Router();
+
+const prisma = new PrismaClient();
 
 const imagesMiddleware = uploadImage.array(
   "images",

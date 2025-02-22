@@ -16,7 +16,6 @@ export const Login = async (req: Request, res: Response) => {
     const authUser = await prisma.authUser.findFirst({
       where: {
         username: authLoginReq.username,
-        isDeleted: false,
       },
     });
 
@@ -45,10 +44,10 @@ export const Login = async (req: Request, res: Response) => {
 
         const tokenAccess = jwt.sign(
           { _id: authUser.id, email: authUser.email, type: "access" },
-          SECRET_KEY
-          // {
-          //   expiresIn: "1 h",
-          // }
+          SECRET_KEY,
+          {
+            expiresIn: "1 y",
+          }
         );
 
         const tokenRefresh = jwt.sign(

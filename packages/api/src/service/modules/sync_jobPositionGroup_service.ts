@@ -14,7 +14,8 @@ interface JobPositionRawType {
      jobAuthRank: number;
      description: string;
      timeCreated: Date;
-     timeUpdated: Date
+     timeUpdated: Date;
+     isDeleted: boolean;
 
 }
 
@@ -37,8 +38,6 @@ export class JobPositionGroupSyncService {
                { timeout: 20000 }  // 10 секундийн хугацаа
           );
           const { status, data } = response;
-          console.log(typeof data);
-
           if (status !== 200) {
                return;
           }
@@ -54,7 +53,6 @@ export class JobPositionGroupSyncService {
                     id: parseInt(data.id),
                },
           });
-          console.log(jobPositionGroup);
           if (!jobPositionGroup) {
                jobPositionGroup = await prisma.jobPositionGroup.create({
                     data: {
@@ -66,6 +64,36 @@ export class JobPositionGroupSyncService {
                          timeCreated: new Date(),
                     },
                });
+          } else {
+               const isChanged =
+                    jobPositionGroup.id !== parseInt(data.id) ||
+                    jobPositionGroup.name !== data.name ||
+                    jobPositionGroup.jobAuthRank !== data.jobAuthRank ||
+                    jobPositionGroup.description !== data.description ||
+                    jobPositionGroup.isDeleted !== data.isDeleted;
+               // console.log(
+               //      jobPositionGroup.id !== parseInt(data.id),
+               //      jobPositionGroup.name !== data.name,
+               //      jobPositionGroup.jobAuthRank !== data.jobAuthRank,
+               //      jobPositionGroup.description !== data.description,
+               //      jobPositionGroup.isDeleted !== data.isDeleted
+               // );
+               if (isChanged) {
+                    jobPositionGroup = await prisma.jobPositionGroup.update({
+                         where: {
+                              id: jobPositionGroup.id,
+                         },
+                         data: {
+                              name: data.name,
+                              jobAuthRank: data ? data.jobAuthRank : null,
+                              description: data.description,
+                              isDeleted: data.isDeleted,
+                         },
+                    });
+                    console.log(`${jobPositionGroup.name} == updated`);
+               } else {
+
+               }
           }
      }
 }

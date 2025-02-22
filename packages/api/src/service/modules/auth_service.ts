@@ -68,17 +68,20 @@ export async function storePermissions(authUserId: number) {
     permissions.push(`${per.module}_${per.action}`);
   }
 
-  await savePermission(authUserId, permissions);
+  await savePermission(authUserId, permissions, data);
+
 }
 
 export async function savePermission(
   authUserId: number,
-  permissions: string[]
+  permissions: string[],
+  data: JSON[]
 ) {
   const authUserData = await prisma.authUserData.findUnique({
     where: { authUserId: authUserId },
   });
   const now = new Date();
+
   if (!authUserData) {
     await prisma.authUserData.create({
       data: {
@@ -88,10 +91,22 @@ export async function savePermission(
       },
     });
   } else {
-    await prisma.authUserData.update({
-      where: { authUserId: authUserId },
-      data: { permissions: permissions, timeUpdated: now },
-    });
+    const permissionStrings = data.map((item: any) => `${item.module}_${item.action}`);
+
+    // console.log("heelo",
+    //   authUserData.authUserId !== authUserId,
+    //   JSON.stringify(authUserData.permissions) !== JSON.stringify(permissionStrings)
+    // );
+    const isChanged =
+      authUserData.authUserId !== authUserId ||
+      JSON.stringify(authUserData.permissions) !== JSON.stringify(permissionStrings);
+
+    if (isChanged) {
+      await prisma.authUserData.update({
+        where: { authUserId: authUserId },
+        data: { permissions: permissions, timeUpdated: now },
+      });
+    } else {
+    }
   }
-  console.log("created");
 }

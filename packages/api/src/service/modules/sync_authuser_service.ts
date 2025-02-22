@@ -8,7 +8,6 @@ interface AuthUserRawType {
   mobile: string;
   email: string;
   status: string;
-  isDelete: boolean
 }
 
 const prisma = new PrismaClient();
@@ -41,7 +40,6 @@ export class AuthUserSyncService {
         id: parseInt(data.id),
       },
     });
-
     if (!AuthUser) {
       AuthUser = await prisma.authUser.create({
         data: {
@@ -49,23 +47,38 @@ export class AuthUserSyncService {
           username: data.username,
           mobile: data.mobile,
           email: data.email,
-          isDeleted: data.status != "0",
+          status: data.status,
         },
       });
       console.log(`${AuthUser.id}. ${AuthUser.username} == created`);
     } else {
-      AuthUser = await prisma.authUser.update({
-        where: {
-          id: AuthUser.id,
-        },
-        data: {
-          username: data.username,
-          mobile: data.mobile,
-          email: data.email,
-          isDeleted: data.isDelete,
-        },
-      });
-      console.log(`${AuthUser.id}, ${AuthUser.username} == updated`);
+      const isChanged =
+        AuthUser.id !== parseInt(data.id) ||
+        AuthUser.username !== data.username ||
+        AuthUser.mobile !== data.mobile ||
+        AuthUser.email !== data.email ||
+        AuthUser.status !== data.status;
+      // console.log(
+      //   AuthUser.id !== parseInt(data.id),
+      //   AuthUser.username !== data.username,
+      //   AuthUser.email !== data.email,
+      //   AuthUser.mobile !== data.mobile,
+      //   AuthUser.status !== data.status,
+      // );
+
+      if (isChanged) {
+        await prisma.authUser.update({
+          where: { id: AuthUser.id },
+          data: {
+            username: data.username,
+            mobile: data.mobile,
+            email: data.email,
+            status: data.status,
+          },
+        });
+        console.log(`${AuthUser.id}, ${AuthUser.username} == updated`);
+      } else {
+      }
     }
   }
 }

@@ -16,7 +16,7 @@ interface JobPositionRawType {
   description: string;
   isDeleted: boolean;
   timeCreated: Date;
-  timeUpdate: Date
+  timeUpdated: Date
 }
 
 const prisma = new PrismaClient();
@@ -39,7 +39,6 @@ export class JobPositionSyncService {
       { timeout: 20000 }  // 10 секундийн хугацаа
     );
     const { status, data } = response;
-    console.log(typeof data);
 
     if (status !== 200) {
       return;
@@ -56,7 +55,6 @@ export class JobPositionSyncService {
         id: data.id,
       },
     });
-    console.log(jobPosition);
     if (!jobPosition) {
       jobPosition = await prisma.jobPosition.create({
         data: {
@@ -67,28 +65,54 @@ export class JobPositionSyncService {
           description: data.description,
           isDeleted: data.isDeleted,
           timeCreated: data.timeCreated,
-          timeUpdate: data.timeUpdate,
+          timeUpdated: data.timeUpdated,
         },
       });
       console.log(`${jobPosition.id}. ${jobPosition.name} == created`);
     } else {
-      jobPosition = await prisma.jobPosition.update({
-        where: {
-          id: jobPosition.id,
-        },
-        data: {
-          departmentId: data.departmentId,
-          jobGroupId: data ? data.jobGroupId : null,
-          name: data.name,
-          description: data.description,
-          isDeleted: data.isDeleted,
-          timeCreated: data.timeCreated,
-          timeUpdate: data.timeUpdate
-        },
-      });
-      console.log(`${jobPosition.id}, ${jobPosition.name} == updated`);
+      const jobPositionDate = new Date(jobPosition.timeCreated).toISOString().split("T")[0];
+      const dataDate = new Date(data.timeCreated).toISOString().split("T")[0];
+      const jobPositionDateUp = new Date(jobPosition.timeUpdated).toISOString().split("T")[0];
+      const dataDateUp = new Date(data.timeUpdated).toISOString().split("T")[0];
+      const isChanged =
+        jobPosition.id !== data.id ||
+        jobPosition.departmentId !== data.departmentId ||
+        jobPosition.jobGroupId !== data.jobGroupId ||
+        jobPosition.name !== data.name ||
+        jobPosition.description !== data.description ||
+        jobPosition.isDeleted !== data.isDeleted ||
+        jobPositionDate !== dataDate ||
+        jobPositionDateUp !== dataDateUp;
+
+      // console.log("hi2",
+      //   jobPosition.id !== data.id,
+      //   jobPosition.departmentId !== data.departmentId,
+      //   jobPosition.jobGroupId !== data.jobGroupId,
+      //   jobPosition.name !== data.name,
+      //   jobPosition.description !== data.description,
+      //   jobPosition.isDeleted !== data.isDeleted,
+      //   jobPositionDate !== dataDate,
+      //   jobPositionDateUp !== dataDateUp);
+      if (isChanged) {
+        jobPosition = await prisma.jobPosition.update({
+          where: {
+            id: jobPosition.id,
+          },
+          data: {
+            departmentId: data.departmentId,
+            jobGroupId: data ? data.jobGroupId : null,
+            name: data.name,
+            description: data.description,
+            isDeleted: data.isDeleted,
+            timeCreated: data.timeCreated,
+            timeUpdated: data.timeUpdated,
+          },
+        });
+        console.log(`${jobPosition.id}, ${jobPosition.name} == updated`);
+      }
     }
   }
 }
+
 
 export default JobPositionSyncService;

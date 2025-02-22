@@ -51,14 +51,12 @@ enum TestcaseEnum {
 
 //ERP TABLES 
 model AuthUser {
-  id          Int       @id @default(autoincrement())
-  username    String?   @db.VarChar(50)
-  password    String?   @db.VarChar(255)
-  email       String?   @db.VarChar(180)
-  mobile      String?   @db.VarChar(15)
-  isDeleted   Boolean   @default(false) @map("is_deleted") @db.Boolean
-  timeCreated DateTime  @default(now()) @map("time_created")
-  employee    Employee?
+  id       Int       @id @default(autoincrement())
+  username String?   @db.VarChar(50)
+  mobile   String?   @db.VarChar(15)
+  email    String?   @db.VarChar(180)
+  status   String?   @db.VarChar(10)
+  employee Employee?
 
   //foreign key 
   Document Document[]
@@ -73,7 +71,7 @@ model Department {
   isDeleted      Boolean  @default(false) @map("is_deleted") @db.Boolean
   parentsNesting String?  @map("parents_nesting") @db.VarChar(255)
   timeCreated    DateTime @default(now()) @map("time_created")
-  timeUpdate     DateTime @updatedAt
+  timeUpdated    DateTime @updatedAt
 
   //foreign key
   jobPositions JobPosition[]
@@ -89,7 +87,7 @@ model JobPosition {
   description  String?  @db.VarChar(255)
   isDeleted    Boolean  @default(false) @map("is_deleted") @db.Boolean
   timeCreated  DateTime @default(now()) @map("time_created")
-  timeUpdate   DateTime @updatedAt
+  timeUpdated  DateTime @updatedAt
 
   //foreign key
   department       Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
@@ -179,6 +177,7 @@ model Document {
   user             AuthUser?           @relation(fields: [authUserId], references: [id], onDelete: Cascade)
   test             Test[]
   file             File[]
+  @@unique([generate])
 }
 
 model Test {

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import fs from "fs";
+import { uploadDir, uploadImages } from "../middleware/File";
 const PDFDocument = require("pdfkit");
 const prisma = new PrismaClient();
 export const saveImage = async (req: Request, res: Response): Promise<void> => {
@@ -11,6 +12,16 @@ export const saveImage = async (req: Request, res: Response): Promise<void> => {
 
     if (!files || files.length === 0) {
       res.status(400).json({ success: false, message: "No images provided" });
+      return
+    }
+
+    const testCase = await prisma.testCase.findUnique({
+      where: { id: id },
+    });
+
+    if (!testCase) {
+      res.status(404).json({ success: false, message: "Test case not found" });
+      return
     }
 
     const imagesData = files.map((file) => ({
@@ -22,7 +33,14 @@ export const saveImage = async (req: Request, res: Response): Promise<void> => {
       data: imagesData,
       skipDuplicates: true,
     });
+
     res.status(201).json({ success: true, data: result });
+
+    for (const file of files) {
+      const finalPath = path.join(uploadImages, path.basename(file.path));
+      fs.renameSync(file.path, finalPath);
+    }
+
   } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
@@ -32,44 +50,45 @@ export const saveFile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = parseInt(id);
-    const check = await prisma.document.findUnique({
-      where: {
-        id: parsedId,
-      },
+    const documentRecord = await prisma.document.findUnique({
+      where: { id: parsedId },
     });
     const file = req.file;
 
-    if (file) {
-      if (check) {
-        const statement = path.parse(file.originalname).name;
-        const savedFile = await prisma.file.create({
-          data: {
-            fileName: file.originalname,
-            path: file.path,
-            documentId: check.id,
-          },
-        });
-
-        if (savedFile) {
-          await prisma.document.update({
-            where: { id: savedFile.documentId },
-            data: { statement: statement },
-          });
-        }
-
-        res.json({
-          success: true,
-          data: savedFile,
-          document: "Statement success",
-        });
-      } else {
-        res.status(404).json({ error: "testcase id not found" });
-      }
-    } else {
-      res.status(400).json({ error: "Файл оруулна уу" });
+    if (!file) {
+      res.status(400).json({ success: false, error: "Файл оруулна уу" });
+      return
     }
-  } catch {
-    res.status(500).json({ error: "Файлыг хадгалахад алдаа гарлаа" });
+
+    if (!documentRecord) {
+      res.status(404).json({ success: false, error: "Document id олдсонгүй" });
+      return
+    }
+
+    const statement = path.parse(file.originalname).name;
+    const savedFile = await prisma.file.create({
+      data: {
+        fileName: file.originalname,
+        path: file.path,
+        documentId: documentRecord.id,
+      },
+    });
+
+    if (savedFile) {
+      await prisma.document.update({
+        where: { id: savedFile.documentId },
+        data: { statement: statement },
+      });
+      const finalPath = path.join(uploadDir, path.basename(file.path));
+      fs.rename(file.path, finalPath, (err) => {
+        res.status(201).json({ success: true, data: savedFile });
+        return
+      });
+    } else {
+      res.status(500).json({ success: false, error: "Файл базад хадгалагдаагүй" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error });
   }
 };
 
@@ -102,7 +121,7 @@ export const pdfdownload = async (req: Request, res: Response) => {
             jobPosition: { select: { name: true } },
           },
         },
-        test: {
+        departmentEmployeeRole: {
           include: {
             employee: { select: { firstname: true, lastname: true } },
             jobPosition: { select: { name: true } },

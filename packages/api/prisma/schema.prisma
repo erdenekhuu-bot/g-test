@@ -74,9 +74,9 @@ model Department {
   timeUpdated    DateTime @updatedAt
 
   //foreign key
-  jobPositions JobPosition[]
-  employees    Employee[]
-  test         Test[]
+  jobPositions           JobPosition[]
+  employees              Employee[]
+  departmentEmployeeRole DepartmentEmployeeRole[]
 }
 
 model JobPosition {
@@ -90,11 +90,11 @@ model JobPosition {
   timeUpdated  DateTime @updatedAt
 
   //foreign key
-  department       Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  employee         Employee[]
-  jobPositionGroup JobPositionGroup?  @relation(fields: [jobGroupId], references: [id], onDelete: Cascade)
-  test             Test[]
-  DocumentEmployee DocumentEmployee[]
+  department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  employee               Employee[]
+  jobPositionGroup       JobPositionGroup?        @relation(fields: [jobGroupId], references: [id], onDelete: Cascade)
+  DocumentEmployee       DocumentEmployee[]
+  departmentEmployeeRole DepartmentEmployeeRole[]
 }
 
 model JobPositionGroup {
@@ -129,11 +129,11 @@ model Employee {
 
   //foreign key
 
-  authUser         AuthUser?          @relation(fields: [authUserId], references: [id], onDelete: Cascade)
-  jobPosition      JobPosition?       @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
-  department       Department?        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  DocumentEmployee DocumentEmployee[]
-  Test             Test[]
+  authUser               AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  jobPosition            JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
+  department             Department?              @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  DocumentEmployee       DocumentEmployee[]
+  departmentEmployeeRole DepartmentEmployeeRole[]
 }
 
 model EmployeeState {
@@ -166,35 +166,39 @@ model Document {
   timeCreated DateTime          @default(now())
   timeUpdated DateTime          @updatedAt
   isDeleted   Boolean           @default(false)
-
-  detail           DocumentDetail[]    @relation("detail")
-  attribute        DocumentAttribute[] @relation("attribute")
-  budget           DocumentBudget[]    @relation("budget")
-  riskassessment   RiskAssessment[]    @relation("assessent")
-  testcase         TestCase[]          @relation("testcase")
-  documentemployee DocumentEmployee[]  @relation("documentemployee")
-  userData         AuthUserData?       @relation(fields: [userDataId], references: [authUserId], onDelete: Cascade)
-  user             AuthUser?           @relation(fields: [authUserId], references: [id], onDelete: Cascade)
-  test             Test[]
-  file             File[]
-  @@unique([generate])
+  isFull      Int?              @default(0)
+  detail                 DocumentDetail[]         @relation("detail")
+  attribute              DocumentAttribute[]      @relation("attribute")
+  budget                 DocumentBudget[]         @relation("budget")
+  riskassessment         RiskAssessment[]         @relation("assessent")
+  testcase               TestCase[]               @relation("testcase")
+  documentemployee       DocumentEmployee[]       @relation("documentemployee")
+  userData               AuthUserData?            @relation(fields: [userDataId], references: [authUserId], onDelete: Cascade)
+  user                   AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  file                   File[]
+  departmentEmployeeRole DepartmentEmployeeRole[]
 }
 
-model Test {
-  id            String   @id @default(uuid())
-  employeeId    Int?
+model DepartmentEmployeeRole {
+  id            String            @id @default(uuid()) @db.Uuid
+  departmentId  Int?              @map("department_id")
   jobPositionId Int?
-  departmentId  Int?
-  role          String?  @db.VarChar(200)
+  employeeId    Int?              @map("employee_id")
+  role          String?           @map("role") @db.VarChar(30)
   documentId    Int
-  timeCreated   DateTime @default(now())
-  timeUpdated   DateTime @updatedAt
+  state         DocumentStateEnum
+  permissionLvl Int?              @map("permission_lvl")
+  isDeleted     Boolean           @default(false) @map("is_deleted") @db.Boolean
+  timeCreated   DateTime          @default(now()) @map("time_created")
+  timeUpdated   DateTime          @updatedAt
 
-  //relation
-  document    Document?    @relation(fields: [documentId], references: [id])
-  jobPosition JobPosition? @relation(fields: [jobPositionId], references: [id])
-  department  Department?  @relation(fields: [departmentId], references: [id])
-  employee    Employee?    @relation(fields: [employeeId], references: [id])
+  // Relations
+  document      Document?         @relation(fields: [documentId], references: [id])
+  jobPosition   JobPosition?      @relation(fields: [jobPositionId], references: [id])
+  department    Department?       @relation(fields: [departmentId], references: [id])
+  employee      Employee?         @relation(fields: [employeeId], references: [id])
+
+  @@map("department_employee_role")
 }
 
 model DocumentDetail {
@@ -210,15 +214,17 @@ model DocumentDetail {
 }
 
 model DocumentAttribute {
-  id           String @id @default(uuid())
-  categoryMain String @db.VarChar(250)
-  category     String @db.VarChar(250)
-  value        String @db.Text
-  orderIndex   Int    @default(1)
+  id           String   @id @default(uuid())
+  categoryMain String   @db.VarChar(250)
+  category     String   @db.VarChar(250)
+  value        String   @db.Text
+  orderIndex   Int      @default(1)
+  timeCreated  DateTime @default(now())
+  updateTimed  DateTime @updatedAt
 
   //relation
-  document   Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
+  document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
+  documentId   Int
 
   @@unique([categoryMain, category, value, orderIndex])
 }
@@ -230,26 +236,29 @@ model DocumentBudget {
   amount          Int    @default(0)
   priceUnit       Int    @default(0)
   priceTotal      Int    @default(0)
-
+  isFull      Int?              @default(0)
   //relation
   document   Document @relation("budget", fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
 }
 
 model DocumentEmployee {
-  id            String      @id @default(uuid())
+  id            String   @id @default(uuid())
   employeeId    Int
-  jobPositionId Int
-  role          String      @db.VarChar(200)
+  departmentId  Int?
+  jobPositionId Int?
+  role          String   @db.VarChar(200)
   startedDate   DateTime
   endDate       DateTime
   documentId    Int
-  timeCreated   DateTime    @default(now())
-  updateTimed   DateTime    @updatedAt
+
+  timeCreated DateTime @default(now())
+  updateTimed DateTime @updatedAt
   //relation
-  document      Document    @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
-  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  jobPosition   JobPosition @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
+  document    Document @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  jobPosition JobPosition? @relation(fields: [jobPositionId], references: [id])
 }
 
 model RiskAssessment {
@@ -258,7 +267,7 @@ model RiskAssessment {
   riskLevel          Risk?
   affectionLevel     Risk?
   mitigationStrategy String? @db.Text
-
+  isFull      Int?              @default(0)
   //relation
   document   Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
@@ -267,8 +276,7 @@ model RiskAssessment {
 }
 
 model TestCase {
-  id String @id @default(uuid())
-
+  id          String       @id @default(uuid())
   category    String       @db.VarChar(100)
   types       String       @db.VarChar(100)
   steps       String       @db.Text
@@ -276,6 +284,7 @@ model TestCase {
   division    String       @db.VarChar(100)
   testType    TestcaseEnum
   timeCreated DateTime     @default(now())
+  timeUpdate  DateTime     @updatedAt
   startDate   DateTime?
   endDate     DateTime?
   documentId  Int
@@ -310,7 +319,7 @@ model TesctCaseDes {
 
 model File {
   id         Int      @id @default(autoincrement())
-  fileName   String   @db.VarChar(30)
+  fileName   String   @db.VarChar(150)
   path       String   @db.Text
   createdAt  DateTime @default(now())
   documentId Int
@@ -331,18 +340,4 @@ model File {
 //   jobposition JobPosition[] @relation("jobposition")
 //   timeCreated DateTime      @default(now())
 //   timeAction  DateTime      @updatedAt
-// }
-
-// model DepartmentEmployeeRole {
-//   id           String     @id @default(uuid()) @db.Uuid
-//   departmentId Int        @map("department_id")
-//   employeeId   Int        @map("employee_id")
-//   role         String     @map("role") @db.VarChar(30)
-//   isDeleted    Boolean    @default(false) @map("is_deleted") @db.Boolean
-//   timeCreated  DateTime   @default(now()) @map("time_created")
-//   // Relations
-//   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-//   employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-//   @@map("department_employee_role")
 // }

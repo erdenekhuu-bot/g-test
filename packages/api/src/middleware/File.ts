@@ -2,37 +2,39 @@
 import path from "path";
 import fs from "fs";
 import multer from "multer";
-const uploadImagesDir = path.join(__dirname, "..", "public", "images");
-const uploadFilesDir = path.join(__dirname, "..", "public", "files");
-const filePath = path.join(__dirname, 'files', 'example.pdf');
 
-if (!fs.existsSync(uploadImagesDir)) {
-     fs.mkdirSync(uploadImagesDir, { recursive: true });
-}
-if (!fs.existsSync(uploadFilesDir)) {
-     fs.mkdirSync(uploadFilesDir, { recursive: true });
-}
+const tempDir = path.join(__dirname, "..", "..", "temp_uploads");
+const uploadDir = path.join(__dirname, "..", "..", "public", "uploads");
+const uploadImages = path.join(__dirname, "..", "..", "public", "images");
 
-const imageStorage = multer.diskStorage({
-     destination: (req, file, cb) => {
-          cb(null, uploadImagesDir);
-     },
-     filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-          cb(null, uniqueSuffix + "-" + file.originalname);
-     }
-});
+if (!fs.existsSync(tempDir)) {
+     fs.mkdirSync(tempDir, { recursive: true });
+}
+if (!fs.existsSync(uploadDir)) {
+     fs.mkdirSync(uploadDir, { recursive: true });
+}
+if (!fs.existsSync(uploadImages)) {
+     fs.mkdirSync(uploadImages, { recursive: true });
+}
 
 const fileStorage = multer.diskStorage({
      destination: (req, file, cb) => {
-          cb(null, uploadFilesDir);
+          cb(null, tempDir);
      },
      filename: (req, file, cb) => {
           cb(null, Date.now() + "-" + file.originalname);
      }
 });
 
-const uploadImage = multer({ storage: imageStorage });
-const uploadFile = multer({ storage: fileStorage });
+const imagetorage = multer.diskStorage({
+     destination: (req, file, cb) => {
+          cb(null, tempDir);
+     },
+     filename: (req, file, cb) => {
+          cb(null, Date.now() + "-" + file.originalname);
+     }
+});
 
-export { uploadFile, uploadImage };
+const upload = multer({ storage: fileStorage });
+const uploadImage = multer({ storage: imagetorage });
+export { uploadImage, uploadDir, upload, uploadImages };

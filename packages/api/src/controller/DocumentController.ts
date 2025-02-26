@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateExpression } from "../schema/validation";
 import { TestcaseEnum } from "@prisma/client";
+import { DocumentStateEnum } from "@prisma/client"
 const prisma = new PrismaClient();
 
 export const filter = async (req: Request, res: Response): Promise<void> => {
@@ -19,9 +20,9 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
 
     const employees = firstname
       ? await prisma.employee.findMany({
-          where: { firstname: { contains: firstname } },
-          include: { authUser: true },
-        })
+        where: { firstname: { contains: firstname } },
+        include: { authUser: true },
+      })
       : [];
 
     const doc = await prisma.document.findMany({
@@ -33,12 +34,12 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
         authUserId:
           employees.length > 0
             ? {
-                in: [
-                  ...employees
-                    .map((e) => e.authUser?.id)
-                    .filter((e) => e != null),
-                ],
-              }
+              in: [
+                ...employees
+                  .map((e) => e.authUser?.id)
+                  .filter((e) => e != null),
+              ],
+            }
             : {},
       },
       include: {
@@ -57,7 +58,7 @@ export const filter = async (req: Request, res: Response): Promise<void> => {
 
     const filteredDocs = doc.filter((d) => d.authUserId === authUserId);
     const totalCount = filteredDocs.length;
-    res.status(201).json({
+    res.json({
       success: true,
       data: filteredDocs,
       count: totalCount,
@@ -112,29 +113,15 @@ export const viewDetail = async (
                 lastname: true,
               },
             },
-            jobPosition: {
-              select: {
-                name: true,
-              },
-            },
+           
           },
         },
-        test: {
+        departmentEmployeeRole: {
           include: {
             employee: {
               select: {
                 firstname: true,
                 lastname: true,
-              },
-            },
-            jobPosition: {
-              select: {
-                name: true,
-              },
-            },
-            department: {
-              select: {
-                name: true,
               },
             },
           },
@@ -191,7 +178,8 @@ export const create = async (req: Request, res: Response) => {
             authUserId: authuserId,
             generate,
             title,
-            state: state.toUpperCase(),
+            isFull: 1,
+            state: DocumentStateEnum.DENY,
           },
         });
 
@@ -202,6 +190,16 @@ export const create = async (req: Request, res: Response) => {
             documentId: document.id,
           },
         });
+        if(createdetail){
+          await prisma.document.update({
+            where: {
+              id: document.id,
+            },
+            data: {
+              isFull: 0
+            }
+          })
+        }
         res.status(201).json({
           success: true,
           data: document,
@@ -223,37 +221,66 @@ export const step1create = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = parseInt(id);
-    const { employeeId, jobPositionId, role, departmentId } = req.body;
+    const { employeeId, role } = req.body;
 
     const document = await prisma.document.findUnique({
       where: {
         id: parsedId,
       },
     });
+    if (!document) {
+      res.status(404).json({ success: false, message: "Document not found." });
+      return
+    }
 
-    const jobPosition = await prisma.employee.findFirst({
+    const employee = await prisma.employee.findUnique({
       where: {
-        id: employeeId,
+        id: employeeId
       },
-      select: {
-        department: true
+      include: {
+        jobPosition: {
+          select: {
+            name: true
+          }
+        },
       }
     })
+    const checkEmployee = await prisma.departmentEmployeeRole.findFirst({
+      where: {
+        documentId: document?.id,
+        employeeId: employeeId,
+      },
+    });
+    
+    if (checkEmployee) {
+      res.status(400).json({ success: false, message: "This employee is already registered for this document." });
+      return;
+    }
 
-    if (document) {
-      const createstep = await prisma.test.create({
+    if (employee?.jobPosition?.name?.toLowerCase().includes("дарга")) {
+      const createstep = await prisma.departmentEmployeeRole.create({
         data: {
-          employeeId: employeeId || null,
-          jobPositionId: jobPositionId || null,
-          // departmentId: departmentId || null,
-          departmentId: jobPosition?.department?.id || null,
-          role: role || null,
+          employeeId: employee?.id,
+          jobPositionId: employee?.jobPositionId,
+          departmentId: employee?.departmentId,
+          role,
+          state: DocumentStateEnum.DENY,
+          permissionLvl: 4,
           documentId: document.id,
           timeCreated: new Date(),
         },
       });
-
-      const list = await prisma.test.findMany({
+      if(createstep){
+        await prisma.document.update({
+          where: {
+            id: parsedId,
+          },
+          data: {
+            isFull: 2
+          }
+        })
+      }
+      const list = await prisma.departmentEmployeeRole.findMany({
         where: {
           documentId: parsedId,
         },
@@ -279,11 +306,92 @@ export const step1create = async (req: Request, res: Response) => {
 
       res.status(201).json({
         success: true,
-        data: createstep,
-        test: list,
+        data1: createstep,
+        list: list,
       });
-    } else {
-      res.status(400).json({ success: false, message: "data not found" });
+    } else if (employee?.jobPosition?.name?.toLocaleLowerCase().includes("захирал")) {
+      const list = await prisma.departmentEmployeeRole.findMany({
+        where: {
+          documentId: parsedId,
+        },
+        include: {
+          employee: {
+            select: {
+              firstname: true,
+              lastname: true,
+            },
+          },
+          jobPosition: {
+            select: {
+              name: true,
+            },
+          },
+          department: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (employee?.id === 185 || employee?.id === 363) {
+        const createstep = await prisma.departmentEmployeeRole.create({
+          data: {
+            employeeId: employee?.id,
+            jobPositionId: employee?.jobPositionId,
+            departmentId: employee?.departmentId,
+            role,
+            state: DocumentStateEnum.DENY,
+            permissionLvl: 2,
+            documentId: document?.id,
+            timeCreated: new Date(),
+          },
+        });
+
+        res.status(201).json({
+          success: true,
+          data2: createstep,
+          list: list,
+        });
+      } else if (employee?.id === 111) {
+        const createstep = await prisma.departmentEmployeeRole.create({
+          data: {
+            employeeId: employee?.id,
+            jobPositionId: employee?.jobPositionId,
+            departmentId: employee?.departmentId,
+            role,
+            state: DocumentStateEnum.DENY,
+            permissionLvl: 1,
+            documentId: document.id,
+            timeCreated: new Date(),
+          },
+        });
+
+        res.status(201).json({
+          success: true,
+          data3: createstep,
+          list: list,
+        });
+      } else {
+        const createstep = await prisma.departmentEmployeeRole.create({
+          data: {
+            employeeId: employee?.id,
+            jobPositionId: employee?.jobPositionId,
+            departmentId: employee?.departmentId,
+            role,
+            state: DocumentStateEnum.DENY,
+            permissionLvl: 3,
+            documentId: document.id,
+            timeCreated: new Date(),
+          },
+        });
+
+        res.status(201).json({
+          success: true,
+          data4: createstep,
+          list: list,
+        });
+      }
     }
   } catch (error) {
     res.status(500).json({ success: false, data: error });
@@ -311,6 +419,14 @@ export const attribute = async (req: Request, res: Response) => {
           documentId: document.id,
         },
       });
+      await prisma.document.update({
+        where: {
+          id: parsedId,
+        },
+        data: {
+          isFull: 1
+        }
+      })
       const list = await prisma.documentAttribute.findMany({
         where: {
           documentId: parsedId,
@@ -348,10 +464,18 @@ export const risk = async (req: Request, res: Response) => {
           riskLevel: riskLevel || null,
           affectionLevel: affectionLevel || null,
           mitigationStrategy: mitigationStrategy || null,
+
           documentId: document.id,
         },
       });
-
+      await prisma.document.update({
+        where: {
+          id: parsedId,
+        },
+        data: {
+          isFull: 1
+        }
+      })
       const list = await prisma.riskAssessment.findMany({
         where: {
           documentId: parsedId,
@@ -376,7 +500,7 @@ export const budget = async (req: Request, res: Response) => {
     const parsedId = parseInt(id);
     const { productCategory, product, amount, priceUnit, priceTotal } =
       req.body;
-    console.log(amount, priceTotal, priceUnit)
+
     const document = await prisma.document.findUnique({
       where: {
         id: parsedId,
@@ -394,6 +518,14 @@ export const budget = async (req: Request, res: Response) => {
           documentId: document.id,
         },
       });
+      await prisma.document.update({
+        where: {
+          id: parsedId,
+        },
+        data: {
+          isFull: 1
+        }
+      })
       const list = await prisma.documentBudget.findMany({
         where: {
           documentId: parsedId,
@@ -424,31 +556,11 @@ export const testteam = async (req: Request, res: Response) => {
       },
     });
 
-    const employee = await prisma.employee.findFirst({
-      where: {
-        id: employeeId
-      },
-      select: {
-        id: true,
-        jobPosition: true
-      }
-    })
-
-    if (document && employee) {
-      // const testteam = await prisma.documentEmployee.create({
-      //   data: {
-      //     employeeId,
-      //     jobPositionId,
-      //     role,
-      //     startedDate,
-      //     endDate,
-      //     documentId: document.id,
-      //   },
-      // });
+    if (document) {
       const testteam = await prisma.documentEmployee.create({
         data: {
-          employeeId: employee?.id,
-          jobPositionId: employee?.jobPosition?.id!,
+          employeeId,
+          jobPositionId,
           role,
           startedDate,
           endDate,
@@ -456,6 +568,15 @@ export const testteam = async (req: Request, res: Response) => {
         },
       });
 
+      await prisma.document.update({
+        where: {
+          id: parsedId,
+        },
+        data: {
+          isFull: 1
+        }
+      })
+     
       const list = await prisma.documentEmployee.findMany({
         where: {
           documentId: parsedId,
@@ -513,7 +634,14 @@ export const testcase = async (req: Request, res: Response) => {
           documentId: document.id,
         },
       });
-
+      await prisma.document.update({
+        where: {
+          id: parsedId,
+        },
+        data: {
+          isFull: 2
+        }
+      })
       const list = await prisma.testCase.findMany({
         where: {
           documentId: parsedId,
@@ -594,14 +722,14 @@ export const state = async (req: Request, res: Response) => {
       },
     };
 
-    const test = await prisma.test.findMany({
+    const test = await prisma.departmentEmployeeRole.findMany({
       ...paginationOptions,
       where: whereCondition,
       include: {
         document: true,
       },
     });
-    const totalCount = await prisma.test.count({
+    const totalCount = await prisma.departmentEmployeeRole.count({
       where: whereCondition,
     });
     res.status(201).json({

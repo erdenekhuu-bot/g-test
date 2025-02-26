@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const deleteStep = async (req: Request, res: Response) => {
      try {
           const { id } = req.params
-          const deleteStep = await prisma.test.delete({
+          const deleteStep = await prisma.departmentEmployeeRole.delete({
                where: {
                     id: id
                },

@@ -1,15 +1,51 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { TestcaseEnum } from "@prisma/client";
-import { DocumentStateEnum } from "@prisma/client"
-import { error } from "console";
-import { waitForDebugger } from "inspector";
+import { DocumentStateEnum } from "@prisma/client";
+import { Risk } from "@prisma/client";
 const prisma = new PrismaClient();
+
+export const updateDocument = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params;
+          const parsedId = Number(id);
+          const { title, statement } = req.body;
+
+          const check = await prisma.document.findUnique({
+               where: {
+                    id: parsedId,
+               }
+          })
+
+          if (check?.state !== DocumentStateEnum.DENY) {
+               res.status(404).json({ success: false, error: "Document already sent" });
+               return
+          }
+
+          const update = await prisma.document.update({
+               where: {
+                    id: parsedId,
+
+               },
+               data: {
+                    title,
+                    statement,
+                    timeUpdated: new Date()
+               },
+          });
+          res.status(201).json({
+               success: true,
+               data: update,
+          });
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+}
+
 
 export const updateDetail = async (req: Request, res: Response) => {
      try {
           const { id } = req.params;
-
           const { aim, intro } = req.body;
           const documentDetail = await prisma.documentDetail.findUnique({
                where: {
@@ -24,7 +60,7 @@ export const updateDetail = async (req: Request, res: Response) => {
                },
           });
           const documentState = documentDetail?.document?.state;
-          if (documentState === "DENY") {
+          if (documentState === DocumentStateEnum.DENY) {
                const update = await prisma.documentDetail.update({
                     where: {
                          id: id,
@@ -43,100 +79,54 @@ export const updateDetail = async (req: Request, res: Response) => {
      }
 };
 
-export const SentTest = async (req: Request, res: Response) => {
+
+export const updateDepartmentEmployee = async (req: Request, res: Response) => {
      try {
           const { id } = req.params;
-          const parseid = parseInt(id)
-          const { authUserId } = req.body
-          const document = await prisma.document.findUnique({
+          const { employeeId, role } = req.body;
+          const employee = await prisma.employee.findUnique({
                where: {
-                    id: parseid,
+                    id: employeeId,
                }
-          });
-
-          if (!document) {
-               res.status(404).json({ success: false, error: "Document not found" })
-               return
-          }
-
-          if (document?.authUserId !== authUserId) {
-               res.status(403).json({ success: false, error: "authUserID error" })
-               return
-          }
-
-          if (document?.state === DocumentStateEnum.DENY) {
-               const updateDeny = await prisma.document.update({
-                    where: {
-                         id: document.id
-                    },
-                    data: {
-                         state: DocumentStateEnum.FORWARD
-                    }
-               });
-               res.status(201).json({ success: true, data: updateDeny })
-
-          } else {
-               res.status(403).json({ success: false, error: "Test already sent" })
-          }
-     } catch (error) {
-          res.status(500).json({ success: false, error: error })
-     }
-}
-
-export const approv = async (req: Request, res: Response) => {
-     try {
-          const { id } = req.params;
-          const parseid = parseInt(id)
-          const { state: newState, authUserId } = req.body;
-          const authUser = await prisma.authUser.findUnique({
-               where: { id: authUserId }
           })
-          const document = await prisma.document.findUnique({
-               where: { id: parseid }
-          });
-          if (document?.state === DocumentStateEnum.FORWARD || document?.state === DocumentStateEnum.REJECT) {
-               if (newState === "REJECT") {
-                    DocumentStateEnum.REJECT
-               } else if (newState === "ACCESS") {
-                    DocumentStateEnum.ACCESS;
-               } else {
-                    res.status(404).json({ success: false, error: "er" })
-                    return;
-               }
 
-               const updateForward = await prisma.document.update({
-                    where: {
-                         id: document.id
-                    },
-                    data: {
-                         state: newState
-                    }
-               })
-               res.status(201).json({ success: true, data: updateForward })
-          } else {
-               res.status(403).json({ success: false, error: "error" })
+          if (!employee) {
+               res.status(404).json({ success: false, error: "employee not found" });
+               return
           }
-     } catch (error) {
-          res.status(500).json({ success: false, error: error })
-     }
-}
 
-export const updateTest = async (req: Request, res: Response) => {
-     try {
-          const { id } = req.params;
-          const { employeeId, jobPositionId, departmentId, role } = req.body;
-          const update = await prisma.test.update({
+          const documentDetail = await prisma.documentDetail.findUnique({
+               where: {
+                    id: id,
+               },
+               include: {
+                    document: {
+                         select: {
+                              state: true,
+                         },
+                    },
+               },
+          });
+
+          if (documentDetail?.document?.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.departmentEmployeeRole.update({
                where: {
                     id: id,
                },
                data: {
                     employeeId,
-                    jobPositionId,
-                    departmentId,
+                    jobPositionId: employee?.jobPositionId,
+                    departmentId: employee?.departmentId,
                     role,
                     timeUpdated: new Date(),
                },
           });
+
+
           res.status(201).json({
                success: true,
                data: update,
@@ -146,29 +136,247 @@ export const updateTest = async (req: Request, res: Response) => {
      }
 };
 
-export const updateDocument = async (req: Request, res: Response) => {
+
+export const updateTestTeam = async (req: Request, res: Response) => {
      try {
           const { id } = req.params;
-          const parsedId = Number(id);
-          const { title, statement } = req.body;
-          const update = await prisma.document.update({
+          const { employeeId, role, startedDate, endDate } = req.body;
+
+          const employee = await prisma.employee.findUnique({
                where: {
-                    id: parsedId,
+                    id: employeeId,
+               }
+          })
+
+          if (!employee) {
+               res.status(404).json({ success: false, error: "employee not found" });
+               return
+          }
+
+          const find = await prisma.documentEmployee.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.documentEmployee.update({
+               where: {
+                    id: id
                },
                data: {
-                    title,
-                    statement,
-                    timeUpdated: new Date()
+                    employeeId: employee.id,
+                    jobPositionId: employee?.jobPositionId,
+                    departmentId: employee?.departmentId,
+                    role,
+                    startedDate,
+                    endDate,
+                    updateTimed: new Date()
+               }
+          })
+          res.status(201).json({ success: false, data: update })
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+
+}
+
+
+export const updateAttribute = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params
+          const { categoryMain, category, value } = req.body
+
+          const find = await prisma.documentAttribute.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.documentAttribute.update({
+               where: {
+                    id: id
                },
-          });
-          res.status(201).json({
-               success: true,
-               data: update,
-          });
+               data: {
+                    categoryMain,
+                    category,
+                    value,
+                    updateTimed: new Date()
+               }
+          })
+          res.status(201).json({ success: false, data: update })
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+};
+
+
+export const updateBudget = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params;
+          const { productCategory, product, amount, priceUnit, priceTotal } = req.body
+
+          const find = await prisma.documentBudget.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.documentBudget.update({
+               where: {
+                    id: id,
+               },
+               data: {
+                    productCategory,
+                    product,
+                    amount,
+                    priceUnit,
+                    priceTotal
+               }
+          })
+
+          res.status(201).json({ success: true, data: update })
      } catch (error) {
           res.status(500).json({ success: false, message: error });
      }
 }
+
+
+export const updateRisk = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params;
+          const { riskDescription, mitigationStrategy, riskLevel, affectionLevel } = req.body
+
+          const find = await prisma.riskAssessment.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.riskAssessment.update({
+               where: {
+                    id: id
+               },
+               data: {
+                    riskDescription,
+                    riskLevel,
+                    affectionLevel,
+                    mitigationStrategy
+               }
+          })
+          res.status(201).json({ success: true, data: update })
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+}
+
+
+export const updateCase = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params;
+          const { category, types, steps, result, division } = req.body
+
+          const find = await prisma.testCase.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+
+          const update = await prisma.testCase.update({
+               where: {
+                    id: id
+               },
+               data: {
+                    category,
+                    types,
+                    steps,
+                    result,
+                    division
+               }
+          })
+
+          res.status(201).json({ success: true, data: update })
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+}
+
+export const testcaseDetailupdate = async (req: Request, res: Response) => {
+     try {
+          const { id } = req.params;
+          const { testType } = req.body;
+
+          const find = await prisma.testCase.findFirst({
+               include: {
+                    document: true
+               }
+          })
+
+          if (find?.document.state !== DocumentStateEnum.DENY) {
+               res.status(403).json({ success: false, error: "Already sent document" })
+               return
+          }
+          if (testType === TestcaseEnum.STARTED) {
+               const update = await prisma.testCase.update({
+                    where: {
+                         id: id,
+                    },
+                    data: {
+                         startDate: new Date(),
+                         testType: testType.toUpperCase(),
+                    },
+               });
+               res.status(201).json({
+                    success: true,
+                    data: update,
+               });
+          } else if (testType === TestcaseEnum.ENDED) {
+               const update = await prisma.testCase.update({
+                    where: {
+                         id: id,
+                    },
+                    data: {
+                         endDate: new Date(),
+                         testType: testType.toUpperCase(),
+                    },
+               });
+               res.status(201).json({
+                    success: true,
+                    data: update,
+               });
+          } else {
+               res.status(400).json({ success: false, message: "error" });
+          }
+     } catch (error) {
+          res.status(500).json({ success: false, message: error });
+     }
+};
+
+
 
 export const listUpdate = async (req: Request, res: Response) => {
      try {
@@ -246,80 +454,3 @@ export const listUpdate = async (req: Request, res: Response) => {
           res.status(500).json({ success: false, message: error });
      }
 };
-
-export const testcaseupdate = async (req: Request, res: Response) => {
-     try {
-          const { id } = req.params;
-          const { testType } = req.body;
-          if (testType === TestcaseEnum.STARTED) {
-               const update = await prisma.testCase.update({
-                    where: {
-                         id: id,
-                    },
-                    data: {
-                         startDate: new Date(),
-                         testType: testType.toUpperCase(),
-                    },
-               });
-               res.status(201).json({
-                    success: true,
-                    data: update,
-               });
-          } else if (testType === TestcaseEnum.ENDED) {
-               const update = await prisma.testCase.update({
-                    where: {
-                         id: id,
-                    },
-                    data: {
-                         endDate: new Date(),
-                         testType: testType.toUpperCase(),
-                    },
-               });
-               res.status(201).json({
-                    success: true,
-                    data: update,
-               });
-          } else {
-               res.status(400).json({ success: false, message: "error" });
-          }
-     } catch (error) {
-          res.status(500).json({ success: false, message: error });
-     }
-};
-
-export const documentUpdate = async (req: Request, res: Response) => {
-     try {
-          const { id } = req.params;
-          const parsedId = Number(id);
-          const { title, statement } = req.body;
-          const DENY = "DENY";
-          if (DENY) {
-               const update = await prisma.document.update({
-                    where: {
-                         id: parsedId,
-                         state: DENY,
-                    },
-                    data: {
-                         title,
-                         statement,
-                    },
-               });
-               res.status(201).json({
-                    success: true,
-                    data: update,
-               });
-          } else {
-               res.status(404).json({
-                    success: false,
-                    message: "cant edit",
-               });
-          }
-     } catch (error) {
-          res.status(500).json({ success: false, data: error });
-     }
-};
-
-export const updateAttribute = async (req: Request, res: Response) => {
-
-};
-

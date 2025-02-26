@@ -4,6 +4,7 @@ import cors from "cors";
 import router from "./routes/route";
 import { runSync } from "./service/sync_service";
 import fileRouter from "./routes/FileRoute";
+import routerDER from "./routes/DERController";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use(router);
 app.use(fileRouter);
+app.use(routerDER);
 app.listen(port, async () => {
   console.log(`Running on ${port}`);
   await runSync();

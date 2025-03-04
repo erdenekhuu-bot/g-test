@@ -14,8 +14,6 @@ import {
   team,
   create,
   filter,
-  // SentTest,
-  // approv
 } from "../controller/DocumentController";
 import {
   updateDetail,
@@ -39,6 +37,7 @@ import {
   deleteTestcase
 } from "../controller/DocumentDelController";
 import { employee } from "../controller/EmployeeController";
+import { Report } from "../controller/ReportController";
 
 const router = Router();
 
@@ -48,8 +47,6 @@ router.post("/api/refresh", refreshToken);
 
 router.get("/api/document/team/:id", team);
 router.get("/api/document/list/:id", viewDetail);
-// router.post("/api/document/sent/:id", SentTest)
-
 
 router.post("/api/document/filter", VerifyToken, filter);
 router.post("/api/document/step/:id", step1create);
@@ -61,8 +58,6 @@ router.post("/api/document/employee/:id", testteam);
 router.post("/api/document/testcase/:id", testcase);
 router.post("/api/document/testcasedes/:id", tesctDesc);
 router.post("/api/document/state", state);
-// router.post("/api/document/approv", approv)
-
 
 router.patch("/api/document/update/:id", updateDocument);
 router.patch("/api/document/testcase/update/:id", testcaseDetailupdate);
@@ -75,8 +70,6 @@ router.patch("/api/document/case/update/:id", updateCase)
 router.patch("/api/document/updateList/:id", listUpdate);
 router.patch("/api/document/updateStep/:id", updateDepartmentEmployee);
 
-
-
 router.delete("/api/document/step/:id", deleteStep);
 router.delete("/api/document/risk/:id", deleteRisk);
 router.delete("/api/document/attribute/:id", deleteAttirbute);
@@ -84,8 +77,11 @@ router.delete("/api/document/budget/:id", deleteBudget);
 router.delete("/api/document/testteam/:id", deleteTeam);
 router.delete("/api/document/testcase/:id", deleteTestcase);
 
-
 router.get("/api/download/:id", pdfdownload);
 router.post("/api/employee", employee);
 
+router.post('/api/report', Report.makeReport);
+router.get('/api/report', Report.readReport);
+router.get('/api/report/:detail', Report.readDetail)
+router.post('/api/report/issue', Report.makeSecondReport);
 export default router;

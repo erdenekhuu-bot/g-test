@@ -13,7 +13,7 @@ export const updateDocument = async (req: Request, res: Response) => {
 
           const check = await prisma.document.findUnique({
                where: {
-                    id: parsedId,
+                    id: id,
                }
           })
 
@@ -24,7 +24,7 @@ export const updateDocument = async (req: Request, res: Response) => {
 
           const update = await prisma.document.update({
                where: {
-                    id: parsedId,
+                    id: id,
 
                },
                data: {
@@ -385,7 +385,7 @@ export const listUpdate = async (req: Request, res: Response) => {
           const State = "DENY";
           const document = await prisma.document.findUnique({
                where: {
-                    id: parsedId,
+                    id: id,
                     state: State,
                },
           });

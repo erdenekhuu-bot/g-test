@@ -49,7 +49,13 @@ enum TestcaseEnum {
   ENDED
 }
 
-//ERP TABLES 
+enum IssueLevel {
+  INSANE
+  HIGH
+  MEDIUM 
+  LOW
+}
+
 model AuthUser {
   id       Int       @id @default(autoincrement())
   username String?   @db.VarChar(50)
@@ -154,10 +160,10 @@ model AuthUserData {
   documents   Document[]
 }
 
-//ERP_SYSTEM_TABLES
+
 model Document {
-  id          Int               @id @default(autoincrement())
-  title       String            @unique @db.VarChar(100)
+  id          String            @id @default(uuid())  @unique
+  title       String            @db.VarChar(100)
   generate    String?           @db.VarChar(30)
   state       DocumentStateEnum
   statement   String?           @db.VarChar(50)
@@ -177,6 +183,8 @@ model Document {
   user                   AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
   file                   File[]
   departmentEmployeeRole DepartmentEmployeeRole[]
+
+  @@unique([title, generate, statement])  
 }
 
 model DepartmentEmployeeRole {
@@ -185,7 +193,7 @@ model DepartmentEmployeeRole {
   jobPositionId Int?
   employeeId    Int?              @map("employee_id")
   role          String?           @map("role") @db.VarChar(30)
-  documentId    Int
+  documentId    String
   state         DocumentStateEnum
   permissionLvl Int?              @map("permission_lvl")
   isDeleted     Boolean           @default(false) @map("is_deleted") @db.Boolean
@@ -203,12 +211,12 @@ model DepartmentEmployeeRole {
 
 model DocumentDetail {
   id    String @id @default(uuid())
-  intro String @db.Text
-  aim   String @db.Text
+  intro String @db.VarChar(200)
+  aim   String @db.VarChar(100)
 
   //foreign key
   document   Document @relation("detail", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
+  documentId String
 
   @@unique([intro, aim])
 }
@@ -224,7 +232,7 @@ model DocumentAttribute {
 
   //relation
   document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId   Int
+  documentId   String
 
   @@unique([categoryMain, category, value, orderIndex])
 }
@@ -239,18 +247,18 @@ model DocumentBudget {
   isFull      Int?              @default(0)
   //relation
   document   Document @relation("budget", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
+  documentId String
 }
 
 model DocumentEmployee {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @unique
   employeeId    Int
   departmentId  Int?
   jobPositionId Int?
-  role          String   @db.VarChar(200)
+  role          String   @db.VarChar(200)   @unique
   startedDate   DateTime
   endDate       DateTime
-  documentId    Int
+  documentId    String
 
   timeCreated DateTime @default(now())
   updateTimed DateTime @updatedAt
@@ -270,7 +278,7 @@ model RiskAssessment {
   isFull      Int?              @default(0)
   //relation
   document   Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
+  documentId String
 
   @@unique([riskDescription, mitigationStrategy])
 }
@@ -287,7 +295,7 @@ model TestCase {
   timeUpdate  DateTime     @updatedAt
   startDate   DateTime?
   endDate     DateTime?
-  documentId  Int
+  documentId  String
 
   //relation
   document Document @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
@@ -295,6 +303,9 @@ model TestCase {
   //foreign key
   testCaseDes   TesctCaseDes[]
   testCaseImage TestCaseImage[]
+
+  //relation
+  report Report[] @relation("reportcase")
 }
 
 model TestCaseImage {
@@ -322,13 +333,13 @@ model File {
   fileName   String   @db.VarChar(150)
   path       String   @db.Text
   createdAt  DateTime @default(now())
-  documentId Int
+  documentId String
 
   //relation 
   document Document @relation(fields: [documentId], references: [id])
 }
 
-// ADD TABLES 
+
 // model Permission {
 //   id    String             @id @default(uuid())
 //   kind  PermissionKindEnum
@@ -341,3 +352,46 @@ model File {
 //   timeCreated DateTime      @default(now())
 //   timeAction  DateTime      @updatedAt
 // }
+
+model Report {
+   id   String  @id @default(uuid())
+   reportname String  @db.VarChar(200)
+   reportpurpose String @db.VarChar(200)
+   reportprocessing String @db.Text
+   reportconclusion String? @db.VarChar(200)
+   reportadvice String? @db.VarChar(200)
+   isFull  Int?  @default(0)
+
+  //relation
+   team ReportTeam[]   @relation("reportteam")
+   issue ReportIssue[] @relation("reportissue")
+   testcase TestCase[] @relation("reportcase")
+   @@map("report_document")
+   @@unique([reportname, reportpurpose, reportprocessing,reportconclusion,reportadvice,id])
+}
+
+model ReportTeam {
+  id String @id @default(uuid()) @unique
+  name String @db.Text
+  role String @db.VarChar(200)
+  started  DateTime @default(now())
+  ended DateTime @updatedAt
+
+  //Relation
+  reportId String
+  report Report @relation("reportteam",fields: [reportId], references: [id], onDelete: Cascade)
+  @@map("report_team")
+}
+
+model ReportIssue {
+  id String @id @default(uuid()) @unique
+  list String @db.Text
+  level IssueLevel @default(LOW)
+  value String @db.Text
+
+  //relation
+  reportId String
+  report Report @relation("reportissue", fields: [reportId], references: [id])
+  @@map("report_issue")
+  @@unique([level, value])
+}

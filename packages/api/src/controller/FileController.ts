@@ -51,7 +51,7 @@ export const saveFile = async (req: Request, res: Response) => {
     const { id } = req.params;
     const parsedId = parseInt(id);
     const documentRecord = await prisma.document.findUnique({
-      where: { id: parsedId },
+      where: { id },
     });
     const file = req.file;
 
@@ -98,7 +98,7 @@ export const pdfdownload = async (req: Request, res: Response) => {
     const parsedId = parseInt(id);
 
     const documentData = await prisma.document.findFirst({
-      where: { id: parsedId },
+      where: { id },
       include: {
         user: {
           select: {
@@ -154,17 +154,11 @@ export const pdfdownload = async (req: Request, res: Response) => {
       .font("MongolianFont")
       .fontSize(14)
       .text(
-        `"ЖИМОБАЙЛ"ХХК                                                                ${documentData.generate}`
+        `"ЖИМОБАЙЛ"ХХК ${documentData.generate}`
       );
     const text = documentData.title;
-
-    // Calculate the width of the text to center it
     const textWidth = doc.widthOfString(text);
-
-    // Get the page width (assuming letter-size paper size, change as needed)
     const pageWidth = doc.page.width;
-
-    // Set the starting x position to center the text
     const x = (pageWidth - textWidth) / 2;
 
     doc.moveDown(0.5);
@@ -192,6 +186,6 @@ export const pdfdownload = async (req: Request, res: Response) => {
       });
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "server error" });
+    res.status(500).json({ success: false, message: error });
   }
 };

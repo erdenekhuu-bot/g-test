@@ -1,7 +1,0 @@
-node_modules
-prisma/migrations/
-# Keep environment variables out of version control
-/public/file
-/public/images
-.env
-.env.example

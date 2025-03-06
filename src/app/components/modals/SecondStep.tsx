@@ -5,6 +5,9 @@ import axios from "axios";
 import { TestSchedule } from "./TestSchedule";
 import { TestRisk } from "./TestRisk";
 import { TestEnv } from "./TestEnv";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import { selectConvert } from "../usable";
 
 type ModalProps = {
   open: boolean;
@@ -15,6 +18,7 @@ type ModalProps = {
 };
 
 const { TextArea } = Input;
+dayjs.extend(customParseFormat);
 
 export function SecondStep({
   open,
@@ -29,8 +33,89 @@ export function SecondStep({
   const handleSubmit = async () => {
     try {
       const values = attributeForm.getFieldsValue();
-      console.log(values);
-    } catch (error) {}
+      const teamdata = {
+        employeeId: values.employeeId.slice(1),
+        role: values.role.slice(1),
+        startedDate: values.startedDate
+          .slice(1)
+          .map((index: any) => dayjs(index).format("YYYY-MM-DDTHH:mm:ssZ")),
+        endDate: values.endDate
+          .slice(1)
+          .map((index: any) => dayjs(index).format("YYYY-MM-DDTHH:mm:ssZ")),
+        documentId: documentId,
+      };
+      const budgetdata = {
+        productCategory: values.productCategory
+          .slice(1)
+          .map((index: any) => selectConvert(index)),
+        product: values.product
+          .slice(1)
+          .map((index: any) => selectConvert(index)),
+        amount: values.amount.slice(1).map((index: any) => parseInt(index)),
+        priceUnit: values.priceUnit
+          .slice(1)
+          .map((index: any) => parseInt(index)),
+        priceTotal: values.priceTotal
+          .slice(1)
+          .map((index: any) => parseInt(index)),
+        documentId: documentId,
+      };
+      const attributeData = [
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Бэлтгэл үе",
+          value: values.predict,
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Тестийн гүйцэтгэл",
+          value: values.dependecy,
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Тестийн хаалт",
+          value: values.standby,
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал",
+          category: "Таамаглал",
+          value: values.execute,
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал",
+          category: "Хараат байдал",
+          value: values.terminate,
+          documentId: documentId,
+        },
+      ];
+      const riskData = {
+        affectionLevel: values.affectionLevel
+          .slice(1)
+          .map((index: any) => selectConvert(index)),
+        mitigationStrategy: values.mitigationStrategy.slice(1),
+        riskDescription: values.riskDescription.slice(1),
+        riskLevel: values.riskLevel
+          .slice(1)
+          .map((index: any) => selectConvert(index)),
+        documentId: documentId,
+      };
+      const apiRequests = [
+        axios.post("/api/document/testteam", teamdata),
+        axios.post("/api/document/budget", budgetdata),
+        axios.post("/api/document/attribute", attributeData),
+        axios.post("/api/document/risk", riskData),
+      ];
+      const responses = await Promise.all(apiRequests);
+      responses.forEach((response) => {
+        console.log(response.data);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

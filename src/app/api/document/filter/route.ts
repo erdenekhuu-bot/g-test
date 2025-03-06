@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { pages } from "next/dist/build/templates/app-page";
 
 const prisma = new PrismaClient();
 

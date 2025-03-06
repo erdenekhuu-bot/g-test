@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "update": "npx prisma db push",
-    "migrate": "npx prisma migrate dev --name init"
+    "db:update": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev --name init"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
@@ -17,6 +17,7 @@
     "axios": "^1.8.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.477.0",
     "next": "15.2.1",

@@ -23,7 +23,6 @@ const dateFormat = "YYYY/MM/DD";
 export function TestSchedule() {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
   const [nextKey, setNextKey] = useState(1);
-  const [riskForm] = Form.useForm();
   const [getEmployee, setEmployee] = useState<any>([]);
   const [search, setSearch] = useState("");
   const [data, setData] = useState<any>([]);
@@ -46,20 +45,6 @@ export function TestSchedule() {
 
   const handleSearch = (value: any) => {
     setSearch(capitalizeFirstLetter(value));
-  };
-
-  const handleSave = async () => {
-    try {
-      const values = await riskForm.validateFields();
-      const employeeId = values.employeeId[1];
-      const role = values.role[1];
-      const startedDate = dayjs(values.startedDate).format(
-        "YYYY-MM-DDTHH:mm:ssZ"
-      );
-      const endDate = dayjs(values.endDate).format("YYYY-MM-DDTHH:mm:ssZ");
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   const columns: ColumnsType<DataType> = [
@@ -206,7 +191,6 @@ export function TestSchedule() {
           type="primary"
           onClick={() => {
             handleAdd();
-            handleSave();
           }}
         >
           Мөр нэмэх

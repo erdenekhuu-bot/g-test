@@ -27,7 +27,7 @@ enum PermissionKindEnum {
 
 enum Risk {
   HIGH
-  MEDUIM
+  MEDIUM
   LOW
 }
 
@@ -290,22 +290,16 @@ model TestCase {
   steps       String       @db.Text
   result      String       @db.VarChar(100)
   division    String       @db.VarChar(100)
-  testType    TestcaseEnum
+  testType    TestcaseEnum @default(CREATED)
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt
-  startDate   DateTime?
-  endDate     DateTime?
   documentId  String
-
   //relation
   document Document @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
 
   //foreign key
   testCaseDes   TesctCaseDes[]
   testCaseImage TestCaseImage[]
-
-  //relation
-  report Report[] @relation("reportcase")
 }
 
 model TestCaseImage {
@@ -354,7 +348,7 @@ model File {
 // }
 
 model Report {
-   id   String  @id @default(uuid())
+   id  String  @id @default(uuid())
    reportname String  @db.VarChar(200)
    reportpurpose String @db.VarChar(200)
    reportprocessing String @db.Text
@@ -365,7 +359,7 @@ model Report {
   //relation
    team ReportTeam[]   @relation("reportteam")
    issue ReportIssue[] @relation("reportissue")
-   testcase TestCase[] @relation("reportcase")
+   testcase ReportTestCase[] @relation("reporttestcase")
    @@map("report_document")
    @@unique([reportname, reportpurpose, reportprocessing,reportconclusion,reportadvice,id])
 }
@@ -394,4 +388,19 @@ model ReportIssue {
   report Report @relation("reportissue", fields: [reportId], references: [id])
   @@map("report_issue")
   @@unique([level, value])
+}
+
+model ReportTestCase {
+  id          String       @id @default(uuid())
+  category    String       @db.VarChar(100)
+  types       String       @db.VarChar(100)
+  steps       String       @db.Text
+  result      String       @db.VarChar(100)
+  division    String       @db.VarChar(100)
+  timeCreated DateTime     @default(now())
+  timeUpdate  DateTime     @updatedAt
+  reportId  String
+  //relation
+  report Report @relation("reporttestcase", fields: [reportId], references: [id], onDelete: Cascade)
+   @@map("report_testcase")
 }

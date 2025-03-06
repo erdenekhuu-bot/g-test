@@ -22,10 +22,12 @@ export async function POST(req: Request) {
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
+
+    const totalEmployee = await prisma.employee.count();
     return NextResponse.json({
       success: true,
       data: employee,
-      total: employee.length,
+      total: totalEmployee,
     });
   } catch (error) {
     return NextResponse.json({

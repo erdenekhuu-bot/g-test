@@ -1,13 +1,12 @@
 "use client";
 import { Layout } from "antd";
-import { ReactNode } from "react";
 
-export default function Home({ children }: { children: ReactNode }) {
+export default function Home() {
   const { Content } = Layout;
 
   return (
     <Layout className="h-screen">
-      <Content>{children}</Content>
+      <Content></Content>
     </Layout>
   );
 }

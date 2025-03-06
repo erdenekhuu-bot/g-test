@@ -10,6 +10,7 @@ import {
 import { ListDataType } from "@/types/type";
 import { MainDocumentModal } from "@/app/components/modals/MainDocumentModal";
 import { SecondStep } from "@/app/components/modals/SecondStep";
+import { ThirdStep } from "@/app/components/modals/ThirdStep";
 
 export default function CreateDocument() {
   const [getData, setData] = useState<any[]>([]);
@@ -165,11 +166,20 @@ export default function CreateDocument() {
         confirmLoading={confirmLoading}
         onCancel={handleCancel}
       /> */}
-      <SecondStep
-        open={open}
-        confirmLoading={confirmLoading}
-        onCancel={handleCancel}
-      />
+      {activeStep === 1 && (
+        <SecondStep
+          open={true}
+          onCancel={handleCloseModal}
+          documentId={selectedDocumentId}
+        />
+      )}
+      {activeStep === 2 && (
+        <ThirdStep
+          open={true}
+          onCancel={handleCloseModal}
+          documentId={selectedDocumentId}
+        />
+      )}
     </section>
   );
 }

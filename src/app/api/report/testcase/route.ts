@@ -6,19 +6,21 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const request = await req.json();
-    const attributeData = request.attribute.map((attribute: any) => ({
-      categoryMain: attribute.categoryMain,
-      category: attribute.category,
-      value: attribute.value,
-      documentId: attribute.documentId,
+    const testcase = request.category.map((item: any, index: number) => ({
+      category: item,
+      division: request.division[index],
+      result: request.result[index],
+      steps: request.steps[index],
+      types: request.types[index],
+      reportId: request.reportId,
     }));
-    const createdAttributes = await prisma.documentAttribute.createMany({
-      data: attributeData,
+    const record = await prisma.reportTestCase.createMany({
+      data: testcase,
       skipDuplicates: true,
     });
     return NextResponse.json({
       success: true,
-      data: createdAttributes,
+      data: record,
     });
   } catch (error) {
     return NextResponse.json({

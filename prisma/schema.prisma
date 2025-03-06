@@ -284,7 +284,7 @@ model RiskAssessment {
 }
 
 model TestCase {
-  id          String       @id @default(uuid())
+  id          String       @id @default(uuid()) @unique
   category    String       @db.VarChar(100)
   types       String       @db.VarChar(100)
   steps       String       @db.Text

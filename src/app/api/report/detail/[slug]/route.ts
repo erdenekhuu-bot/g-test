@@ -6,18 +6,14 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest, { params }: any) {
   try {
     const { slug } = await params;
-
-    const record = await prisma.document.findUnique({
+    const record = await prisma.report.findUnique({
       where: {
         id: slug,
       },
       include: {
-        attribute: true,
-        detail: true,
-        documentemployee: true,
-        riskassessment: true,
+        team: true,
+        issue: true,
         testcase: true,
-        budget: true,
       },
     });
     return NextResponse.json({ success: true, data: record });

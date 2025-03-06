@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
     const budget = request.priceTotal.map((item: any, index: number) => ({

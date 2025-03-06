@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
     const record = await prisma.authUser.findFirst({

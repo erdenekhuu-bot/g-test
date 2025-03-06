@@ -6,22 +6,22 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest, { params }: any) {
   try {
     const { slug } = await params;
-
-    const record = await prisma.document.findUnique({
+    const record = await prisma.testCase.findUnique({
       where: {
         id: slug,
       },
       include: {
-        attribute: true,
-        detail: true,
-        documentemployee: true,
-        riskassessment: true,
-        testcase: true,
-        budget: true,
+        testCaseImage: true,
       },
     });
-    return NextResponse.json({ success: true, data: record });
+    return NextResponse.json({
+      success: true,
+      data: record,
+    });
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      data: error,
+    });
   }
 }

@@ -2,29 +2,26 @@
 import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
-import { DeleteOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 interface DataType {
   key: number;
-  category: string;
-  types: string;
-  steps: string;
-  result: string;
-  division: string;
+  riskDescription: string;
+  riskLevel: string;
+  affectionLevel: string;
+  mitigationStrategy: string;
 }
 
-export function TestCase({ documentId }: { documentId?: any }) {
+export function ReadTestRisk() {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
   const [nextKey, setNextKey] = useState(1);
-
   const handleAdd = () => {
     const newData: DataType = {
       key: nextKey,
-      category: "",
-      types: "",
-      steps: "",
-      result: "",
-      division: "",
+      riskDescription: "",
+      riskLevel: "",
+      affectionLevel: "",
+      mitigationStrategy: "",
     };
     setDataSource([...dataSource, newData]);
     setNextKey(nextKey + 1);
@@ -36,15 +33,41 @@ export function TestCase({ documentId }: { documentId?: any }) {
 
   const columns: ColumnsType<DataType> = [
     {
-      title: "Ангилал",
-      dataIndex: "category",
-      key: "category",
-      width: 200,
+      title: "Эрсдэл",
+      dataIndex: "riskDescription",
+      key: "riskDescription",
       render: (_, record) => (
         <Form.Item
-          name={["category", record.key]}
+          name={["riskDescription", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.category}
+          initialValue={record.riskDescription}
+        >
+          <Input
+            placeholder=""
+            onChange={(e) => {
+              const newData = [...dataSource];
+              const index = newData.findIndex(
+                (item) => record.key === item.key
+              );
+              newData[index] = {
+                ...newData[index],
+                riskDescription: e.target.value,
+              };
+              setDataSource(newData);
+            }}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: "Эрсдлийн магадлал",
+      dataIndex: "riskLevel",
+      key: "riskLevel",
+      render: (_, record) => (
+        <Form.Item
+          name={["riskLevel", record.key]}
+          rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
+          initialValue={record.riskLevel}
         >
           <Select
             placeholder="Select name"
@@ -69,7 +92,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
                 (item) => record.key === item.key
               );
 
-              newData[index] = { ...newData[index], category: value };
+              newData[index] = { ...newData[index], riskLevel: value };
               setDataSource(newData);
             }}
             showSearch
@@ -81,18 +104,17 @@ export function TestCase({ documentId }: { documentId?: any }) {
       ),
     },
     {
-      title: "Тестийн төрөл",
-      dataIndex: "types",
-      key: "types",
-      width: 200,
+      title: "Эрсдлийн нөлөөлөл",
+      dataIndex: "affectionLevel",
+      key: "affectionLevel",
       render: (_, record) => (
         <Form.Item
-          name={["types", record.key]}
+          name={["affectionLevel", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.types}
+          initialValue={record.affectionLevel}
         >
           <Select
-            placeholder="Select name"
+            placeholder=""
             style={{ width: "100%" }}
             options={[
               {
@@ -114,7 +136,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
                 (item) => record.key === item.key
               );
 
-              newData[index] = { ...newData[index], types: value };
+              newData[index] = { ...newData[index], affectionLevel: value };
               setDataSource(newData);
             }}
             showSearch
@@ -126,14 +148,14 @@ export function TestCase({ documentId }: { documentId?: any }) {
       ),
     },
     {
-      title: "Тест хийх алхамууд",
-      dataIndex: "steps",
-      key: "steps",
+      title: "Бууруулах арга зам",
+      dataIndex: "mitigationStrategy",
+      key: "mitigationStrategy",
       render: (_, record) => (
         <Form.Item
-          name={["steps", record.key]}
+          name={["mitigationStrategy", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.steps}
+          initialValue={record.mitigationStrategy}
         >
           <Input
             placeholder=""
@@ -144,61 +166,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
               );
               newData[index] = {
                 ...newData[index],
-                steps: e.target.value,
-              };
-              setDataSource(newData);
-            }}
-          />
-        </Form.Item>
-      ),
-    },
-    {
-      title: "Үр дүн",
-      dataIndex: "result",
-      key: "result",
-      render: (_, record) => (
-        <Form.Item
-          name={["result", record.key]}
-          rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.result}
-        >
-          <Input
-            placeholder=""
-            onChange={(e) => {
-              const newData = [...dataSource];
-              const index = newData.findIndex(
-                (item) => record.key === item.key
-              );
-              newData[index] = {
-                ...newData[index],
-                result: e.target.value,
-              };
-              setDataSource(newData);
-            }}
-          />
-        </Form.Item>
-      ),
-    },
-    {
-      title: "Хариуцах нэгж",
-      dataIndex: "division",
-      key: "division",
-      render: (_, record) => (
-        <Form.Item
-          name={["division", record.key]}
-          rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.division}
-        >
-          <Input
-            placeholder=""
-            onChange={(e) => {
-              const newData = [...dataSource];
-              const index = newData.findIndex(
-                (item) => record.key === item.key
-              );
-              newData[index] = {
-                ...newData[index],
-                division: e.target.value,
+                mitigationStrategy: e.target.value,
               };
               setDataSource(newData);
             }}
@@ -208,12 +176,14 @@ export function TestCase({ documentId }: { documentId?: any }) {
     },
     {
       title: "",
-      key: "",
+      key: "id",
       render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
+        <Image
+          src="/trash.svg"
+          alt=""
+          className="hover:cursor-pointer"
+          width={20}
+          height={20}
           onClick={() => handleDelete(record.key)}
         />
       ),
@@ -222,6 +192,14 @@ export function TestCase({ documentId }: { documentId?: any }) {
 
   return (
     <div>
+      <li className="mb-2 mt-4">
+        4.1 Хараат байдал
+        <ul className="ml-8">
+          • Эхний оруулсан таамаглал энэ форматын дагуу харагдах хэдэн ч мөр
+          байх боломжтой
+        </ul>
+      </li>
+
       <Table
         dataSource={dataSource}
         columns={columns}

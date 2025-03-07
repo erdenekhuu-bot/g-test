@@ -2,29 +2,29 @@
 import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
-import { DeleteOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 interface DataType {
   key: number;
-  category: string;
-  types: string;
-  steps: string;
-  result: string;
-  division: string;
+  productCategory: string;
+  product: string;
+  amount: number;
+  priceUnit: number;
+  priceTotal: number;
 }
 
-export function TestCase({ documentId }: { documentId?: any }) {
+export function ReadTestEnv() {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
   const [nextKey, setNextKey] = useState(1);
 
   const handleAdd = () => {
     const newData: DataType = {
       key: nextKey,
-      category: "",
-      types: "",
-      steps: "",
-      result: "",
-      division: "",
+      productCategory: "",
+      product: "",
+      amount: 0,
+      priceUnit: 0,
+      priceTotal: 0,
     };
     setDataSource([...dataSource, newData]);
     setNextKey(nextKey + 1);
@@ -37,14 +37,57 @@ export function TestCase({ documentId }: { documentId?: any }) {
   const columns: ColumnsType<DataType> = [
     {
       title: "Ангилал",
-      dataIndex: "category",
-      key: "category",
-      width: 200,
+      dataIndex: "productCategory",
+      key: "productCategory",
       render: (_, record) => (
         <Form.Item
-          name={["category", record.key]}
+          name={["productCategory", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.category}
+          initialValue={record.productCategory}
+        >
+          <Select
+            placeholder=""
+            style={{ width: "100%" }}
+            options={[
+              {
+                label: "high",
+                value: 1,
+              },
+              {
+                label: "medium",
+                value: 2,
+              },
+              {
+                label: "low",
+                value: 3,
+              },
+            ]}
+            onChange={(value) => {
+              const newData = [...dataSource];
+              const index = newData.findIndex(
+                (item) => record.key === item.key
+              );
+
+              newData[index] = { ...newData[index], productCategory: value };
+              setDataSource(newData);
+            }}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: "Төрөл",
+      dataIndex: "product",
+      key: "product",
+      render: (_, record) => (
+        <Form.Item
+          name={["product", record.key]}
+          rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
+          initialValue={record.product}
         >
           <Select
             placeholder="Select name"
@@ -69,7 +112,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
                 (item) => record.key === item.key
               );
 
-              newData[index] = { ...newData[index], category: value };
+              newData[index] = { ...newData[index], product: value };
               setDataSource(newData);
             }}
             showSearch
@@ -81,62 +124,18 @@ export function TestCase({ documentId }: { documentId?: any }) {
       ),
     },
     {
-      title: "Тестийн төрөл",
-      dataIndex: "types",
-      key: "types",
-      width: 200,
+      title: "Тоо ширхэг",
+      dataIndex: "amount",
+      key: "amount",
       render: (_, record) => (
         <Form.Item
-          name={["types", record.key]}
+          name={["amount", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.types}
-        >
-          <Select
-            placeholder="Select name"
-            style={{ width: "100%" }}
-            options={[
-              {
-                label: "high",
-                value: 1,
-              },
-              {
-                label: "medium",
-                value: 2,
-              },
-              {
-                label: "low",
-                value: 3,
-              },
-            ]}
-            onChange={(value) => {
-              const newData = [...dataSource];
-              const index = newData.findIndex(
-                (item) => record.key === item.key
-              );
-
-              newData[index] = { ...newData[index], types: value };
-              setDataSource(newData);
-            }}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-          />
-        </Form.Item>
-      ),
-    },
-    {
-      title: "Тест хийх алхамууд",
-      dataIndex: "steps",
-      key: "steps",
-      render: (_, record) => (
-        <Form.Item
-          name={["steps", record.key]}
-          rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.steps}
+          initialValue={record.amount}
         >
           <Input
             placeholder=""
+            type="number"
             onChange={(e) => {
               const newData = [...dataSource];
               const index = newData.findIndex(
@@ -144,7 +143,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
               );
               newData[index] = {
                 ...newData[index],
-                steps: e.target.value,
+                amount: parseInt(e.target.value),
               };
               setDataSource(newData);
             }}
@@ -153,17 +152,18 @@ export function TestCase({ documentId }: { documentId?: any }) {
       ),
     },
     {
-      title: "Үр дүн",
-      dataIndex: "result",
-      key: "result",
+      title: "Нэгж үнэ (₮)",
+      dataIndex: "priceUnit",
+      key: "priceUnit",
       render: (_, record) => (
         <Form.Item
-          name={["result", record.key]}
+          name={["priceUnit", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.result}
+          initialValue={record.priceUnit}
         >
           <Input
             placeholder=""
+            type="number"
             onChange={(e) => {
               const newData = [...dataSource];
               const index = newData.findIndex(
@@ -171,7 +171,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
               );
               newData[index] = {
                 ...newData[index],
-                result: e.target.value,
+                priceUnit: parseInt(e.target.value),
               };
               setDataSource(newData);
             }}
@@ -180,17 +180,19 @@ export function TestCase({ documentId }: { documentId?: any }) {
       ),
     },
     {
-      title: "Хариуцах нэгж",
-      dataIndex: "division",
-      key: "division",
+      title: "Нийт үнэ (₮)",
+      dataIndex: "priceTotal",
+      key: "priceTotal",
       render: (_, record) => (
         <Form.Item
-          name={["division", record.key]}
+          name={["priceTotal", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.division}
+          initialValue={record.priceTotal}
         >
           <Input
+            style={{ width: 200 }}
             placeholder=""
+            type="number"
             onChange={(e) => {
               const newData = [...dataSource];
               const index = newData.findIndex(
@@ -198,7 +200,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
               );
               newData[index] = {
                 ...newData[index],
-                division: e.target.value,
+                priceTotal: parseInt(e.target.value),
               };
               setDataSource(newData);
             }}
@@ -208,12 +210,14 @@ export function TestCase({ documentId }: { documentId?: any }) {
     },
     {
       title: "",
-      key: "",
+      key: "id",
       render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
+        <Image
+          src="/trash.svg"
+          alt=""
+          className="hover:cursor-pointer"
+          width={20}
+          height={20}
           onClick={() => handleDelete(record.key)}
         />
       ),
@@ -222,6 +226,9 @@ export function TestCase({ documentId }: { documentId?: any }) {
 
   return (
     <div>
+      <div className="font-bold my-2 text-lg mx-4">
+        7. Тестийн төсөв /Тестийн орчин/
+      </div>
       <Table
         dataSource={dataSource}
         columns={columns}

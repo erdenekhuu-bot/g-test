@@ -1,16 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Button,
-  Form,
-  Pagination,
-  Steps,
-  Popover,
-  Input,
-  Modal,
-  Layout,
-} from "antd";
+import { Table, Form, Pagination, Steps, Popover } from "antd";
 import axios from "axios";
 import {
   formatHumanReadable,
@@ -19,9 +9,10 @@ import {
 } from "@/app/components/usable";
 import { ListDataType } from "@/types/type";
 import { MainDocumentModal } from "@/app/components/modals/MainDocumentModal";
-import { SecondStep } from "@/app/components/modals/SecondStep";
+import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
 import { ThirdStep } from "@/app/components/modals/ThirdStep";
 import { CreateDocumentModal } from "../modals/CreateDocumentModal";
+import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
 
 export default function CreateDocument() {
   const [getData, setData] = useState<any[]>([]);
@@ -182,20 +173,20 @@ export default function CreateDocument() {
         confirmLoading={confirmLoading}
         onCancel={handleCancel}
       /> */}
-      {/* {activeStep === 1 && (
-        <SecondStep
+      {activeStep === 1 && (
+        <SecondCheckout
           open={true}
           onCancel={handleCloseModal}
           documentId={selectedDocumentId}
         />
       )}
       {activeStep === 2 && (
-        <ThirdStep
+        <ThirdCheckout
           open={true}
           onCancel={handleCloseModal}
           documentId={selectedDocumentId}
         />
-      )} */}
+      )}
     </section>
   );
 }

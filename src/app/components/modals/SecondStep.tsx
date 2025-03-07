@@ -16,27 +16,6 @@ type ModalProps = {
   next: () => void;
 };
 
-interface FormValues {
-  employeeId: string[];
-  role: string[];
-  startedDate: string[];
-  endDate: string[];
-  productCategory: string[];
-  product: string[];
-  amount: string[];
-  priceUnit: string[];
-  priceTotal: string[];
-  predict: string;
-  dependecy: string;
-  standby: string;
-  execute: string;
-  terminate: string;
-  affectionLevel: string[];
-  mitigationStrategy: string[];
-  riskDescription: string[];
-  riskLevel: string[];
-}
-
 const { TextArea } = Input;
 dayjs.extend(customParseFormat);
 

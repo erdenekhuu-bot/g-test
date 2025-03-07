@@ -1,8 +1,9 @@
 "use client";
 import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 interface DataType {
   key: number;
@@ -13,9 +14,10 @@ interface DataType {
   division: string;
 }
 
-export function TestCase({ documentId }: { documentId?: any }) {
+export function ReadTestCase({ documentId }: { documentId?: any }) {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
   const [nextKey, setNextKey] = useState(1);
+  const [data, setData] = useState<DataType[]>([]);
 
   const handleAdd = () => {
     const newData: DataType = {
@@ -220,14 +222,24 @@ export function TestCase({ documentId }: { documentId?: any }) {
     },
   ];
 
+  const detail = async function ({ id }: { id: string }) {
+    try {
+      const request = await axios.get(`/api/document/detail/${id}`);
+      if (request.data.success) {
+        setData(request.data.data.testcase);
+      }
+    } catch (error) {
+      return;
+    }
+  };
+
+  useEffect(() => {
+    documentId && detail({ id: documentId });
+  }, [documentId]);
+
   return (
     <div>
-      <Table
-        dataSource={dataSource}
-        columns={columns}
-        pagination={false}
-        bordered
-      />
+      <Table dataSource={data} columns={columns} pagination={false} bordered />
       <div className="text-end mt-4">
         <Button
           type="primary"

@@ -1,25 +1,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Form, Pagination, Steps, Popover } from "antd";
+import { Table, Pagination, Input } from "antd";
 import axios from "axios";
 import {
   formatHumanReadable,
   convertName,
   mongollabel,
-} from "@/app/components/usable";
+} from "@/components/usable";
 import { ListDataType } from "@/types/type";
-import { MainDocumentModal } from "@/app/components/modals/MainDocumentModal";
-import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
-import { ThirdStep } from "@/app/components/modals/ThirdStep";
-import { CreateDocumentModal } from "../modals/CreateDocumentModal";
-import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
+import type { GetProps } from "antd";
 
-export default function CreateDocument() {
+type SearchProps = GetProps<typeof Input.Search>;
+const { Search } = Input;
+
+export default function ReportDocument() {
   const [getData, setData] = useState<any[]>([]);
-  const [open, setOpen] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [currentModal, setCurrentModal] = useState(0);
-  const [form] = Form.useForm();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [pagination, setPagination] = useState<{
@@ -27,48 +22,12 @@ export default function CreateDocument() {
     pageSize: number;
     total: number;
   }>();
-  const [activeStep, setActiveStep] = useState<number | null>(null);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
-    null
-  );
-
-  const handleStepClick = (index: number) => {
-    setActiveStep(index);
-  };
-
-  const handleCloseModal = () => {
-    setActiveStep(null);
-  };
-
-  const customDot =
-    (documentId: number) =>
-    (
-      dot: React.ReactNode,
-      { status, index }: { status: string; index: number }
-    ) =>
-      (
-        <Popover
-          content={
-            <span>
-              Хуудаслалт {index} {mongollabel(status)}
-            </span>
-          }
-        >
-          <span
-            className="hover:cursor-pointer"
-            onClick={() => {
-              setSelectedDocumentId(documentId);
-              handleStepClick(index);
-            }}
-          >
-            {dot}
-          </span>
-        </Popover>
-      );
+  const [search, setSearch] = useState("");
 
   const fetching = async function () {
     try {
       const record = await axios.post(`/api/document/filter`, {
+        order: search,
         page: page,
         pageSize: pageSize,
       });
@@ -79,27 +38,20 @@ export default function CreateDocument() {
       }
     } catch (error) {}
   };
-  const showModal = () => {
-    setOpen(true);
-    setCurrentModal(1);
-  };
-  const handleNext = () => {
-    setCurrentModal((prev) => prev + 1);
-  };
-  const handleCancel = () => {
-    setOpen(false);
-    setCurrentModal(0);
-  };
 
   useEffect(() => {
     fetching();
-  }, [page, pageSize]);
-
+  }, [page, pageSize, search]);
   return (
     <section>
-      <div className="text-end mb-8 ">
-        <CreateDocumentModal />
-      </div>
+      <Search
+        placeholder=""
+        onKeyDown={(e: any) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+        style={{ width: 200 }}
+      />
       <div className="bg-white">
         <Table<ListDataType>
           dataSource={getData}
@@ -141,7 +93,7 @@ export default function CreateDocument() {
             )}
           />
 
-          <Table.Column
+          {/* <Table.Column
             title=""
             dataIndex="isFull"
             align="center"
@@ -153,7 +105,7 @@ export default function CreateDocument() {
                 items={[{ title: "1" }, { title: "2" }, { title: "3" }]}
               />
             )}
-          />
+          /> */}
         </Table>
       </div>
       <div className="flex justify-end my-6">
@@ -167,26 +119,6 @@ export default function CreateDocument() {
           }}
         />
       </div>
-
-      {/* <MainDocumentModal
-        open={open}
-        confirmLoading={confirmLoading}
-        onCancel={handleCancel}
-      /> */}
-      {activeStep === 1 && (
-        <SecondCheckout
-          open={true}
-          onCancel={handleCloseModal}
-          documentId={selectedDocumentId}
-        />
-      )}
-      {activeStep === 2 && (
-        <ThirdCheckout
-          open={true}
-          onCancel={handleCloseModal}
-          documentId={selectedDocumentId}
-        />
-      )}
     </section>
   );
 }

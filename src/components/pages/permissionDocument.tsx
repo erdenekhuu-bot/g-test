@@ -1,18 +1,21 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input, Dropdown, Space } from "antd";
+import { Table, Pagination, Input, Dropdown } from "antd";
 import axios from "axios";
-import { formatHumanReadable, convertName } from "@/app/components/usable";
+import {
+  formatHumanReadable,
+  convertName,
+  mongollabel,
+} from "@/components/usable";
+import type { MenuProps } from "antd";
 import { ListDataType } from "@/types/type";
 import type { GetProps } from "antd";
-import Image from "next/image";
-import { FullModal } from "../modals/FullModal";
-import type { MenuProps } from "antd";
+import { Badge } from "@/components/ui/badge";
 
 type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
 
-export default function ViewDocument() {
+export default function PermissionDocument() {
   const [getData, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -22,19 +25,6 @@ export default function ViewDocument() {
     total: number;
   }>();
   const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleOk = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
 
   const fetching = async function () {
     try {
@@ -45,7 +35,9 @@ export default function ViewDocument() {
       });
       if (record.data.success) {
         setPagination(record.data.pagination);
-        setData(record.data.data);
+        setData(
+          record.data.data.filter((action: any) => action.state === "FORWARD")
+        );
         setPage(record.data.page + 1);
       }
     } catch (error) {}
@@ -61,7 +53,7 @@ export default function ViewDocument() {
             });
           }}
         >
-          Илгээх
+          Цохох
         </span>
       ),
       key: "0",
@@ -143,45 +135,26 @@ export default function ViewDocument() {
           />
 
           <Table.Column
-            title="Харах"
-            dataIndex="id"
-            render={(id: number) => (
-              <Image
-                src="/eye.svg"
-                alt=""
-                width={20}
-                height={20}
-                className="hover:cursor-pointer"
-                onClick={showModal}
-              />
-            )}
-          />
-
-          <Table.Column
             title="Төлөв"
             dataIndex="id"
             align="center"
             width={80}
             render={(id: number, record: any) => (
               <Dropdown menu={{ items: items(id) }}>
-                <a
+                <Badge
+                  variant="info"
+                  className="py-1"
                   onClick={(e) => {
                     e.preventDefault();
                   }}
                 >
-                  {record.state}
-                </a>
+                  {mongollabel(record.state)}
+                </Badge>
               </Dropdown>
             )}
           />
         </Table>
       </div>
-
-      <FullModal
-        open={isModalOpen}
-        handleOk={handleOk}
-        onCancel={handleCancel}
-      />
       <div className="flex justify-end my-6">
         <Pagination
           current={pagination?.page}

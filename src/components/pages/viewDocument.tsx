@@ -1,19 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input } from "antd";
+import { Table, Pagination, Input, Dropdown } from "antd";
 import axios from "axios";
-import {
-  formatHumanReadable,
-  convertName,
-  mongollabel,
-} from "@/app/components/usable";
+import { formatHumanReadable, convertName } from "@/components/usable";
 import { ListDataType } from "@/types/type";
 import type { GetProps } from "antd";
+import Image from "next/image";
+import { FullModal } from "../modals/FullModal";
+import type { MenuProps } from "antd";
 
 type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
 
-export default function ListDocument() {
+export default function ViewDocument() {
   const [getData, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -23,6 +22,19 @@ export default function ListDocument() {
     total: number;
   }>();
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   const fetching = async function () {
     try {
@@ -38,6 +50,43 @@ export default function ListDocument() {
       }
     } catch (error) {}
   };
+
+  const items = (id: number): MenuProps["items"] => [
+    {
+      label: (
+        <span
+          onClick={async () => {
+            await axios.patch(`/api/document/detail/${id}`, {
+              reject: false,
+            });
+          }}
+        >
+          Илгээх
+        </span>
+      ),
+      key: "0",
+    },
+    {
+      type: "divider",
+    },
+    {
+      label: (
+        <span
+          onClick={async () => {
+            await axios.patch(`/api/document/detail/${id}`, {
+              reject: true,
+            });
+          }}
+        >
+          Буцаах
+        </span>
+      ),
+      key: "1",
+    },
+    {
+      type: "divider",
+    },
+  ];
 
   useEffect(() => {
     fetching();
@@ -93,21 +142,46 @@ export default function ListDocument() {
             )}
           />
 
-          {/* <Table.Column
-            title=""
-            dataIndex="isFull"
-            align="center"
-            width={80}
-            render={(isFull, record) => (
-              <Steps
-                current={isFull}
-                progressDot={customDot(record.id)}
-                items={[{ title: "1" }, { title: "2" }, { title: "3" }]}
+          <Table.Column
+            title="Харах"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={showModal}
               />
             )}
-          /> */}
+          />
+
+          <Table.Column
+            title="Төлөв"
+            dataIndex="id"
+            align="center"
+            width={80}
+            render={(id: number, record: any) => (
+              <Dropdown menu={{ items: items(id) }}>
+                <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  {record.state}
+                </a>
+              </Dropdown>
+            )}
+          />
         </Table>
       </div>
+
+      <FullModal
+        open={isModalOpen}
+        handleOk={handleOk}
+        onCancel={handleCancel}
+      />
       <div className="flex justify-end my-6">
         <Pagination
           current={pagination?.page}

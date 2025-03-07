@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { filterDepartment } from "@/app/components/usable";
+import { filterDepartment } from "@/components/usable";
 
 const prisma = new PrismaClient();
 

@@ -18,6 +18,12 @@ export const menuItems = [
     icon: "/file-plus.svg",
   },
   {
+    key: 4,
+    label: "Зөвшөөрөл",
+    url: "/home/permission",
+    icon: "/file-plus.svg",
+  },
+  {
     key: 5,
     label: "Тестийн тайлан үүсгэх",
     url: "/home/document",

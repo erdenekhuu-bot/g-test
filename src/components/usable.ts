@@ -10,7 +10,7 @@ export const mongollabel = (label: string) => {
     case "ACCESS":
       return "Зөвшөөрөгдсөн";
     case "FORWARD":
-      return "Цохогдсон";
+      return "Хянагдсан";
     case "wait":
       return "Бүрэн бус";
     case "finish":

@@ -6,14 +6,14 @@ import {
   formatHumanReadable,
   convertName,
   mongollabel,
-} from "@/app/components/usable";
+} from "@/components/usable";
 import { ListDataType } from "@/types/type";
 import type { GetProps } from "antd";
 
 type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
 
-export default function ReportDocument() {
+export default function ListDocument() {
   const [getData, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);

@@ -2,7 +2,7 @@
 import { Layout, Menu } from "antd";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { menuItems } from "../components/menu";
+import { menuItems } from "../../components/menu";
 import Image from "next/image";
 
 const { Sider, Content } = Layout;

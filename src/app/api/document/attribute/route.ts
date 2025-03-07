@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       categoryMain: attribute.categoryMain,
       category: attribute.category,
       value: attribute.value,
-      documentId: attribute.documentId,
+      documentId: parseInt(attribute.documentId),
     }));
     const createdAttributes = await prisma.documentAttribute.createMany({
       data: attributeData,

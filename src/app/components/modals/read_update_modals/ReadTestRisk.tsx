@@ -1,9 +1,9 @@
 "use client";
 import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import Image from "next/image";
-
+import { DetailContext } from "../checkmissing/SecondCheckout";
 interface DataType {
   key: number;
   riskDescription: string;
@@ -14,6 +14,7 @@ interface DataType {
 
 export function ReadTestRisk() {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
+  const context = useContext(DetailContext);
   const [nextKey, setNextKey] = useState(1);
   const handleAdd = () => {
     const newData: DataType = {
@@ -35,7 +36,7 @@ export function ReadTestRisk() {
     {
       title: "Эрсдэл",
       dataIndex: "riskDescription",
-      key: "riskDescription",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["riskDescription", record.key]}
@@ -62,7 +63,7 @@ export function ReadTestRisk() {
     {
       title: "Эрсдлийн магадлал",
       dataIndex: "riskLevel",
-      key: "riskLevel",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["riskLevel", record.key]}
@@ -106,7 +107,7 @@ export function ReadTestRisk() {
     {
       title: "Эрсдлийн нөлөөлөл",
       dataIndex: "affectionLevel",
-      key: "affectionLevel",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["affectionLevel", record.key]}
@@ -150,7 +151,7 @@ export function ReadTestRisk() {
     {
       title: "Бууруулах арга зам",
       dataIndex: "mitigationStrategy",
-      key: "mitigationStrategy",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["mitigationStrategy", record.key]}
@@ -201,7 +202,7 @@ export function ReadTestRisk() {
       </li>
 
       <Table
-        dataSource={dataSource}
+        dataSource={context.riskassessment}
         columns={columns}
         pagination={false}
         bordered

@@ -86,7 +86,7 @@ export function ReadTestSchedule() {
     {
       title: "Үүрэг",
       dataIndex: "role",
-      key: "role",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["role", record.key]}
@@ -113,7 +113,7 @@ export function ReadTestSchedule() {
     {
       title: "Эхлэх хугацаа",
       dataIndex: "startedDate",
-      key: "startedDate",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["startedDate", record.key]}
@@ -130,7 +130,7 @@ export function ReadTestSchedule() {
     {
       title: "Дуусах хугацаа",
       dataIndex: "endDate",
-      key: "endDate",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["endDate", record.key]}
@@ -168,15 +168,12 @@ export function ReadTestSchedule() {
       if (record.data.success) {
         setEmployee(record.data.data);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
     employeeList(search);
   }, [search]);
-
   console.log(context.documentemployee);
   return (
     <div>

@@ -152,7 +152,28 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
           </div>
           <div>
             <ReadTestRisk />
-            <Form.Item name="execute">
+            {data.attribute &&
+              data.attribute.map((item: any, index: number) => (
+                <div key={item.id}>
+                  <li>
+                    {index} {item.category}
+                    <ul className="ml-8">
+                      • Эхний оруулсан таамаглал энэ форматын дагуу харагдах.
+                      Хэдэн ч мөр байх боломжтой.
+                    </ul>
+                  </li>
+                  <div className="mt-2">
+                    <Form.Item
+                      name={item.value}
+                      initialValue={item.value}
+                      rules={[{ required: true, message: "Тестийн нэр!" }]}
+                    >
+                      <TextArea rows={5} style={{ resize: "none" }} />
+                    </Form.Item>
+                  </div>
+                </div>
+              ))}
+            {/* <Form.Item name="execute">
               <div>
                 <li>
                   4.2 Таамаглал
@@ -243,7 +264,7 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
                   <TextArea rows={5} style={{ resize: "none" }} />
                 </Form.Item>
               </div>
-            </div>
+            </div> */}
             <div className="font-bold my-2 text-lg mx-4">
               6. Түтгэлзүүлэх болон дахин эхлүүлэх шалгуур
             </div>

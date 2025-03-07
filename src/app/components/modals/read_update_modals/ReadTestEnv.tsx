@@ -1,8 +1,9 @@
 "use client";
 import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import Image from "next/image";
+import { DetailContext } from "../checkmissing/SecondCheckout";
 
 interface DataType {
   key: number;
@@ -16,7 +17,7 @@ interface DataType {
 export function ReadTestEnv() {
   const [dataSource, setDataSource] = useState<DataType[]>([]);
   const [nextKey, setNextKey] = useState(1);
-
+  const context = useContext(DetailContext);
   const handleAdd = () => {
     const newData: DataType = {
       key: nextKey,
@@ -38,7 +39,7 @@ export function ReadTestEnv() {
     {
       title: "Ангилал",
       dataIndex: "productCategory",
-      key: "productCategory",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["productCategory", record.key]}
@@ -82,7 +83,7 @@ export function ReadTestEnv() {
     {
       title: "Төрөл",
       dataIndex: "product",
-      key: "product",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["product", record.key]}
@@ -126,7 +127,7 @@ export function ReadTestEnv() {
     {
       title: "Тоо ширхэг",
       dataIndex: "amount",
-      key: "amount",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["amount", record.key]}
@@ -154,7 +155,7 @@ export function ReadTestEnv() {
     {
       title: "Нэгж үнэ (₮)",
       dataIndex: "priceUnit",
-      key: "priceUnit",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["priceUnit", record.key]}
@@ -182,7 +183,7 @@ export function ReadTestEnv() {
     {
       title: "Нийт үнэ (₮)",
       dataIndex: "priceTotal",
-      key: "priceTotal",
+      key: "id",
       render: (_, record) => (
         <Form.Item
           name={["priceTotal", record.key]}
@@ -230,7 +231,7 @@ export function ReadTestEnv() {
         7. Тестийн төсөв /Тестийн орчин/
       </div>
       <Table
-        dataSource={dataSource}
+        dataSource={context.budget}
         columns={columns}
         pagination={false}
         bordered

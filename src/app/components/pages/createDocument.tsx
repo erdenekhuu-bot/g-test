@@ -97,9 +97,9 @@ export default function CreateDocument() {
 
   return (
     <section>
-      <p className="text-end mb-8 ">
+      <div className="text-end mb-8 ">
         <CreateDocumentModal />
-      </p>
+      </div>
       <div className="bg-white">
         <Table<ListDataType>
           dataSource={getData}

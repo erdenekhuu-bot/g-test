@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input } from "antd";
+import { Table, Pagination, Input, Button, Modal } from "antd";
 import axios from "axios";
-import {
-  formatHumanReadable,
-  convertName,
-  mongollabel,
-} from "@/app/components/usable";
+import { formatHumanReadable, convertName } from "@/app/components/usable";
 import { ListDataType } from "@/types/type";
 import type { GetProps } from "antd";
+import Image from "next/image";
+import { FullModal } from "../modals/FullModal";
 
 type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
@@ -23,6 +21,19 @@ export default function ViewDocument() {
     total: number;
   }>();
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   const fetching = async function () {
     try {
@@ -93,21 +104,36 @@ export default function ViewDocument() {
             )}
           />
 
-          {/* <Table.Column
-            title=""
+          <Table.Column
+            title="Харах"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={showModal}
+              />
+            )}
+          />
+
+          <Table.Column
+            title="Төлөв"
             dataIndex="isFull"
             align="center"
             width={80}
-            render={(isFull, record) => (
-              <Steps
-                current={isFull}
-                progressDot={customDot(record.id)}
-                items={[{ title: "1" }, { title: "2" }, { title: "3" }]}
-              />
-            )}
-          /> */}
+            render={(isFull, record) => <button>1</button>}
+          />
         </Table>
       </div>
+
+      <FullModal
+        open={isModalOpen}
+        handleOk={handleOk}
+        onCancel={handleCancel}
+      />
       <div className="flex justify-end my-6">
         <Pagination
           current={pagination?.page}

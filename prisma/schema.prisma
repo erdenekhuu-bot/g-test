@@ -156,7 +156,7 @@ model AuthUserData {
 
 
 model Document {
-  id          String            @id @default(uuid())  @unique
+  id          Int               @id @default(autoincrement())
   title       String            @db.VarChar(100)
   generate    String?           @db.VarChar(30)
   state       DocumentStateEnum @default(DENY)
@@ -182,12 +182,12 @@ model Document {
 }
 
 model DepartmentEmployeeRole {
-  id            String            @id @default(uuid()) @db.Uuid
+  id            Int               @id @default(autoincrement())
   departmentId  Int?              @map("department_id")
   jobPositionId Int?
   employeeId    Int?              @map("employee_id")
   role          String?           @map("role") @db.VarChar(30)
-  documentId    String
+  documentId    Int
   state         DocumentStateEnum @default(DENY)
   permissionLvl Int?              @map("permission_lvl")
   isDeleted     Boolean           @default(false) @map("is_deleted") @db.Boolean
@@ -204,19 +204,19 @@ model DepartmentEmployeeRole {
 }
 
 model DocumentDetail {
-  id    String @id @default(uuid())
+  id    Int     @id @default(autoincrement())
   intro String? @db.VarChar(200)
   aim   String? @db.VarChar(100)
 
   //foreign key
   document   Document @relation("detail", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId String
+  documentId Int
 
   @@unique([intro, aim])
 }
 
 model DocumentAttribute {
-  id           String   @id @default(uuid())
+  id           Int   @id @default(autoincrement())
   categoryMain String   @db.VarChar(250)
   category     String   @db.VarChar(250)
   value        String   @db.Text
@@ -226,36 +226,34 @@ model DocumentAttribute {
 
   //relation
   document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId   String
+  documentId   Int
 
   @@unique([categoryMain, category, value, orderIndex])
 }
 
 model DocumentBudget {
-  id              String @id @default(uuid())
+  id              Int @id @default(autoincrement())
   productCategory String @db.Text
   product         String @db.Text
   amount          Int    @default(0)
   priceUnit       Int    @default(0)
   priceTotal      Int    @default(0)
-  isFull      Int?       @default(0)
+  isFull          Int?   @default(0)
   //relation
   document   Document @relation("budget", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId String
+  documentId Int
 }
 
 model DocumentEmployee {
-  id            String   @id @default(uuid()) @unique
+  id            Int   @id @default(autoincrement())
   employeeId    Int
   departmentId  Int?
   jobPositionId Int?
   role          String   @db.VarChar(200)   @unique
   startedDate   DateTime
   endDate       DateTime
-  documentId    String
-
-  timeCreated DateTime @default(now())
-  updateTimed DateTime @updatedAt
+  documentId    Int
+  
   //relation
   document    Document @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -264,7 +262,7 @@ model DocumentEmployee {
 }
 
 model RiskAssessment {
-  id                 String  @id @default(uuid())
+  id                 Int  @id @default(autoincrement())
   riskDescription    String? @db.Text
   riskLevel          Risk?
   affectionLevel     Risk?
@@ -272,13 +270,13 @@ model RiskAssessment {
   isFull      Int?              @default(0)
   //relation
   document   Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId String
+  documentId Int
 
   @@unique([riskDescription, mitigationStrategy])
 }
 
 model TestCase {
-  id          String       @id @default(uuid()) @unique
+  id          Int          @id @default(autoincrement())
   category    String       @db.VarChar(100)
   types       String       @db.VarChar(100)
   steps       String       @db.Text
@@ -286,7 +284,7 @@ model TestCase {
   division    String       @db.VarChar(100)
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt
-  documentId  String
+  documentId  Int
   //relation
   document Document @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
 
@@ -296,9 +294,9 @@ model TestCase {
 }
 
 model TestCaseImage {
-  id         String   @id @default(uuid())
+  id         Int   @id @default(autoincrement())
   path       String   @db.Text
-  testCaseId String
+  testCaseId Int
   createdAt  DateTime @default(now())
 
   //relation
@@ -306,11 +304,11 @@ model TestCaseImage {
 }
 
 model TesctCaseDes {
-  id                 String   @id @default(uuid())
+  id                 Int   @id @default(autoincrement())
   startedDescription String?  @db.Text
   endedDescription   String?  @db.Text
   createdAt          DateTime @default(now())
-  testCaseId         String
+  testCaseId         Int
   //relation 
   testCase           TestCase @relation(fields: [testCaseId], references: [id])
 }
@@ -320,7 +318,7 @@ model File {
   fileName   String   @db.VarChar(150)
   path       String   @db.Text
   createdAt  DateTime @default(now())
-  documentId String
+  documentId Int
 
   //relation 
   document Document @relation(fields: [documentId], references: [id])

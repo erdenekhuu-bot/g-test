@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, { params }: any) {
 
     const record = await prisma.document.findUnique({
       where: {
-        id: slug,
+        id: parseInt(slug),
       },
       include: {
         attribute: true,

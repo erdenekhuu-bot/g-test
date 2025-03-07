@@ -43,12 +43,6 @@ enum EmployeeRole {
   DISTRIBUTOR
 }
 
-enum TestcaseEnum {
-  CREATED
-  STARTED
-  ENDED
-}
-
 enum IssueLevel {
   INSANE
   HIGH
@@ -290,7 +284,6 @@ model TestCase {
   steps       String       @db.Text
   result      String       @db.VarChar(100)
   division    String       @db.VarChar(100)
-  testType    TestcaseEnum @default(CREATED)
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt
   documentId  String

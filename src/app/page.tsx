@@ -1,12 +1,5 @@
-"use client";
-import { Layout } from "antd";
+import HomeLayout from "./home/layout";
 
 export default function Home() {
-  const { Content } = Layout;
-
-  return (
-    <Layout className="h-screen">
-      <Content></Content>
-    </Layout>
-  );
+  return <HomeLayout />;
 }

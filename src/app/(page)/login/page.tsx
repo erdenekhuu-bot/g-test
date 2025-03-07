@@ -15,7 +15,7 @@ const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
 
 export default function Login() {
   return (
-    <div className="w-full h-full flex justify-center items-center absoulte">
+    <div className="w-full h-full flex justify-center items-center">
       <Image src="/background.png" alt="" fill className="absolute z-0" />
       <Form
         initialValues={{ remember: true }}

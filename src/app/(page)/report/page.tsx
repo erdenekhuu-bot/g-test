@@ -1,8 +1,8 @@
 import dynamic from "next/dynamic";
 import { Flex, Spin } from "antd";
 
-const ListDocument = dynamic(
-  () => import("@/app/components/pages/listDocument"),
+const ReportDocument = dynamic(
+  () => import("@/app/components/pages/reportDocument"),
   {
     loading: () => (
       <Flex gap="middle" justify="center">
@@ -12,6 +12,6 @@ const ListDocument = dynamic(
   }
 );
 
-export default async function ListLayout() {
-  return <ListDocument />;
+export default function ReportLayout() {
+  return <ReportDocument />;
 }

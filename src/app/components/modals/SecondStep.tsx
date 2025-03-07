@@ -1,6 +1,6 @@
 "use client";
-import { Modal, Form, Input, Table, Button, Select } from "antd";
-import { useState } from "react";
+import { Modal, Form, Input, Table, Button, Layout } from "antd";
+import { useState, useContext } from "react";
 import axios from "axios";
 import { TestSchedule } from "./TestSchedule";
 import { TestRisk } from "./TestRisk";
@@ -8,29 +8,45 @@ import { TestEnv } from "./TestEnv";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { selectConvert } from "../usable";
+import { DocumentContext } from "./CreateDocumentModal";
 
 type ModalProps = {
   open: boolean;
   onCancel: () => void;
-  confirmLoading?: boolean;
-  onOk?: () => void;
-  documentId?: number | null;
+  next: () => void;
 };
+
+interface FormValues {
+  employeeId: string[];
+  role: string[];
+  startedDate: string[];
+  endDate: string[];
+  productCategory: string[];
+  product: string[];
+  amount: string[];
+  priceUnit: string[];
+  priceTotal: string[];
+  predict: string;
+  dependecy: string;
+  standby: string;
+  execute: string;
+  terminate: string;
+  affectionLevel: string[];
+  mitigationStrategy: string[];
+  riskDescription: string[];
+  riskLevel: string[];
+}
 
 const { TextArea } = Input;
 dayjs.extend(customParseFormat);
 
-export function SecondStep({
-  open,
-  confirmLoading,
-  onOk,
-  onCancel,
-  documentId,
-}: ModalProps) {
+export function SecondStep({ open, next, onCancel }: ModalProps) {
   const [data, setData] = useState<any>([]);
   const [attributeForm] = Form.useForm();
+  const documentId = useContext(DocumentContext);
+  let [mean, setMean] = useState<number>(0);
 
-  const handleSubmit = async () => {
+  const handleNext = async () => {
     try {
       const values = attributeForm.getFieldsValue();
       const teamdata = {
@@ -110,23 +126,33 @@ export function SecondStep({
         axios.post("/api/document/risk", riskData),
       ];
       const responses = await Promise.all(apiRequests);
-      responses.forEach((response) => {
-        console.log(response.data);
-      });
+      for (let i in responses) {
+        mean += responses[i].status;
+      }
+      if (mean / responses.length === 200) {
+        next();
+      }
     } catch (error) {
-      console.log(error);
+      return;
     }
   };
 
   return (
     <Modal
       open={open}
-      onOk={handleSubmit}
-      confirmLoading={confirmLoading}
+      onOk={next}
       onCancel={onCancel}
       width={1000}
       className="scrollbar"
       style={{ overflowY: "auto", maxHeight: "800px" }}
+      footer={[
+        <Button key="back" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button key="next" type="primary" onClick={handleNext}>
+          Next
+        </Button>,
+      ]}
     >
       <Form className="p-6" form={attributeForm}>
         <div className="flex justify-between text-xl mb-6">

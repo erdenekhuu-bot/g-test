@@ -1,26 +1,14 @@
 "use client";
-import {
-  Modal,
-  Form,
-  Input,
-  Table,
-  Button,
-  Select,
-  Layout,
-  message,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { convertUtil } from "../usable";
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { capitalizeFirstLetter } from "../usable";
+import React, { useState, createContext, useEffect } from "react";
+import { Button, Form, Table, Select, Input, Modal } from "antd";
+import { MainDocumentModal } from "./MainDocumentModal";
+import { SecondStep } from "./SecondStep";
+import { ThirdStep } from "./ThirdStep";
 import axios from "axios";
-
-type ModalProps = {
-  open: boolean;
-  onCancel: () => void;
-  next: () => void;
-};
+import { capitalizeFirstLetter } from "../usable";
+import type { ColumnsType } from "antd/es/table";
+import Image from "next/image";
+import { convertUtil } from "../usable";
 
 interface DataType {
   key: number;
@@ -31,7 +19,10 @@ interface DataType {
 
 const { TextArea } = Input;
 
-export function MainDocumentModal({ open, onCancel, next }: ModalProps) {
+export const DocumentContext = createContext<string | null>(null);
+
+export function CreateDocumentModal() {
+  const [currentModal, setCurrentModal] = useState(0);
   const [data, setData] = useState<any>([]);
   const [getEmployee, setEmployee] = useState<any>([]);
   const [job, setJobPosition] = useState<{
@@ -42,7 +33,7 @@ export function MainDocumentModal({ open, onCancel, next }: ModalProps) {
   const [mainForm] = Form.useForm();
   const [tableForm] = Form.useForm();
   const [search, setSearch] = useState("");
-  const [messageApi, contextHolder] = message.useMessage();
+  const [documentId, setDocumentId] = useState<string | null>(null);
 
   const employeeList = async function (params: any) {
     try {
@@ -81,6 +72,43 @@ export function MainDocumentModal({ open, onCancel, next }: ModalProps) {
 
   const handleSearch = (value: any) => {
     setSearch(capitalizeFirstLetter(value));
+  };
+
+  const showModal = () => {
+    setCurrentModal(1);
+  };
+
+  const handleNext = () => {
+    setCurrentModal((prev) => prev + 1);
+  };
+
+  const handleCancel = () => {
+    setCurrentModal(0);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await mainForm.validateFields();
+      const data = {
+        authuserId: 1,
+        aim: values.aim,
+        title: values.title,
+        intro: values.intro,
+        role: Array.isArray(values.roles) ? values.roles.slice(1) : [],
+        employeeId: Array.isArray(values.names) ? values.names.slice(1) : [],
+        jobPositionId: Array.isArray(values.employee)
+          ? values.employee.slice(1)
+          : [],
+      };
+      const request = await axios.post("/api/document", data);
+      console.log(request);
+      if (request.data.success) {
+        setDocumentId(request.data.data.id);
+        handleNext();
+      }
+    } catch (error) {
+      return;
+    }
   };
 
   const columns: ColumnsType<DataType> = [
@@ -198,43 +226,33 @@ export function MainDocumentModal({ open, onCancel, next }: ModalProps) {
     },
   ];
 
-  const handleNext = async () => {
-    try {
-      const values = await mainForm.validateFields();
-      const data = {
-        authuserId: 1,
-        aim: values.aim,
-        title: values.title,
-        intro: values.intro,
-        role: Array.isArray(values.roles) ? values.roles.slice(1) : [],
-        employeeId: Array.isArray(values.names) ? values.names.slice(1) : [],
-        jobPositionId: Array.isArray(values.employee)
-          ? values.employee.slice(1)
-          : [],
-      };
-      const request = await axios.post("/api/document", data);
-      if (request.data.success) {
-        next();
-      }
-    } catch (error) {
-      return;
-    }
-  };
-
   return (
-    <Layout>
+    <div>
+      <Button
+        type="primary"
+        className="bg-[#01443F] text-white p-6"
+        onClick={showModal}
+      >
+        Тестийн төлөвлөгөө үүсгэх
+      </Button>
+
+      {/* <MainDocumentModal
+        open={currentModal === 1}
+        next={handleNext}
+        onCancel={handleCancel}
+      /> */}
       <Modal
-        open={open}
-        onOk={next}
-        onCancel={onCancel}
+        open={currentModal === 1}
+        onOk={handleSubmit}
+        onCancel={handleCancel}
         width={1000}
         className="scrollbar select-none"
         style={{ overflowY: "auto", maxHeight: "800px" }}
         footer={[
-          <Button key="back" onClick={onCancel}>
+          <Button key="back" onClick={handleCancel}>
             Cancel
           </Button>,
-          <Button key="next" type="primary" onClick={handleNext}>
+          <Button key="next" type="primary" onClick={handleSubmit}>
             Next
           </Button>,
         ]}
@@ -317,6 +335,16 @@ export function MainDocumentModal({ open, onCancel, next }: ModalProps) {
           </div>
         </Form>
       </Modal>
-    </Layout>
+
+      <DocumentContext.Provider value={documentId}>
+        <SecondStep
+          open={currentModal === 2}
+          next={handleNext}
+          onCancel={handleCancel}
+        />
+
+        <ThirdStep open={currentModal === 3} onCancel={handleCancel} />
+      </DocumentContext.Provider>
+    </div>
   );
 }

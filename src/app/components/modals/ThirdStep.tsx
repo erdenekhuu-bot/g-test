@@ -1,31 +1,24 @@
 "use client";
 import { Modal, Form } from "antd";
 import { TestCase } from "./TestCase";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { selectConvert } from "../usable";
+import { DocumentContext } from "./CreateDocumentModal";
+import axios from "axios";
 
 type ModalProps = {
   open: boolean;
   onCancel: () => void;
-  confirmLoading?: boolean;
-  onOk?: () => void;
-  documentId?: number | null;
 };
 
-export function ThirdStep({
-  open,
-  confirmLoading,
-  onOk,
-  onCancel,
-  documentId,
-}: ModalProps) {
+export function ThirdStep({ open, onCancel }: ModalProps) {
   const [data, setData] = useState<any>([]);
   const [caseForm] = Form.useForm();
+  const documentId = useContext(DocumentContext);
 
   const handleSubmit = async () => {
     try {
       const values = await caseForm.validateFields();
-
       const caseData = {
         category: values.category
           .slice(1)
@@ -34,15 +27,20 @@ export function ThirdStep({
         result: values.result.slice(1),
         steps: values.steps.slice(1),
         types: values.types.slice(1).map((index: any) => selectConvert(index)),
+        documentId: documentId,
       };
       console.log(caseData);
+      const request = await axios.post("/api/document/testcase", caseData);
+      console.log(request);
+      if (request.data.success) {
+        onCancel();
+      }
     } catch (error) {}
   };
   return (
     <Modal
       open={open}
       onOk={handleSubmit}
-      confirmLoading={confirmLoading}
       onCancel={onCancel}
       width={1000}
       className="scrollbar"

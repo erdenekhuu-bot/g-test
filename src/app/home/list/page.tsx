@@ -5,7 +5,7 @@ const ListDocument = dynamic(
   () => import("@/app/components/pages/listDocument"),
   {
     loading: () => (
-      <Flex gap="middle" justify="center">
+      <Flex gap="middle" justify="center" align="center" className="h-screen">
         <Spin size="large">Уншиж байна</Spin>
       </Flex>
     ),

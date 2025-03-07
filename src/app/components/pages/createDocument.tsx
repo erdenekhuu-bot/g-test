@@ -1,6 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Button, Form, Pagination, Steps, Popover, Input } from "antd";
+import {
+  Table,
+  Button,
+  Form,
+  Pagination,
+  Steps,
+  Popover,
+  Input,
+  Modal,
+  Layout,
+} from "antd";
 import axios from "axios";
 import {
   formatHumanReadable,
@@ -11,11 +21,13 @@ import { ListDataType } from "@/types/type";
 import { MainDocumentModal } from "@/app/components/modals/MainDocumentModal";
 import { SecondStep } from "@/app/components/modals/SecondStep";
 import { ThirdStep } from "@/app/components/modals/ThirdStep";
+import { CreateDocumentModal } from "../modals/CreateDocumentModal";
 
 export default function CreateDocument() {
   const [getData, setData] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [currentModal, setCurrentModal] = useState(0);
   const [form] = Form.useForm();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -78,9 +90,14 @@ export default function CreateDocument() {
   };
   const showModal = () => {
     setOpen(true);
+    setCurrentModal(1);
+  };
+  const handleNext = () => {
+    setCurrentModal((prev) => prev + 1);
   };
   const handleCancel = () => {
     setOpen(false);
+    setCurrentModal(0);
   };
 
   useEffect(() => {
@@ -89,14 +106,8 @@ export default function CreateDocument() {
 
   return (
     <section>
-      <p className="text-end mb-8 customscreen:hidden">
-        <Button
-          type="primary"
-          className="bg-[#01443F] text-white p-6"
-          onClick={showModal}
-        >
-          Тестийн төлөвлөгөө үүсгэх
-        </Button>
+      <p className="text-end mb-8 ">
+        <CreateDocumentModal />
       </p>
       <div className="bg-white">
         <Table<ListDataType>
@@ -165,12 +176,13 @@ export default function CreateDocument() {
           }}
         />
       </div>
-      <MainDocumentModal
+
+      {/* <MainDocumentModal
         open={open}
         confirmLoading={confirmLoading}
         onCancel={handleCancel}
-      />
-      {activeStep === 1 && (
+      /> */}
+      {/* {activeStep === 1 && (
         <SecondStep
           open={true}
           onCancel={handleCloseModal}
@@ -183,7 +195,7 @@ export default function CreateDocument() {
           onCancel={handleCloseModal}
           documentId={selectedDocumentId}
         />
-      )}
+      )} */}
     </section>
   );
 }

@@ -5,7 +5,7 @@ const ViewDocument = dynamic(
   () => import("@/app/components/pages/viewDocument"),
   {
     loading: () => (
-      <Flex gap="middle" justify="center">
+      <Flex gap="middle" justify="center" align="center" className="h-screen">
         <Spin size="large">Уншиж байна</Spin>
       </Flex>
     ),

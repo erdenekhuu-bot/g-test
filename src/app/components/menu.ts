@@ -2,37 +2,37 @@ export const menuItems = [
   {
     key: 1,
     label: "Тестийн төлөвлөгөө үүсгэх",
-    url: "create",
+    url: "/home/create",
     icon: "/file-plus.svg",
   },
   {
     key: 2,
     label: "Ирсэн тестийн төлөвлөгөө",
-    url: "list",
+    url: "/home/list",
     icon: "/Document.svg",
   },
   {
     key: 3,
     label: "Хяналт",
-    url: "view",
+    url: "/home/view",
     icon: "/file-plus.svg",
   },
   {
     key: 5,
     label: "Тестийн тайлан үүсгэх",
-    url: "document",
+    url: "/home/document",
     icon: "/file-plus.svg",
   },
   {
     key: 6,
     label: "Нийт тестийн бүртгэл",
-    url: "report",
+    url: "/home/report",
     icon: "/panel.svg",
   },
   {
     key: 7,
     label: "Гарах",
-    url: "login",
+    url: "/login",
     icon: "/settings.svg",
   },
 ];

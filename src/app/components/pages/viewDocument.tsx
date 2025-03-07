@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input, Button, Modal } from "antd";
+import { Table, Pagination, Input, Dropdown, Space } from "antd";
 import axios from "axios";
 import { formatHumanReadable, convertName } from "@/app/components/usable";
 import { ListDataType } from "@/types/type";
 import type { GetProps } from "antd";
 import Image from "next/image";
 import { FullModal } from "../modals/FullModal";
+import type { MenuProps } from "antd";
 
 type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
@@ -49,6 +50,43 @@ export default function ViewDocument() {
       }
     } catch (error) {}
   };
+
+  const items = (id: number): MenuProps["items"] => [
+    {
+      label: (
+        <span
+          onClick={async () => {
+            await axios.patch(`/api/document/detail/${id}`, {
+              reject: false,
+            });
+          }}
+        >
+          Илгээх
+        </span>
+      ),
+      key: "0",
+    },
+    {
+      type: "divider",
+    },
+    {
+      label: (
+        <span
+          onClick={async () => {
+            await axios.patch(`/api/document/detail/${id}`, {
+              reject: true,
+            });
+          }}
+        >
+          Буцаах
+        </span>
+      ),
+      key: "1",
+    },
+    {
+      type: "divider",
+    },
+  ];
 
   useEffect(() => {
     fetching();
@@ -121,10 +159,20 @@ export default function ViewDocument() {
 
           <Table.Column
             title="Төлөв"
-            dataIndex="isFull"
+            dataIndex="id"
             align="center"
             width={80}
-            render={(isFull, record) => <button>1</button>}
+            render={(id: number, record: any) => (
+              <Dropdown menu={{ items: items(id) }}>
+                <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  {record.state}
+                </a>
+              </Dropdown>
+            )}
           />
         </Table>
       </div>

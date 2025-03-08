@@ -18,9 +18,6 @@ export async function POST(req: NextRequest) {
         where: {
           authUserId: record.id,
         },
-        select: {
-          permissions: true,
-        },
       }));
     const token = {
       accesstoken:
@@ -40,7 +37,6 @@ export async function POST(req: NextRequest) {
       success: !record ? false : true,
       data: record,
       token: token,
-      view: view,
     });
   } catch (error) {
     return NextResponse.json({

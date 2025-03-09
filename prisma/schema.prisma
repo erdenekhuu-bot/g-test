@@ -334,7 +334,7 @@ model File {
 // }
 
 model Report {
-   id  String  @id @default(uuid())
+   id  Int  @id @default(autoincrement())
    reportname String  @db.VarChar(200)
    reportpurpose String @db.VarChar(200)
    reportprocessing String @db.Text
@@ -351,33 +351,33 @@ model Report {
 }
 
 model ReportTeam {
-  id String @id @default(uuid()) @unique
+  id Int @id @default(autoincrement())
   name String @db.Text
   role String @db.VarChar(200)
   started  DateTime @default(now())
   ended DateTime @updatedAt
 
   //Relation
-  reportId String
+  reportId Int
   report Report @relation("reportteam",fields: [reportId], references: [id], onDelete: Cascade)
   @@map("report_team")
 }
 
 model ReportIssue {
-  id String @id @default(uuid()) @unique
+  id Int @id @default(autoincrement()) 
   list String @db.Text
   level IssueLevel @default(LOW)
   value String @db.Text
 
   //relation
-  reportId String
+  reportId Int
   report Report @relation("reportissue", fields: [reportId], references: [id])
   @@map("report_issue")
   @@unique([level, value])
 }
 
 model ReportTestCase {
-  id          String       @id @default(uuid())
+  id          Int       @id @default(autoincrement())
   category    String       @db.VarChar(100)
   types       String       @db.VarChar(100)
   steps       String       @db.Text
@@ -385,7 +385,7 @@ model ReportTestCase {
   division    String       @db.VarChar(100)
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt
-  reportId  String
+  reportId  Int
   //relation
   report Report @relation("reporttestcase", fields: [reportId], references: [id], onDelete: Cascade)
    @@map("report_testcase")

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: any) {
     const { slug } = await params;
     const record = await prisma.report.findUnique({
       where: {
-        id: slug,
+        id: parseInt(slug),
       },
       include: {
         team: true,

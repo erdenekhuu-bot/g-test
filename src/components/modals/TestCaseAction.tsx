@@ -8,10 +8,11 @@ import {
   Input,
   Upload,
   Divider,
-  message,
   Image,
+  Form,
 } from "antd";
 import type { GetProp, UploadFile, UploadProps } from "antd";
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FileImageOutlined, PlusOutlined } from "@ant-design/icons";
@@ -45,6 +46,7 @@ export function TestCaseAction({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [form] = Form.useForm();
 
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
@@ -77,7 +79,7 @@ export function TestCaseAction({
   const uploadButton = (
     <button style={{ border: 0, background: "none" }} type="button">
       <PlusOutlined />
-      <div style={{ marginTop: 8 }}>Зураг оруулах</div>
+      <div style={{ marginTop: 8 }}>Upload</div>
     </button>
   );
 
@@ -89,88 +91,91 @@ export function TestCaseAction({
       onCancel={handleCancel}
       width={800}
     >
-      <Flex align="center" className="mb-4">
-        <Badge status="success" />
-        <p className="mx-2">Ангилал</p>
-      </Flex>
-
-      <Flex justify="space-between">
-        <p className="font-bold text-lg">{loading && data.result}</p>
-        <Select
-          showSearch
-          style={{ width: 200 }}
-          placeholder="Кэйсийн төлөв"
-          optionFilterProp="label"
-          filterSort={(optionA, optionB) =>
-            (optionA?.label ?? "")
-              .toLowerCase()
-              .localeCompare((optionB?.label ?? "").toLowerCase())
-          }
-          options={[
-            {
-              value: "1",
-              label: "Эхэлсэн",
-            },
-            {
-              value: "2",
-              label: "Хүлээгдэж байгаа",
-            },
-            {
-              value: "3",
-              label: "Дууссан",
-            },
-          ]}
-        />
-      </Flex>
-      <Divider />
-      <Avatar.Group>
-        <Flex gap={4} align="center">
-          <Image src="/users.svg" alt="" width={30} height={40} />
-          {loading &&
-            data.document.documentemployee.map((item: any, index: number) => (
-              <Flex key={index} gap={4} className="opacity-60">
-                <p>{item.employee.firstname}</p>
-                <p>{item.employee.lastname + ","}</p>
-              </Flex>
-            ))}
+      <Form form={form}>
+        <Flex align="center" className="mb-4">
+          <Badge status="success" />
+          <p className="mx-2">Ангилал</p>
         </Flex>
-      </Avatar.Group>
-      <Divider />
-      {loading && (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: data.steps.replace(/\n/g, "<br />"),
-          }}
-        />
-      )}
-      <div className="mt-4">
-        <Input.TextArea
-          rows={4}
-          style={{ resize: "none" }}
-          placeholder="Тайлбар бичих"
-        />
-      </div>
-      <div className=" my-4">
-        <Upload
-          listType="picture-card"
-          fileList={fileList}
-          onPreview={handlePreview}
-          onChange={handleChange}
-        >
-          {fileList.length >= 8 ? null : uploadButton}
-        </Upload>
-        {previewImage && (
-          <Image
-            wrapperStyle={{ display: "none" }}
-            preview={{
-              visible: previewOpen,
-              onVisibleChange: (visible) => setPreviewOpen(visible),
-              afterOpenChange: (visible) => !visible && setPreviewImage(""),
+
+        <Flex justify="space-between">
+          <p className="font-bold text-lg">{loading && data.result}</p>
+          <Select
+            showSearch
+            style={{ width: 200 }}
+            placeholder="Кэйсийн төлөв"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? "")
+                .toLowerCase()
+                .localeCompare((optionB?.label ?? "").toLowerCase())
+            }
+            options={[
+              {
+                value: "1",
+                label: "Эхэлсэн",
+              },
+              {
+                value: "2",
+                label: "Хүлээгдэж байгаа",
+              },
+              {
+                value: "3",
+                label: "Дууссан",
+              },
+            ]}
+          />
+        </Flex>
+        <Divider />
+        <Avatar.Group>
+          <Flex gap={4} align="center">
+            <Image src="/users.svg" alt="" width={30} height={40} />
+            {loading &&
+              data.document.documentemployee.map((item: any, index: number) => (
+                <Flex key={index} gap={4} className="opacity-60">
+                  <p>{item.employee.firstname}</p>
+                  <p>{item.employee.lastname + ","}</p>
+                </Flex>
+              ))}
+          </Flex>
+        </Avatar.Group>
+        <Divider />
+        {loading && (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: data.steps.replace(/\n/g, "<br />"),
             }}
-            src={previewImage}
           />
         )}
-      </div>
+        <div className="mt-4">
+          <Input.TextArea
+            rows={4}
+            style={{ resize: "none" }}
+            placeholder="Тайлбар бичих"
+          />
+        </div>
+        <div className=" my-4">
+          <Upload
+            action={`/api/imageupload/${testid}`}
+            listType="picture-card"
+            fileList={fileList}
+            onPreview={handlePreview}
+            onChange={handleChange}
+          >
+            {fileList.length >= 8 ? null : uploadButton}
+          </Upload>
+          {previewImage && (
+            <Image
+              wrapperStyle={{ display: "none" }}
+              preview={{
+                visible: previewOpen,
+                onVisibleChange: (visible) => setPreviewOpen(visible),
+                afterOpenChange: (visible) => !visible && setPreviewImage(""),
+              }}
+              src={previewImage}
+            />
+          )}
+        </div>
+      </Form>
     </Modal>
   );
 }

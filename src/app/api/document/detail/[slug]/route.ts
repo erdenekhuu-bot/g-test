@@ -12,9 +12,13 @@ export async function GET(req: NextRequest, { params }: any) {
         id: parseInt(slug),
       },
       include: {
+        documentemployee: {
+          select: {
+            employee: true,
+          },
+        },
         attribute: true,
         detail: true,
-        documentemployee: true,
         riskassessment: true,
         testcase: true,
         budget: true,

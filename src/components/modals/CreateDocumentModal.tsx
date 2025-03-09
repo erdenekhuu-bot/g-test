@@ -107,6 +107,7 @@ export function CreateDocumentModal() {
         handleNext();
       }
     } catch (error) {
+      console.log(error);
       return;
     }
   };

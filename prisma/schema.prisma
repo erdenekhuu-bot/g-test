@@ -205,14 +205,12 @@ model DepartmentEmployeeRole {
 
 model DocumentDetail {
   id    Int     @id @default(autoincrement())
-  intro String? @db.VarChar(200)
-  aim   String? @db.VarChar(100)
+  intro String @db.VarChar(200)
+  aim   String @db.VarChar(100)
 
   //foreign key
   document   Document @relation("detail", fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
-
-  @@unique([intro, aim])
 }
 
 model DocumentAttribute {

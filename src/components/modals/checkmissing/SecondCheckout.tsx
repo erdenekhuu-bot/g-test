@@ -152,7 +152,7 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
           </div>
           <div>
             <ReadTestRisk />
-            {data.attribute &&
+            {/* {data.attribute &&
               data.attribute.map((item: any, index: number) => (
                 <div key={item.id}>
                   <li>
@@ -172,8 +172,8 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
                     </Form.Item>
                   </div>
                 </div>
-              ))}
-            {/* <Form.Item name="execute">
+              ))} */}
+            <Form.Item name="execute">
               <div>
                 <li>
                   4.2 Таамаглал
@@ -264,7 +264,7 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
                   <TextArea rows={5} style={{ resize: "none" }} />
                 </Form.Item>
               </div>
-            </div> */}
+            </div>
             <div className="font-bold my-2 text-lg mx-4">
               6. Түтгэлзүүлэх болон дахин эхлүүлэх шалгуур
             </div>

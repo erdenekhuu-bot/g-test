@@ -16,6 +16,14 @@ export async function POST(req: NextRequest) {
       data: attributeData,
       skipDuplicates: true,
     });
+    await prisma.document.update({
+      where: {
+        id: request.id,
+      },
+      data: {
+        isFull: 1,
+      },
+    });
     return NextResponse.json({
       success: true,
       data: createdAttributes,

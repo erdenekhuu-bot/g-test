@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         data: "Document didn't",
       });
     }
+
     const employeerole =
       record &&
       request.employeeId.map((employeeId: number, index: number) => ({
@@ -79,7 +80,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({
       success: false,
-
       data: error,
     });
   }

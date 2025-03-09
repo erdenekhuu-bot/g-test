@@ -1,44 +1,14 @@
-"use client";
-import React from "react";
-import { InboxOutlined } from "@ant-design/icons";
-import type { UploadProps } from "antd";
-import { message, Upload } from "antd";
+import dynamic from "next/dynamic";
+import { Flex, Spin } from "antd";
 
-const { Dragger } = Upload;
+const MakeDocument = dynamic(() => import("@/components/pages/makeDocument"), {
+  loading: () => (
+    <Flex gap="middle" justify="center" align="center" className="h-screen">
+      <Spin size="large">Уншиж байна</Spin>
+    </Flex>
+  ),
+});
 
-const props: UploadProps = {
-  name: "file",
-  multiple: true,
-  action: "http://127.0.0.1:3000/api/fileupload",
-  onChange(info) {
-    const { status } = info.file;
-    if (status !== "uploading") {
-      console.log(info.file, info.fileList);
-    }
-    if (status === "done") {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === "error") {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  },
-  onDrop(e) {
-    console.log("Dropped files", e.dataTransfer.files);
-  },
-};
-
-export default function Document() {
-  return (
-    <Dragger {...props}>
-      <p className="ant-upload-drag-icon">
-        <InboxOutlined />
-      </p>
-      <p className="ant-upload-text">
-        Click or drag file to this area to upload
-      </p>
-      <p className="ant-upload-hint">
-        Support for a single or bulk upload. Strictly prohibited from uploading
-        company data or other banned files.
-      </p>
-    </Dragger>
-  );
+export default async function CreateLayout() {
+  return <MakeDocument />;
 }

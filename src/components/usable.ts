@@ -57,3 +57,18 @@ export const selectConvert = (arg: number) => {
       return "LOW";
   }
 };
+
+export const convertStatus = (arg: string) => {
+  switch (arg) {
+    case "HIGH":
+      return "warning";
+    case "MEDIUM":
+      return "processing";
+    default:
+      return "success";
+  }
+};
+
+export const mergeLetter = (letter: any) => {
+  return letter?.firstname.substring(0, 1) + letter?.lastname.substring(0, 1);
+};

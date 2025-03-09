@@ -50,6 +50,12 @@ enum IssueLevel {
   LOW
 }
 
+enum TestcaseEnum {
+  CREATED
+  STARTED
+  ENDED
+}
+
 model AuthUser {
   id       Int       @id @default(autoincrement())
   username String?   @db.VarChar(50)
@@ -280,6 +286,8 @@ model TestCase {
   steps       String       @db.Text
   result      String       @db.VarChar(100)
   division    String       @db.VarChar(100)
+  testType    TestcaseEnum @default(CREATED)
+  description String?       @db.Text
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt
   documentId  Int
@@ -287,7 +295,6 @@ model TestCase {
   document Document @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
 
   //foreign key
-  testCaseDes   TesctCaseDes[]
   testCaseImage TestCaseImage[]
 }
 
@@ -299,16 +306,6 @@ model TestCaseImage {
 
   //relation
   testCase TestCase? @relation(fields: [testCaseId], references: [id])
-}
-
-model TesctCaseDes {
-  id                 Int   @id @default(autoincrement())
-  startedDescription String?  @db.Text
-  endedDescription   String?  @db.Text
-  createdAt          DateTime @default(now())
-  testCaseId         Int
-  //relation 
-  testCase           TestCase @relation(fields: [testCaseId], references: [id])
 }
 
 model File {

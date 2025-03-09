@@ -17,12 +17,6 @@ export async function POST(req: NextRequest, { params }: any) {
     const uploadDir = path.join(process.cwd(), "public/upload/images");
     const filePaths: string[] = [];
 
-    const testcase = await prisma.testCase.findUnique({
-      where: {
-        id: slug,
-      },
-    });
-
     for (const file of files) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -34,7 +28,7 @@ export async function POST(req: NextRequest, { params }: any) {
 
     const testimage = filePaths.map((item: any) => ({
       path: item,
-      testCaseId: slug,
+      testCaseId: parseInt(slug),
     }));
 
     const record = await prisma.testCaseImage.createMany({

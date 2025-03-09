@@ -219,9 +219,6 @@ export function FullModal({ open, onCancel, handleOk }: ModalProps) {
               render={() => <Input />}
             />
           </Table>
-          <div className="text-end mt-4">
-            <Button type="primary">Мөр нэмэх</Button>
-          </div>
         </div>
         <TestEnv />
         <div className="font-bold my-2 text-lg mx-4">5.3. Тестийн кэйс</div>

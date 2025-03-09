@@ -12,6 +12,15 @@ export async function GET(req: NextRequest, { params }: any) {
       },
       include: {
         testCaseImage: true,
+        document: {
+          select: {
+            documentemployee: {
+              select: {
+                employee: true,
+              },
+            },
+          },
+        },
       },
     });
     return NextResponse.json({

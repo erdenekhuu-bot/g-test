@@ -17,6 +17,8 @@ import type { UploadProps } from "antd";
 import { message, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { Cards } from "../ui/Card";
+import Image from "next/image";
+import { FullModal } from "../modals/FullModal";
 
 const { Dragger } = Upload;
 const { Content } = Layout;
@@ -54,12 +56,26 @@ export default function MakeDocument() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
     null
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [click, setClick] = useState(false);
   const [find, findId] = useState(0);
   const [order, setOrder] = useState("");
 
   const handleCloseModal = () => {
     setActiveStep(null);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
   };
 
   const fetching = async function () {
@@ -139,6 +155,36 @@ export default function MakeDocument() {
           />
 
           <Table.Column
+            title="Харах"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={showModal}
+              />
+            )}
+          />
+
+          <Table.Column
+            title="Үйлдэл"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/download.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={showModal}
+              />
+            )}
+          />
+
+          {/* <Table.Column
             title="Төлөв"
             dataIndex="id"
             align="center"
@@ -166,7 +212,7 @@ export default function MakeDocument() {
                 ]}
               />
             )}
-          />
+          /> */}
         </Table>
       </div>
       <div className="flex justify-end my-6">
@@ -193,7 +239,11 @@ export default function MakeDocument() {
           </p>
         </Dragger>
       )}
-
+      <FullModal
+        open={isModalOpen}
+        handleOk={handleOk}
+        onCancel={handleCancel}
+      />
       {click && <Cards documentId={find} />}
 
       {/* {activeStep === 0 && (

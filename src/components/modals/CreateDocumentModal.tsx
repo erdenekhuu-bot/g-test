@@ -141,17 +141,6 @@ export function CreateDocumentModal() {
                   value: selectedEmployee.jobPosition.id,
                   label: selectedEmployee.jobPosition.name,
                 });
-
-                tableForm.setFieldsValue({
-                  data: {
-                    [index]: {
-                      employee: {
-                        value: selectedEmployee.jobPosition.id,
-                        label: `${selectedEmployee.jobPosition.name}`,
-                      },
-                    },
-                  },
-                });
               }
               newData[index] = { ...newData[index], name: value };
               setDataSource(newData);

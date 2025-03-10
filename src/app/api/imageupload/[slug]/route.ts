@@ -12,7 +12,10 @@ export async function POST(req: NextRequest, { params }: any) {
     const files = formData.getAll("file") as File[];
     const { slug } = await params;
     if (!files.length) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Зураг хадгалагдсангүй" },
+        { status: 400 }
+      );
     }
 
     const uploadDir = path.join(process.cwd(), "public/upload/images");
@@ -25,7 +28,6 @@ export async function POST(req: NextRequest, { params }: any) {
     if (files.length === 1) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-
       await writeFile(filePath, buffer);
       filePaths.push(`/upload/images/${file.name}`);
     }
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest, { params }: any) {
     } else {
       record = await prisma.testCaseImage.create({
         data: {
-          path: filePath,
+          path: filePaths[0],
           testCaseId: parseInt(slug),
         },
       });
@@ -63,7 +65,6 @@ export async function POST(req: NextRequest, { params }: any) {
       data: record,
     });
   } catch (error) {
-    console.log(error);
     return NextResponse.json({
       success: false,
       data: error,

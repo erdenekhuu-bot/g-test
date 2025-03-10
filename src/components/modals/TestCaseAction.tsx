@@ -15,14 +15,14 @@ import type { GetProp, UploadFile, UploadProps } from "antd";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FileImageOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 
 type ModalProps = {
   open: boolean;
   handleOk: () => void;
-  confirmLoading: boolean;
   handleCancel: () => void;
   testid: any;
+  form: any;
 };
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -37,16 +37,15 @@ const getBase64 = (file: FileType): Promise<string> =>
 export function TestCaseAction({
   open,
   handleOk,
-  confirmLoading,
   handleCancel,
   testid,
+  form,
 }: ModalProps) {
   const [data, setData] = useState<any>([]);
   const [loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [form] = Form.useForm();
 
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
@@ -66,6 +65,7 @@ export function TestCaseAction({
       if (request.data.success) {
         setData(request.data.data);
         setLoading(true);
+        window.location.reload;
       }
     } catch (error) {
       return;
@@ -84,13 +84,7 @@ export function TestCaseAction({
   );
 
   return (
-    <Modal
-      open={open}
-      onOk={handleOk}
-      confirmLoading={confirmLoading}
-      onCancel={handleCancel}
-      width={800}
-    >
+    <Modal open={open} onOk={handleOk} onCancel={handleCancel} width={800}>
       <Form form={form}>
         <Flex align="center" className="mb-4">
           <Badge status="success" />
@@ -99,32 +93,31 @@ export function TestCaseAction({
 
         <Flex justify="space-between">
           <p className="font-bold text-lg">{loading && data.result}</p>
-          <Select
-            showSearch
-            style={{ width: 200 }}
-            placeholder="Кэйсийн төлөв"
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-              (optionA?.label ?? "")
-                .toLowerCase()
-                .localeCompare((optionB?.label ?? "").toLowerCase())
-            }
-            options={[
-              {
-                value: "1",
-                label: "Эхэлсэн",
-              },
-              {
-                value: "2",
-                label: "Хүлээгдэж байгаа",
-              },
-              {
-                value: "3",
-                label: "Дууссан",
-              },
-            ]}
-          />
+          <Form.Item name="testType">
+            <Select
+              showSearch
+              style={{ width: 200 }}
+              placeholder="Кэйсийн төлөв"
+              optionFilterProp="label"
+              filterSort={(optionA, optionB) =>
+                (optionA?.label ?? "")
+                  .toLowerCase()
+                  .localeCompare((optionB?.label ?? "").toLowerCase())
+              }
+              options={[
+                {
+                  value: "STARTED",
+                  label: "Эхэлсэн",
+                },
+                {
+                  value: "ENDED",
+                  label: "Дууссан",
+                },
+              ]}
+            />
+          </Form.Item>
         </Flex>
+
         <Divider />
         <Avatar.Group>
           <Flex gap={4} align="center">
@@ -147,13 +140,15 @@ export function TestCaseAction({
           />
         )}
         <div className="mt-4">
-          <Input.TextArea
-            rows={4}
-            style={{ resize: "none" }}
-            placeholder="Тайлбар бичих"
-          />
+          <Form.Item name="description">
+            <Input.TextArea
+              rows={4}
+              style={{ resize: "none" }}
+              placeholder="Тайлбар бичих"
+            />
+          </Form.Item>
         </div>
-        <div className=" my-4">
+        <div className="my-4">
           <Upload
             action={`/api/imageupload/${testid}`}
             listType="picture-card"

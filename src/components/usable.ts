@@ -15,6 +15,12 @@ export const mongollabel = (label: string) => {
       return "Бүрэн бус";
     case "finish":
       return "Дууссан";
+    case "CREATED":
+      return "Үүссэн";
+    case "STARTED":
+      return "Эхэлсэн";
+    case "ENDED":
+      return "Дууссан";
     default:
       return "Цуцлагдсан";
   }
@@ -64,6 +70,7 @@ export const convertStatus = (arg: string) => {
       return "warning";
     case "MEDIUM":
       return "processing";
+
     default:
       return "success";
   }

@@ -1,25 +1,11 @@
 "use client";
-import {
-  Card,
-  Avatar,
-  Badge,
-  Flex,
-  Modal,
-  Select,
-  Input,
-  Upload,
-  Divider,
-} from "antd";
+import { Card, Avatar, Badge, Flex, Input, Upload, Form } from "antd";
 import type { UploadProps, GetProp, UploadFile } from "antd";
 import { PlusOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { convertStatus, mongollabel, mergeLetter } from "../usable";
 import { TestCaseAction } from "../modals/TestCaseAction";
-
-import Image from "next/image";
-
-const { TextArea } = Input;
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -35,15 +21,22 @@ export const Cards = ({ documentId }: any) => {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<any>([]);
   const [loading, setLoading] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
   const [testid, setTestId] = useState(0);
+  const [form] = Form.useForm();
 
-  const handleOk = () => {
-    setConfirmLoading(true);
-    setTimeout(() => {
-      setOpen(false);
-      setConfirmLoading(false);
-    }, 1000);
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log(
+        await axios.patch(`/api/document/testcase/${testid}`, {
+          action: values.testType,
+          description: values.description,
+        })
+      );
+      window.location.reload;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleCancel = () => {
@@ -96,7 +89,7 @@ export const Cards = ({ documentId }: any) => {
                     <Flex gap={8}>
                       <Badge status={convertStatus(item.category)} />
                       <span className="opacity-70">
-                        {mongollabel(item.category)}
+                        {mongollabel(item.testType)}
                       </span>
                     </Flex>
                     <EllipsisOutlined
@@ -152,12 +145,15 @@ export const Cards = ({ documentId }: any) => {
                     <Flex gap={8}>
                       <Badge status={convertStatus(item.category)} />
                       <span className="opacity-70">
-                        {mongollabel(item.category)}
+                        {mongollabel(item.testType)}
                       </span>
                     </Flex>
                     <EllipsisOutlined
                       className="hover:cursor-pointer text-lg"
-                      onClick={showModal}
+                      onClick={() => {
+                        showModal();
+                        setTestId(item.id);
+                      }}
                     />
                   </Flex>
                   <p className="my-2 font-bold ">{item.result}</p>
@@ -206,12 +202,15 @@ export const Cards = ({ documentId }: any) => {
                     <Flex gap={8}>
                       <Badge status={convertStatus(item.category)} />
                       <span className="opacity-70">
-                        {mongollabel(item.category)}
+                        {mongollabel(item.testType)}
                       </span>
                     </Flex>
                     <EllipsisOutlined
                       className="hover:cursor-pointer text-lg"
-                      onClick={showModal}
+                      onClick={() => {
+                        showModal();
+                        setTestId(item.id);
+                      }}
                     />
                   </Flex>
                   <p className="my-2 font-bold ">{item.result}</p>
@@ -236,13 +235,15 @@ export const Cards = ({ documentId }: any) => {
           )}
       </Card>
 
-      <TestCaseAction
-        open={open}
-        handleOk={handleOk}
-        confirmLoading={confirmLoading}
-        handleCancel={handleCancel}
-        testid={testid}
-      />
+      <Form form={form}>
+        <TestCaseAction
+          open={open}
+          handleOk={handleOk}
+          handleCancel={handleCancel}
+          testid={testid}
+          form={form}
+        />
+      </Form>
     </div>
   );
 };

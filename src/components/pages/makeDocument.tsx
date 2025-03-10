@@ -10,6 +10,7 @@ import {
 import { ListDataType } from "@/types/type";
 import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
 import { CreateDocumentModal } from "../modals/CreateDocumentModal";
+import { CreateReportModal } from "../modals/CreateReportModal";
 import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
 import { FirstCheckout } from "../modals/checkmissing/FirstCheckout";
 import type { UploadProps } from "antd";
@@ -82,7 +83,7 @@ export default function MakeDocument() {
   return (
     <section>
       <div className="text-end mb-8 ">
-        <CreateDocumentModal />
+        <CreateReportModal />
       </div>
       <div className="bg-white">
         <Table<ListDataType>
@@ -195,7 +196,7 @@ export default function MakeDocument() {
 
       {click && <Cards documentId={find} />}
 
-      {activeStep === 0 && (
+      {/* {activeStep === 0 && (
         <FirstCheckout
           open={true}
           onCancel={handleCloseModal}
@@ -216,7 +217,7 @@ export default function MakeDocument() {
           onCancel={handleCloseModal}
           documentId={selectedDocumentId}
         />
-      )}
+      )} */}
     </section>
   );
 }

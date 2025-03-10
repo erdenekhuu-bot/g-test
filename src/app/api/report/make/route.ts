@@ -21,14 +21,13 @@ export async function POST(req: NextRequest) {
       reportId: record.id,
     }));
 
-    const report = await prisma.reportTeam.createMany({
+    await prisma.reportTeam.createMany({
       data: teamsData,
       skipDuplicates: true,
     });
-
     return NextResponse.json({
       success: true,
-      data: report,
+      data: record,
     });
   } catch (error) {
     return NextResponse.json({

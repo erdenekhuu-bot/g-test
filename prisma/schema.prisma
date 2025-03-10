@@ -286,7 +286,7 @@ model TestCase {
   steps       String       @db.Text
   result      String       @db.VarChar(100)
   division    String       @db.VarChar(100)
-  testType    TestcaseEnum @default(CREATED)
+  testType    TestcaseEnum  @default(CREATED)
   description String?       @db.Text
   timeCreated DateTime     @default(now())
   timeUpdate  DateTime     @updatedAt

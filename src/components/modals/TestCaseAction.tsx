@@ -65,7 +65,7 @@ export function TestCaseAction({
       if (request.data.success) {
         setData(request.data.data);
         setLoading(true);
-        window.location.reload;
+        handleCancel();
       }
     } catch (error) {
       return;
@@ -79,7 +79,7 @@ export function TestCaseAction({
   const uploadButton = (
     <button style={{ border: 0, background: "none" }} type="button">
       <PlusOutlined />
-      <div style={{ marginTop: 8 }}>Upload</div>
+      <div style={{ marginTop: 8 }}>Зураг оруулах</div>
     </button>
   );
 

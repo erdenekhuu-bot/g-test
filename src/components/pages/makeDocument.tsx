@@ -89,12 +89,36 @@ export default function MakeDocument() {
         setData(record.data.data);
         setPage(record.data.page + 1);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
     fetching();
   }, [page, pageSize]);
+
+  const handleDownload = async () => {
+    try {
+      const response = await axios.get("/api/download", {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "sample.pdf");
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <section>
@@ -128,12 +152,6 @@ export default function MakeDocument() {
             title="Тестийн нэр"
             dataIndex="title"
             defaultSortOrder="descend"
-          />
-
-          <Table.Column
-            title="Тушаал"
-            dataIndex="order"
-            render={() => <span>-</span>}
           />
 
           <Table.Column
@@ -179,7 +197,7 @@ export default function MakeDocument() {
                 width={20}
                 height={20}
                 className="hover:cursor-pointer"
-                onClick={showModal}
+                onClick={handleDownload}
               />
             )}
           />

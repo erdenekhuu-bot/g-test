@@ -33,7 +33,7 @@ export const Cards = ({ documentId }: any) => {
           description: values.description,
         })
       );
-      window.location.reload;
+      handleCancel();
     } catch (error) {
       console.log(error);
     }

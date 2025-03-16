@@ -1,61 +1,70 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input } from "antd";
-import axios from "axios";
-import {
-  formatHumanReadable,
-  convertName,
-  mongollabel,
-} from "@/components/usable";
+import React, { useState, useCallback } from "react";
+import { Table, Pagination, Input, Flex } from "antd";
+import { formatHumanReadable, convertName } from "@/components/usable";
 import { ListDataType } from "@/types/type";
-import type { GetProps } from "antd";
+import { Badge } from "@/components/ui/badge";
+import { mongollabel } from "@/components/usable";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { FullModal } from "../modals/FullModal";
 
-type SearchProps = GetProps<typeof Input.Search>;
-const { Search } = Input;
-
-export default function ListDocument() {
-  const [getData, setData] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-    total: number;
-  }>();
-  const [search, setSearch] = useState("");
-
-  const fetching = async function () {
-    try {
-      const record = await axios.post(`/api/document/filter`, {
-        order: search,
-        page: page,
-        pageSize: pageSize,
-      });
-      if (record.data.success) {
-        setPagination(record.data.pagination);
-        setData(record.data.data);
-        setPage(record.data.page + 1);
-      }
-    } catch (error) {}
+export default function ListDocument({
+  documents,
+  total,
+  pageSize,
+  page,
+  order,
+}: any) {
+  const [searchTerm, setSearchTerm] = useState<string>(order);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
+  const [find, findId] = useState(0);
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleOk = () => {
+    setIsModalOpen(false);
   };
 
-  useEffect(() => {
-    fetching();
-  }, [page, pageSize, search]);
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+
+      const params = new URLSearchParams({
+        page: "1",
+        pageSize: pageSize.toString(),
+        order: value || "",
+      });
+      router.push(`/home/list?${params.toString()}`);
+    },
+    [router, pageSize]
+  );
+
   return (
     <section>
-      <Search
-        placeholder=""
-        onKeyDown={(e: any) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-        style={{ width: 200 }}
-      />
-      <div className="bg-white">
+      <Flex gap={20}>
+        <Input.Search
+          placeholder="Тушаалаар хайх"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          allowClear
+          style={{ width: 400 }}
+        />
+      </Flex>
+      <div className="bg-white mt-8">
         <Table<ListDataType>
-          dataSource={getData}
-          pagination={false}
+          dataSource={documents}
+          pagination={{
+            current: page,
+            pageSize: pageSize,
+            total: total,
+          }}
           rowKey="id"
         >
           <Table.Column
@@ -89,36 +98,47 @@ export default function ListDocument() {
               new Date(b.timeCreated).getTime()
             }
             render={(timeCreated: string) => (
-              <span>{formatHumanReadable(timeCreated)}</span>
+              <span>
+                {formatHumanReadable(new Date(timeCreated).toISOString())}
+              </span>
             )}
           />
-
-          {/* <Table.Column
-            title=""
-            dataIndex="isFull"
-            align="center"
-            width={80}
-            render={(isFull, record) => (
-              <Steps
-                current={isFull}
-                progressDot={customDot(record.id)}
-                items={[{ title: "1" }, { title: "2" }, { title: "3" }]}
+          <Table.Column
+            title="Харах"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={showModal}
               />
             )}
-          /> */}
+          />
+          <Table.Column
+            title="Төлөв"
+            dataIndex="state"
+            align="center"
+            width={80}
+            render={(state) => (
+              <Badge
+                variant={state === "FORWARD" ? "info" : "destructive"}
+                className="py-1"
+              >
+                {mongollabel(state)}
+              </Badge>
+            )}
+          />
         </Table>
       </div>
-      <div className="flex justify-end my-6">
-        <Pagination
-          current={pagination?.page}
-          pageSize={pagination?.pageSize}
-          total={pagination?.total}
-          onChange={(newPage: number, newPageSize: number) => {
-            setPage(newPage);
-            setPageSize(newPageSize);
-          }}
-        />
-      </div>
+      <FullModal
+        open={isModalOpen}
+        handleOk={handleOk}
+        onCancel={handleCancel}
+        detailId={find}
+      />
     </section>
   );
 }

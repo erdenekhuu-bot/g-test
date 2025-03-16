@@ -1,17 +1,49 @@
-import dynamic from "next/dynamic";
-import { Flex, Spin } from "antd";
+import { PrismaClient } from "@prisma/client";
+import CreateDocument from "@/components/pages/createDocument";
 
-const CreateDocument = dynamic(
-  () => import("@/components/pages/createDocument"),
-  {
-    loading: () => (
-      <Flex gap="middle" justify="center" align="center" className="h-screen">
-        <Spin size="large">Уншиж байна</Spin>
-      </Flex>
-    ),
+export default async function CreateLayout({
+  searchParams,
+}: {
+  searchParams: { order?: string; page?: string; pageSize?: string };
+}) {
+  const page = parseInt(searchParams.page || "1", 10) || 1;
+  const pageSize = parseInt(searchParams.pageSize || "10", 10) || 10;
+
+  const prisma = new PrismaClient();
+
+  try {
+    const records = await prisma.document.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        user: {
+          select: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+              },
+            },
+          },
+        },
+        file: true,
+      },
+      orderBy: {
+        timeCreated: "asc",
+      },
+    });
+
+    const totalCount = await prisma.document.count({});
+
+    return (
+      <CreateDocument
+        documents={records}
+        total={totalCount}
+        pageSize={pageSize}
+        page={page}
+      />
+    );
+  } finally {
+    await prisma.$disconnect();
   }
-);
-
-export default async function CreateLayout() {
-  return <CreateDocument />;
 }

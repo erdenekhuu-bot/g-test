@@ -8,9 +8,8 @@ import {
   mongollabel,
 } from "@/components/usable";
 import { ListDataType } from "@/types/type";
-import type { GetProps } from "antd";
+import { Badge } from "@/components/ui/badge";
 
-type SearchProps = GetProps<typeof Input.Search>;
 const { Search } = Input;
 
 export default function ReportDocument() {
@@ -26,7 +25,7 @@ export default function ReportDocument() {
 
   const fetching = async function () {
     try {
-      const record = await axios.post(`/api/document/filter`, {
+      const record = await axios.post(`/api/final`, {
         order: search,
         page: page,
         pageSize: pageSize,
@@ -50,9 +49,9 @@ export default function ReportDocument() {
           setSearch(e.target.value);
           setPage(1);
         }}
-        style={{ width: 200 }}
+        style={{ width: 400 }}
       />
-      <div className="bg-white">
+      <div className="bg-white mt-8">
         <Table<ListDataType>
           dataSource={getData}
           pagination={false}
@@ -71,8 +70,10 @@ export default function ReportDocument() {
 
           <Table.Column
             title="Тушаал"
-            dataIndex="order"
-            render={() => <span>-</span>}
+            dataIndex="statement"
+            render={(statement: string) =>
+              statement ? <span>{statement}</span> : <span>-</span>
+            }
           />
 
           <Table.Column
@@ -93,19 +94,20 @@ export default function ReportDocument() {
             )}
           />
 
-          {/* <Table.Column
-            title=""
-            dataIndex="isFull"
+          <Table.Column
+            title="Төлөв"
+            dataIndex="state"
             align="center"
             width={80}
-            render={(isFull, record) => (
-              <Steps
-                current={isFull}
-                progressDot={customDot(record.id)}
-                items={[{ title: "1" }, { title: "2" }, { title: "3" }]}
-              />
+            render={(state) => (
+              <Badge
+                variant={state === "FORWARD" ? "info" : "destructive"}
+                className="py-1"
+              >
+                {mongollabel(state)}
+              </Badge>
             )}
-          /> */}
+          />
         </Table>
       </div>
       <div className="flex justify-end my-6">

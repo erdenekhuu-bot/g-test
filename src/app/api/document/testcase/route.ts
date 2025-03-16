@@ -18,11 +18,35 @@ export async function POST(req: NextRequest) {
       data: testcase,
       skipDuplicates: true,
     });
+    await prisma.document.update({
+      where: {
+        id: request.documentId,
+      },
+      data: {
+        isFull: 2,
+      },
+    });
     return NextResponse.json({
       success: true,
       data: record,
     });
   } catch (error) {
+    return NextResponse.json({
+      success: false,
+      data: error,
+    });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const request = await req.json();
+    await prisma.testCase.deleteMany();
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
     return NextResponse.json({
       success: false,
       data: error,

@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       list: item,
       level: request.level[index],
       value: request.value[index],
+      exception: request.exception[index],
       reportId: request.reportId,
     }));
     const record = await prisma.reportIssue.createMany({

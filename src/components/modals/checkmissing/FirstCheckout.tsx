@@ -14,6 +14,7 @@ type ModalProps = {
 
 interface DataType {
   key: number;
+  id: number;
   employeeId: string;
   jobPositionId: string;
   role: string;
@@ -72,7 +73,8 @@ export function FirstCheckout({ open, onCancel, documentId }: ModalProps) {
 
   const handleAdd = () => {
     const newData: DataType = {
-      key: nextKey,
+      key: Date.now(),
+      id: Date.now(),
       employeeId: "",
       jobPositionId: "",
       role: "",
@@ -82,7 +84,8 @@ export function FirstCheckout({ open, onCancel, documentId }: ModalProps) {
   };
 
   const handleDelete = (key: number) => {
-    setDataSource(dataSource.filter((item) => item.key !== key));
+    const newData = dataSource.filter((item) => item.key !== key);
+    setDataSource(newData);
   };
 
   const handleSearch = (value: any) => {
@@ -194,26 +197,27 @@ export function FirstCheckout({ open, onCancel, documentId }: ModalProps) {
   ];
 
   const handlesubmit = async () => {
-    // try {
-    //   const values = await mainForm.validateFields();
-    //   const data = {
-    //     authuserId: 1,
-    //     aim: values.aim,
-    //     title: values.title,
-    //     intro: values.intro,
-    //     role: Array.isArray(values.roles) ? values.roles.slice(1) : [],
-    //     employeeId: Array.isArray(values.names) ? values.names.slice(1) : [],
-    //     jobPositionId: Array.isArray(values.employee)
-    //       ? values.employee.slice(1)
-    //       : [],
-    //   };
-    //   const request = await axios.post("/api/document", data);
-    //   if (request.data.success) {
-    //     next();
-    //   }
-    // } catch (error) {
-    //   return;
-    // }
+    try {
+      const values = await mainForm.validateFields();
+      const data = {
+        authuserId: 1,
+        aim: values.aim,
+        title: values.title,
+        intro: values.intro,
+        role: Array.isArray(values.roles) ? values.roles.slice(1) : [],
+        employeeId: Array.isArray(values.names) ? values.names.slice(1) : [],
+        jobPositionId: Array.isArray(values.employee)
+          ? values.employee.slice(1)
+          : [],
+      };
+      const request = await axios.post("/api/document", data);
+      if (request.data.success) {
+        // next();
+        // refreshParent();
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

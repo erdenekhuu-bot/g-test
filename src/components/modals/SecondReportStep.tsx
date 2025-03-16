@@ -15,7 +15,7 @@ type ModalProps = {
 export function SecondReportStep({ open, onCancel, next }: ModalProps) {
   const [secondReport] = Form.useForm();
   const reportId = useContext(ReportContext);
-  console.log(reportId);
+
   const handleNext = async () => {
     try {
       const values = await secondReport.validateFields();
@@ -25,6 +25,7 @@ export function SecondReportStep({ open, onCancel, next }: ModalProps) {
         list: values.list.slice(1),
         level: values.level.slice(1).map((level: any) => selectConvert(level)),
         value: values.solve.slice(1),
+        exception: values.exception.slice(1).map((item: any) => item),
         reportId: reportId,
       };
       const request = await axios.post(`/api/report/issue`, requestData);
@@ -47,10 +48,10 @@ export function SecondReportStep({ open, onCancel, next }: ModalProps) {
       style={{ overflowY: "auto", maxHeight: "800px" }}
       footer={[
         <Button key="back" onClick={onCancel}>
-          Cancel
+          Цуцлах
         </Button>,
         <Button key="next" type="primary" onClick={handleNext}>
-          Next
+          Дараах
         </Button>,
       ]}
     >

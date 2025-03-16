@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, createContext, useEffect } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { Button, Form, Input, Modal } from "antd";
 import axios from "axios";
 import { ReportTestSchedule } from "./report/ReportTestSchedule";
@@ -8,10 +8,15 @@ import { ThirdReportStep } from "./ThirdReportStep";
 
 export const ReportContext = createContext<string | null>(null);
 
-export function CreateReportModal() {
+export function CreateReportModal({
+  generate,
+  detailId,
+}: {
+  generate: any;
+  detailId: any;
+}) {
   const [currentModal, setCurrentModal] = useState(0);
   const [mainForm] = Form.useForm();
-
   const [documentId, setDocumentId] = useState<string | null>(null);
 
   const showModal = () => {
@@ -37,6 +42,7 @@ export function CreateReportModal() {
         role: values.role.slice(1),
         started: values.started.slice(1),
         ended: values.ended.slice(1),
+        documentId: detailId,
       };
       console.log(requestData);
       const request = await axios.post("/api/report/make", requestData);
@@ -50,7 +56,6 @@ export function CreateReportModal() {
       return;
     }
   };
-
   return (
     <div>
       <Button
@@ -58,7 +63,7 @@ export function CreateReportModal() {
         className="bg-[#01443F] text-white p-6"
         onClick={showModal}
       >
-        Тестийн тайлан үүсгэх
+        Тестийн тайлан үүсгэх {generate && "( " + generate + " )"}
       </Button>
 
       <Modal

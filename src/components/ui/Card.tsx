@@ -1,23 +1,18 @@
 "use client";
 import { Card, Avatar, Badge, Flex, Input, Upload, Form } from "antd";
-import type { UploadProps, GetProp, UploadFile } from "antd";
 import { PlusOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { convertStatus, mongollabel, mergeLetter } from "../usable";
 import { TestCaseAction } from "../modals/TestCaseAction";
 
-type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
-
-const getBase64 = (file: FileType): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-
-export const Cards = ({ documentId }: any) => {
+export const Cards = ({
+  documentId,
+  onStateChange,
+}: {
+  documentId: any;
+  onStateChange: () => void;
+}) => {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<any>([]);
   const [loading, setLoading] = useState(false);
@@ -33,6 +28,7 @@ export const Cards = ({ documentId }: any) => {
           description: values.description,
         })
       );
+      onStateChange();
       handleCancel();
     } catch (error) {
       console.log(error);
@@ -64,11 +60,11 @@ export const Cards = ({ documentId }: any) => {
   }, [documentId]);
 
   return (
-    <div className="mt-8 flex justify-evenly min-h-[500px]">
+    <div className="mt-8 flex justify-evenly">
       <Card
         title=""
         style={{ backgroundColor: "#F8F9FA" }}
-        className=" w-[350px] mx-10 z-0"
+        className="w-[350px] mx-10 z-0"
       >
         <div className="flex justify-between items-center">
           <span className="font-bold text-lg">Кэйс</span>
@@ -77,49 +73,53 @@ export const Cards = ({ documentId }: any) => {
             <EllipsisOutlined className="hover:cursor-pointer text-lg" />
           </p>
         </div>
-        {loading &&
-          data?.testcase.map(
-            (item: any, index: number) =>
-              item.testType === "CREATED" && (
-                <div
-                  key={index}
-                  className="bg-white p-6 my-8 rounded-lg border z-20"
-                >
-                  <Flex justify="space-between">
-                    <Flex gap={8}>
-                      <Badge status={convertStatus(item.category)} />
-                      <span className="opacity-70">
-                        {mongollabel(item.testType)}
-                      </span>
+        <div className="mt-4 h-[500px] overflow-y-scroll scrollbar">
+          {loading &&
+            data?.testcase.map(
+              (item: any, index: number) =>
+                item.testType === "CREATED" && (
+                  <div
+                    key={index}
+                    className="bg-white p-6 my-8 rounded-lg border z-20"
+                  >
+                    <Flex justify="space-between">
+                      <Flex gap={8}>
+                        <Badge status={convertStatus(item.category)} />
+                        <span className="opacity-70">
+                          {mongollabel(item.testType)}
+                        </span>
+                      </Flex>
+                      <EllipsisOutlined
+                        className="hover:cursor-pointer text-lg"
+                        onClick={() => {
+                          showModal();
+                          setTestId(item.id);
+                        }}
+                      />
                     </Flex>
-                    <EllipsisOutlined
-                      className="hover:cursor-pointer text-lg"
-                      onClick={() => {
-                        showModal();
-                        setTestId(item.id);
+                    <p className="my-2 font-bold ">{item.result}</p>
+
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: item.steps.replace(/\n/g, "<br />"),
                       }}
                     />
-                  </Flex>
-                  <p className="my-2 font-bold ">{item.result}</p>
-
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: item.steps.replace(/\n/g, "<br />"),
-                    }}
-                  />
-                  <Avatar.Group className="mt-8">
-                    {data?.documentemployee.map((item: any, index: number) => (
-                      <Avatar
-                        key={index}
-                        style={{ backgroundColor: "#00569E" }}
-                      >
-                        {mergeLetter(item.employee)}
-                      </Avatar>
-                    ))}
-                  </Avatar.Group>
-                </div>
-              )
-          )}
+                    <Avatar.Group className="mt-8">
+                      {data?.documentemployee.map(
+                        (item: any, index: number) => (
+                          <Avatar
+                            key={index}
+                            style={{ backgroundColor: "#00569E" }}
+                          >
+                            {mergeLetter(item.employee)}
+                          </Avatar>
+                        )
+                      )}
+                    </Avatar.Group>
+                  </div>
+                )
+            )}
+        </div>
       </Card>
       <Card
         title=""
@@ -133,55 +133,59 @@ export const Cards = ({ documentId }: any) => {
             <EllipsisOutlined className="hover:cursor-pointer text-lg" />
           </p>
         </div>
-        {loading &&
-          data?.testcase.map(
-            (item: any, index: number) =>
-              item.testType === "STARTED" && (
-                <div
-                  key={index}
-                  className="bg-white p-6 my-8 rounded-lg border z-20"
-                >
-                  <Flex justify="space-between">
-                    <Flex gap={8}>
-                      <Badge status={convertStatus(item.category)} />
-                      <span className="opacity-70">
-                        {mongollabel(item.testType)}
-                      </span>
+        <div className="h-[500px] overflow-y-scroll scrollbar">
+          {loading &&
+            data?.testcase.map(
+              (item: any, index: number) =>
+                item.testType === "STARTED" && (
+                  <div
+                    key={index}
+                    className="bg-white p-6 my-8 rounded-lg border z-20"
+                  >
+                    <Flex justify="space-between">
+                      <Flex gap={8}>
+                        <Badge status={convertStatus(item.category)} />
+                        <span className="opacity-70">
+                          {mongollabel(item.testType)}
+                        </span>
+                      </Flex>
+                      <EllipsisOutlined
+                        className="hover:cursor-pointer text-lg"
+                        onClick={() => {
+                          showModal();
+                          setTestId(item.id);
+                        }}
+                      />
                     </Flex>
-                    <EllipsisOutlined
-                      className="hover:cursor-pointer text-lg"
-                      onClick={() => {
-                        showModal();
-                        setTestId(item.id);
+                    <p className="my-2 font-bold ">{item.result}</p>
+
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: item.steps.replace(/\n/g, "<br />"),
                       }}
                     />
-                  </Flex>
-                  <p className="my-2 font-bold ">{item.result}</p>
-
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: item.steps.replace(/\n/g, "<br />"),
-                    }}
-                  />
-                  <Avatar.Group className="mt-8">
-                    {data?.documentemployee.map((item: any, index: number) => (
-                      <Avatar
-                        key={index}
-                        style={{ backgroundColor: "#00569E" }}
-                      >
-                        {mergeLetter(item.employee)}
-                      </Avatar>
-                    ))}
-                  </Avatar.Group>
-                </div>
-              )
-          )}
+                    <Avatar.Group className="mt-8">
+                      {data?.documentemployee.map(
+                        (item: any, index: number) => (
+                          <Avatar
+                            key={index}
+                            style={{ backgroundColor: "#00569E" }}
+                          >
+                            {mergeLetter(item.employee)}
+                          </Avatar>
+                        )
+                      )}
+                    </Avatar.Group>
+                  </div>
+                )
+            )}
+        </div>
       </Card>
 
       <Card
         title=""
         style={{ backgroundColor: "#F8F9FA" }}
-        className=" w-[350px] mx-10 z-0"
+        className="w-[350px] mx-10 z-0"
       >
         <div className="flex justify-between items-center">
           <span className="font-bold text-lg">Дууссан</span>
@@ -190,49 +194,53 @@ export const Cards = ({ documentId }: any) => {
             <EllipsisOutlined className="hover:cursor-pointer text-lg" />
           </p>
         </div>
-        {loading &&
-          data?.testcase.map(
-            (item: any, index: number) =>
-              item.testType === "ENDED" && (
-                <div
-                  key={index}
-                  className="bg-white p-6 my-8 rounded-lg border z-20"
-                >
-                  <Flex justify="space-between">
-                    <Flex gap={8}>
-                      <Badge status={convertStatus(item.category)} />
-                      <span className="opacity-70">
-                        {mongollabel(item.testType)}
-                      </span>
+        <div className="h-[500px] overflow-y-scroll scrollbar">
+          {loading &&
+            data?.testcase.map(
+              (item: any, index: number) =>
+                item.testType === "ENDED" && (
+                  <div
+                    key={index}
+                    className="bg-white p-6 my-8 rounded-lg border z-20"
+                  >
+                    <Flex justify="space-between">
+                      <Flex gap={8}>
+                        <Badge status={convertStatus(item.category)} />
+                        <span className="opacity-70">
+                          {mongollabel(item.testType)}
+                        </span>
+                      </Flex>
+                      <EllipsisOutlined
+                        className="hover:cursor-pointer text-lg"
+                        onClick={() => {
+                          showModal();
+                          setTestId(item.id);
+                        }}
+                      />
                     </Flex>
-                    <EllipsisOutlined
-                      className="hover:cursor-pointer text-lg"
-                      onClick={() => {
-                        showModal();
-                        setTestId(item.id);
+                    <p className="my-2 font-bold ">{item.result}</p>
+
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: item.steps.replace(/\n/g, "<br />"),
                       }}
                     />
-                  </Flex>
-                  <p className="my-2 font-bold ">{item.result}</p>
-
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: item.steps.replace(/\n/g, "<br />"),
-                    }}
-                  />
-                  <Avatar.Group className="mt-8">
-                    {data?.documentemployee.map((item: any, index: number) => (
-                      <Avatar
-                        key={index}
-                        style={{ backgroundColor: "#00569E" }}
-                      >
-                        {mergeLetter(item.employee)}
-                      </Avatar>
-                    ))}
-                  </Avatar.Group>
-                </div>
-              )
-          )}
+                    <Avatar.Group className="mt-8">
+                      {data?.documentemployee.map(
+                        (item: any, index: number) => (
+                          <Avatar
+                            key={index}
+                            style={{ backgroundColor: "#00569E" }}
+                          >
+                            {mergeLetter(item.employee)}
+                          </Avatar>
+                        )
+                      )}
+                    </Avatar.Group>
+                  </div>
+                )
+            )}
+        </div>
       </Card>
 
       <Form form={form}>

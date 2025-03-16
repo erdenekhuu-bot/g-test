@@ -1,16 +1,17 @@
 import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
+
     const team = request.role.map((item: any, index: number) => ({
       role: item,
       employeeId: request.employeeId[index],
       endDate: request.endDate[index],
       startedDate: request.startedDate[index],
+      status: 'PENDING',
       documentId: request.documentId,
     }));
     const record = await prisma.documentEmployee.createMany({

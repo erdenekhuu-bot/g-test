@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { menuItems } from "../../components/menu";
 import Image from "next/image";
+import { SessionProvider } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 const { Sider, Content } = Layout;
 
@@ -16,7 +18,6 @@ export default function HomeLayout({
   const handleMenuClick = (url: any) => {
     router.push(url);
   };
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   return (
     <Layout className="h-screen bg-white">
       <Sider width="18%" theme="light">
@@ -34,24 +35,31 @@ export default function HomeLayout({
               alt=""
               width={25}
               height={25}
-              className={`mr-2 transition-opacity ${
-                activeIndex === index ? "opacity-100" : "opacity-40"
-              }`}
+              className="mr-2 transition-opacity"
             />
-            <span
-              className={`${
-                activeIndex === index
-                  ? "text-[#01443F] font-bold"
-                  : "font-medium"
-              }`}
-            >
-              {item.label}
-            </span>
+            <span className="text-[#01443F] font-medium">{item.label}</span>
           </p>
         ))}
+        <p className="text-[#01443F] mt-8 p-4 hover:cursor-pointer flex items-center hover:bg-[#F1F3F5]">
+          <Image
+            src="/settings.svg"
+            alt=""
+            width={25}
+            height={25}
+            className="mr-2"
+          />
+          <span
+            className="text-[#01443F] font-medium"
+            onClick={() => signOut({ callbackUrl: "/", redirect: true })}
+          >
+            Гарах
+          </span>
+        </p>
       </Sider>
       <Layout>
-        <Content className="p-10">{children}</Content>
+        <Content className="p-10">
+          <SessionProvider>{children}</SessionProvider>
+        </Content>
       </Layout>
     </Layout>
   );

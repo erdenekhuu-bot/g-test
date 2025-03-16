@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { selectConvert } from "../usable";
 import { DocumentContext } from "./CreateDocumentModal";
+import { useRouter } from "next/navigation";
 
 type ModalProps = {
   open: boolean;
@@ -20,6 +21,7 @@ const { TextArea } = Input;
 dayjs.extend(customParseFormat);
 
 export function SecondStep({ open, next, onCancel }: ModalProps) {
+  const router = useRouter();
   const [data, setData] = useState<any>([]);
   const [attributeForm] = Form.useForm();
   const documentId = useContext(DocumentContext);
@@ -110,6 +112,7 @@ export function SecondStep({ open, next, onCancel }: ModalProps) {
       }
       if (mean / responses.length === 200) {
         next();
+        router.refresh();
       }
     } catch (error) {
       return;
@@ -126,17 +129,16 @@ export function SecondStep({ open, next, onCancel }: ModalProps) {
       style={{ overflowY: "auto", maxHeight: "800px" }}
       footer={[
         <Button key="back" onClick={onCancel}>
-          Cancel
+          Цуцлах
         </Button>,
         <Button key="next" type="primary" onClick={handleNext}>
-          Next
+          Цааш
         </Button>,
       ]}
     >
       <Form className="p-6" form={attributeForm}>
         <div className="flex justify-between text-xl mb-6">
           <b>"ЖИМОБАЙЛ" ХХК</b>
-          <b>{data.generate}</b>
         </div>
         <TestSchedule />
         <div className="font-bold my-2 text-lg mx-4">

@@ -8,30 +8,40 @@ export async function POST(req: NextRequest) {
     const request = await req.json();
     const page = request.page;
     const pageSize = request.pageSize;
-    const record = await prisma.document.findMany({
+
+    const employee = await prisma.authUser.findUnique({
       where: {
-        generate: {
-          contains: request.order,
-        },
+        id: request.authId,
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
       include: {
-        user: {
-          select: {
-            employee: {
-              select: {
-                firstname: true,
-                lastname: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        timeCreated: "asc",
+        employee: true,
       },
     });
+
+    const record =
+      employee &&
+      (await prisma.departmentEmployeeRole.findMany({
+        where: {
+          AND: [
+            {
+              document: {
+                generate: {
+                  contains: request.order,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              employeeId: employee.employee?.id,
+            },
+          ],
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          document: true,
+        },
+      }));
     const totalPage = await prisma.document.count();
     return NextResponse.json({
       success: true,
@@ -39,6 +49,7 @@ export async function POST(req: NextRequest) {
       pagination: { page: page, pageSize: pageSize, total: totalPage },
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json({
       success: false,
       data: error,

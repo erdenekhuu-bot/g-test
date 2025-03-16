@@ -14,6 +14,7 @@ export async function GET(req: NextRequest, { params }: any) {
         team: true,
         issue: true,
         testcase: true,
+        document: true,
       },
     });
     return NextResponse.json({ success: true, data: record });

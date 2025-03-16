@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       (await prisma.document.create({
         data: {
           authUserId: authuser.id,
+          userDataId: authuser.id,
           generate,
           state: "DENY",
           title: request.title,
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (!record) {
       return NextResponse.json({
         success: false,
-        data: "Document didn't",
+        data: "Тестийн удирдамж үүссэнгүй",
       });
     }
 
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
       data: employeerole,
       skipDuplicates: true,
     });
+
     return NextResponse.json({
       success: true,
       data: record,

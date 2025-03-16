@@ -1,70 +1,77 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Table, Pagination, Steps, Button, Layout } from "antd";
+import React, { useState, useCallback } from "react";
+import { Table, Button, Flex, Input } from "antd";
 import axios from "axios";
-import {
-  formatHumanReadable,
-  convertName,
-  mongollabel,
-} from "@/components/usable";
+import { formatHumanReadable } from "@/components/usable";
 import { ListDataType } from "@/types/type";
-import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
-import { CreateDocumentModal } from "../modals/CreateDocumentModal";
-import { CreateReportModal } from "../modals/CreateReportModal";
-import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
-import { FirstCheckout } from "../modals/checkmissing/FirstCheckout";
 import type { UploadProps } from "antd";
 import { message, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { Cards } from "../ui/Card";
 import Image from "next/image";
 import { FullModal } from "../modals/FullModal";
+import { useRouter } from "next/navigation";
+import { CreateReportModal } from "../modals/CreateReportModal";
 
 const { Dragger } = Upload;
-const { Content } = Layout;
 
-const props: UploadProps = {
-  name: "file",
-  multiple: true,
-  action: "https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload",
-  onChange(info) {
-    const { status } = info.file;
-    if (status !== "uploading") {
-      console.log(info.file, info.fileList);
-    }
-    if (status === "done") {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === "error") {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  },
-  onDrop(e) {
-    console.log("Dropped files", e.dataTransfer.files);
-  },
-};
-
-export default function MakeDocument() {
-  const [getData, setData] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-    total: number;
-  }>();
-  const [activeStep, setActiveStep] = useState<number | null>(null);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
-    null
-  );
+export default function MakeDocument({
+  documents,
+  total,
+  pageSize,
+  page,
+  order,
+}: any) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [click, setClick] = useState(false);
   const [find, findId] = useState(0);
-  const [order, setOrder] = useState("");
+  const [ordering, setOrder] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>(order);
+  const router = useRouter();
 
-  const handleCloseModal = () => {
-    setActiveStep(null);
+  const handleRefresh = () => {
+    router.refresh();
   };
+
+  const props: UploadProps = {
+    name: "file",
+    multiple: true,
+    action: `/api/fileupload/${find}`,
+    onChange(info) {
+      const { status } = info.file;
+      if (status !== "uploading") {
+        console.log(info.file, info.fileList);
+      }
+      if (status === "done") {
+        message.success(`${info.file.name} file uploaded successfully.`);
+      } else if (status === "error") {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    onDrop(e) {
+      console.log("Dropped files", e.dataTransfer.files);
+    },
+  };
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+
+      const params = new URLSearchParams({
+        page: "1",
+        pageSize: pageSize.toString(),
+        order: value || "",
+      });
+      router.push(`/home/document?${params.toString()}`);
+    },
+    [router, pageSize]
+  );
+
+  const handleCardsStateChange = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const handleOk = () => {
     setIsModalOpen(false);
@@ -78,43 +85,20 @@ export default function MakeDocument() {
     setIsModalOpen(true);
   };
 
-  const fetching = async function () {
+  const handleDownload = async (id: number) => {
     try {
-      const record = await axios.post(`/api/document/filter`, {
-        page: page,
-        pageSize: pageSize,
-      });
-      if (record.data.success) {
-        setPagination(record.data.pagination);
-        setData(record.data.data);
-        setPage(record.data.page + 1);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    fetching();
-  }, [page, pageSize]);
-
-  const handleDownload = async () => {
-    try {
-      const response = await axios.get("/api/download", {
+      const response = await axios.get(`/api/download/${id}`, {
         responseType: "blob",
       });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-
+      const blob = new Blob([response.data], { type: "application/pdf" });
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "sample.pdf");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${id}.pdf`;
+
       document.body.appendChild(link);
-
       link.click();
-
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
     } catch (error) {
       console.log(error);
     }
@@ -122,13 +106,25 @@ export default function MakeDocument() {
 
   return (
     <section>
-      <div className="text-end mb-8 ">
-        <CreateReportModal />
-      </div>
-      <div className="bg-white">
+      <Flex gap={20} justify="space-between">
+        <Input.Search
+          placeholder="Тушаалаар хайх"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          allowClear
+          style={{ width: 400 }}
+        />
+        <CreateReportModal generate={ordering} detailId={find} />
+      </Flex>
+
+      <div className="bg-white mt-8">
         <Table<ListDataType>
-          dataSource={getData}
-          pagination={false}
+          dataSource={documents}
+          pagination={{
+            current: page,
+            pageSize: pageSize,
+            total: total,
+          }}
           rowKey="id"
         >
           <Table.Column
@@ -155,12 +151,6 @@ export default function MakeDocument() {
           />
 
           <Table.Column
-            title="Үүсгэсэн ажилтан"
-            dataIndex="user"
-            render={(user: any) => <span>{convertName(user.employee)}</span>}
-          />
-
-          <Table.Column
             title="Огноо"
             dataIndex="timeCreated"
             sorter={(a, b) =>
@@ -168,7 +158,9 @@ export default function MakeDocument() {
               new Date(b.timeCreated).getTime()
             }
             render={(timeCreated: string) => (
-              <span>{formatHumanReadable(timeCreated)}</span>
+              <span>
+                {formatHumanReadable(new Date(timeCreated).toISOString())}
+              </span>
             )}
           />
 
@@ -197,52 +189,13 @@ export default function MakeDocument() {
                 width={20}
                 height={20}
                 className="hover:cursor-pointer"
-                onClick={handleDownload}
+                onClick={() => {
+                  handleDownload(id);
+                }}
               />
             )}
           />
-
-          {/* <Table.Column
-            title="Төлөв"
-            dataIndex="id"
-            align="center"
-            width={80}
-            render={(id: number) => (
-              <Steps
-                current={0}
-                percent={25}
-                items={[
-                  {
-                    onClick: () => {
-                      setActiveStep(0), setSelectedDocumentId(id);
-                    },
-                  },
-                  {
-                    onClick: () => {
-                      setActiveStep(1), setSelectedDocumentId(id);
-                    },
-                  },
-                  {
-                    onClick: () => {
-                      setActiveStep(2), setSelectedDocumentId(id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          /> */}
         </Table>
-      </div>
-      <div className="flex justify-end my-6">
-        <Pagination
-          current={pagination?.page}
-          pageSize={pagination?.pageSize}
-          total={pagination?.total}
-          onChange={(newPage: number, newPageSize: number) => {
-            setPage(newPage);
-            setPageSize(newPageSize);
-          }}
-        />
       </div>
 
       {click && (
@@ -252,8 +205,9 @@ export default function MakeDocument() {
               Файл оруулах
             </Button>
           </p>
+
           <p className="opacity-50">
-            Уг тесттэй хамаарал бүхий тушаал оруулна уу. <b>{order}</b>
+            Уг тесттэй хамаарал бүхий тушаал оруулна уу. <b>{ordering}</b>
           </p>
         </Dragger>
       )}
@@ -261,31 +215,11 @@ export default function MakeDocument() {
         open={isModalOpen}
         handleOk={handleOk}
         onCancel={handleCancel}
+        detailId={find}
       />
-      {click && <Cards documentId={find} />}
-
-      {/* {activeStep === 0 && (
-        <FirstCheckout
-          open={true}
-          onCancel={handleCloseModal}
-          documentId={selectedDocumentId}
-        />
+      {click && (
+        <Cards documentId={find} onStateChange={handleCardsStateChange} />
       )}
-
-      {activeStep === 1 && (
-        <SecondCheckout
-          open={true}
-          onCancel={handleCloseModal}
-          documentId={selectedDocumentId}
-        />
-      )}
-      {activeStep === 2 && (
-        <ThirdCheckout
-          open={true}
-          onCancel={handleCloseModal}
-          documentId={selectedDocumentId}
-        />
-      )} */}
     </section>
   );
 }

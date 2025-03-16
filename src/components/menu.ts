@@ -12,12 +12,6 @@ export const menuItems = [
     icon: "/Document.svg",
   },
   {
-    key: 3,
-    label: "Хяналт",
-    url: "/home/view",
-    icon: "/file-plus.svg",
-  },
-  {
     key: 4,
     label: "Зөвшөөрөл",
     url: "/home/permission",
@@ -34,11 +28,5 @@ export const menuItems = [
     label: "Нийт тестийн бүртгэл",
     url: "/home/report",
     icon: "/panel.svg",
-  },
-  {
-    key: 7,
-    label: "Гарах",
-    url: "/login",
-    icon: "/settings.svg",
   },
 ];

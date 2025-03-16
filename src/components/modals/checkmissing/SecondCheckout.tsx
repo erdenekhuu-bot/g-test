@@ -1,13 +1,14 @@
 "use client";
-import { Modal, Form, Input, Table, Button, Layout } from "antd";
+import { Modal, Form, Input, Table, Button } from "antd";
 import { useState, useEffect, createContext } from "react";
 import axios from "axios";
-import { ReadTestSchedule } from "../read_update_modals/ReadTestSchedule";
-import { ReadTestRisk } from "../read_update_modals/ReadTestRisk";
-import { ReadTestEnv } from "../read_update_modals/ReadTestEnv";
+import { EditTestEnv } from "../edit_modals/EditTestEnv";
+import { EditTestRisk } from "../edit_modals/EditTestRisk";
+import { EditTestSchedule } from "../edit_modals/EditTestSchedule";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { selectConvert } from "../../usable";
+import { useRouter } from "next/navigation";
 
 type ModalProps = {
   open: boolean;
@@ -18,9 +19,10 @@ type ModalProps = {
 const { TextArea } = Input;
 dayjs.extend(customParseFormat);
 
-export const DetailContext = createContext<any | null>(null);
+export const SecondContext = createContext<any | null>(null);
 
 export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
+  const router = useRouter();
   const [data, setData] = useState<any>([]);
   const [attributeForm] = Form.useForm();
   let [mean, setMean] = useState<number>(0);
@@ -110,6 +112,7 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
       }
       if (mean / responses.length === 200) {
         onCancel();
+        router.refresh();
       }
     } catch (error) {
       return;
@@ -121,6 +124,33 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
       const request = await axios.get(`/api/document/detail/${id}`);
       if (request.data.success) {
         setData(request.data.data);
+        const formValues = {
+          title: request.data.data.title,
+          aim: request.data.data.detail[0].aim,
+          intro: request.data.data.detail[0].intro,
+          predict:
+            request.data.data.attribute.find(
+              (attr: any) => attr.category === "Таамаглал"
+            )?.value || "",
+          dependecy:
+            request.data.data.attribute.find(
+              (attr: any) => attr.category === "Хараат байдал"
+            )?.value || "",
+          standby:
+            request.data.data.attribute.find(
+              (attr: any) => attr.category === "Бэлтгэл үе"
+            )?.value || "",
+          execute:
+            request.data.data.attribute.find(
+              (attr: any) => attr.category === "Тестийн гүйцэтгэл"
+            )?.value || "",
+          terminate:
+            request.data.data.attribute.find(
+              (attr: any) => attr.category === "Тестийн хаалт"
+            )?.value || "",
+        };
+
+        attributeForm.setFieldsValue(formValues);
       }
     } catch (error) {
       return;
@@ -140,39 +170,18 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
       className="scrollbar"
       style={{ overflowY: "auto", maxHeight: "800px" }}
     >
-      <DetailContext.Provider value={data}>
+      <SecondContext.Provider value={documentId}>
         <Form className="p-6" form={attributeForm}>
           <div className="flex justify-between text-xl mb-6">
             <b>"ЖИМОБАЙЛ" ХХК</b>
             <b>{data.generate}</b>
           </div>
-          <ReadTestSchedule />
+          <EditTestSchedule />
           <div className="font-bold my-2 text-lg mx-4">
             4. Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал
           </div>
           <div>
-            <ReadTestRisk />
-            {/* {data.attribute &&
-              data.attribute.map((item: any, index: number) => (
-                <div key={item.id}>
-                  <li>
-                    {index} {item.category}
-                    <ul className="ml-8">
-                      • Эхний оруулсан таамаглал энэ форматын дагуу харагдах.
-                      Хэдэн ч мөр байх боломжтой.
-                    </ul>
-                  </li>
-                  <div className="mt-2">
-                    <Form.Item
-                      name={item.value}
-                      initialValue={item.value}
-                      rules={[{ required: true, message: "Тестийн нэр!" }]}
-                    >
-                      <TextArea rows={5} style={{ resize: "none" }} />
-                    </Form.Item>
-                  </div>
-                </div>
-              ))} */}
+            <EditTestRisk />
             <Form.Item name="execute">
               <div>
                 <li>
@@ -293,9 +302,9 @@ export function SecondCheckout({ open, onCancel, documentId }: ModalProps) {
               <Button type="primary">Мөр нэмэх</Button>
             </div>
           </div>
-          <ReadTestEnv />
+          <EditTestEnv />
         </Form>
-      </DetailContext.Provider>
+      </SecondContext.Provider>
     </Modal>
   );
 }

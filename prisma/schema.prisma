@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,16 +7,314 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AuthUser {
+  id       Int        @id @default(autoincrement())
+  username String?    @db.VarChar(50)
+  mobile   String?    @db.VarChar(15)
+  email    String?    @db.VarChar(180)
+  status   String?    @db.VarChar(10)
+  Document Document[]
+  employee Employee?
+}
+
+model Department {
+  id                     Int                      @id @default(autoincrement())
+  parentId               Int                      @map("parent_id")
+  name                   String?                  @db.VarChar(255)
+  description            String?                  @db.VarChar(255)
+  authDivision           Boolean                  @default(false) @map("auth_division")
+  isDeleted              Boolean                  @default(false) @map("is_deleted")
+  parentsNesting         String?                  @map("parents_nesting") @db.VarChar(255)
+  timeCreated            DateTime                 @default(now()) @map("time_created")
+  timeUpdated            DateTime                 @updatedAt
+  employees              Employee[]
+  jobPositions           JobPosition[]
+  departmentEmployeeRole DepartmentEmployeeRole[]
+  permission             Permission[]             @relation("department")
+}
+
+model JobPosition {
+  id                     Int                      @id @default(autoincrement())
+  departmentId           Int
+  jobGroupId             Int?
+  name                   String?                  @db.VarChar(100)
+  description            String?                  @db.VarChar(255)
+  isDeleted              Boolean                  @default(false) @map("is_deleted")
+  timeCreated            DateTime                 @default(now()) @map("time_created")
+  timeUpdated            DateTime                 @updatedAt
+  DocumentEmployee       DocumentEmployee[]
+  employee               Employee[]
+  department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  jobPositionGroup       JobPositionGroup?        @relation(fields: [jobGroupId], references: [id], onDelete: Cascade)
+  departmentEmployeeRole DepartmentEmployeeRole[]
+  permission             Permission[]             @relation("jobposition")
+}
+
+model JobPositionGroup {
+  id           Int           @id @default(autoincrement())
+  name         String?       @db.VarChar(255)
+  jobAuthRank  Int?          @map("job_auth_rank")
+  description  String?       @db.VarChar(255)
+  isDeleted    Boolean       @default(false) @map("is_deleted")
+  timeCreated  DateTime      @default(now()) @map("time_created")
+  jobPositions JobPosition[]
+}
+
+model Employee {
+  id                     Int                      @id @default(autoincrement())
+  departmentId           Int                      @map("department_id")
+  jobPositionId          Int?                     @map("job_position_id")
+  firstname              String                   @db.VarChar(80)
+  lastname               String                   @db.VarChar(80)
+  familyName             String                   @map("family_name") @db.VarChar(80)
+  gender                 String?                  @db.VarChar(10)
+  regNum                 String                   @unique @map("reg_num") @db.VarChar(10)
+  birthDate              DateTime                 @map("birth_date") @db.Date
+  stateId                Int?                     @map("state_id")
+  authUserId             Int?                     @unique @map("auth_user_id")
+  isDeleted              Boolean                  @default(false) @map("is_deleted")
+  userCreatedId          Int?                     @map("user_created_id")
+  note                   String?                  @db.VarChar(255)
+  timeCreated            DateTime                 @default(now()) @map("time_created")
+  timeUpdated            DateTime                 @updatedAt
+  DocumentEmployee       DocumentEmployee[]
+  authUser               AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  jobPosition            JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
+  departmentEmployeeRole DepartmentEmployeeRole[]
+}
+
+model EmployeeState {
+  id            Int      @id @default(autoincrement())
+  name          String?  @db.VarChar(255)
+  description   String?  @db.VarChar(255)
+  isDefault     Boolean  @default(false) @map("is_default")
+  needFillIn    Boolean  @default(false) @map("need_fill_in")
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  userCreatedId Int      @map("user_created_id")
+  timeCreated   DateTime @default(now()) @map("time_created")
+}
+
+model AuthUserData {
+  authUserId  Int        @id @map("auth_user_id")
+  permissions Json       @default("[]") @map("permissions")
+  timeUpdated DateTime   @default(now()) @map("time_updated") @db.Timestamptz(6)
+  documents   Document[]
+}
+
+model Document {
+  title                  String                   @db.VarChar(500)
+  generate               String                   @db.VarChar(30)
+  state                  DocumentStateEnum        @default(DENY)
+  statement              String?                  @db.VarChar(500)
+  authUserId             Int?
+  userDataId             Int?
+  timeCreated            DateTime                 @default(now())
+  timeUpdated            DateTime                 @updatedAt
+  isDeleted              Boolean                  @default(false)
+  isFull                 Int?                     @default(0)
+  id                     Int                      @id @default(autoincrement())
+  user                   AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  userData               AuthUserData?            @relation(fields: [userDataId], references: [authUserId], onDelete: Cascade)
+  attribute              DocumentAttribute[]      @relation("attribute")
+  budget                 DocumentBudget[]         @relation("budget")
+  detail                 DocumentDetail[]         @relation("detail")
+  documentemployee       DocumentEmployee[]       @relation("documentemployee")
+  file                   File[]
+  riskassessment         RiskAssessment[]         @relation("assessent")
+  testcase               TestCase[]               @relation("testcase")
+  departmentEmployeeRole DepartmentEmployeeRole[]
+  permission             Permission[]             @relation("document")
+  report                 Report[]                 @relation("report_document")
+  @@unique([title, generate, statement])
+}
+
+model DepartmentEmployeeRole {
+  departmentId  Int?              @map("department_id")
+  jobPositionId Int?
+  employeeId    Int?              @map("employee_id")
+  role          String?           @map("role") @db.VarChar(30)
+  state         Json
+  permissionLvl Int?              @map("permission_lvl")
+  isDeleted     Boolean           @default(false) @map("is_deleted")
+  timeCreated   DateTime          @default(now()) @map("time_created")
+  timeUpdated   DateTime          @updatedAt
+  id            Int               @id @default(autoincrement())
+  documentId    Int
+  department    Department?       @relation(fields: [departmentId], references: [id])
+  document      Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  employee      Employee?         @relation(fields: [employeeId], references: [id])
+  jobPosition   JobPosition?      @relation(fields: [jobPositionId], references: [id])
+
+  @@map("department_employee_role")
+}
+
+model DocumentDetail {
+  intro      String   @db.VarChar(500)
+  aim        String   @db.VarChar(500)
+  id         Int      @id @default(autoincrement())
+  documentId Int
+  document   Document @relation("detail", fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentAttribute {
+  categoryMain String   @db.VarChar(500)
+  category     String   @db.VarChar(500)
+  value        String
+  orderIndex   Int      @default(1)
+  timeCreated  DateTime @default(now())
+  updateTimed  DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  documentId   Int
+  document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryMain, category, value, orderIndex])
+}
+
+model DocumentBudget {
+  productCategory String
+  product         String
+  amount          Int      @default(0)
+  priceUnit       Int      @default(0)
+  priceTotal      Int      @default(0)
+  isFull          Int?     @default(0)
+  id              Int      @id @default(autoincrement())
+  documentId      Int
+  document        Document @relation("budget", fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentEmployee {
+  employeeId    Int
+  departmentId  Int?
+  jobPositionId Int?
+  role          String       @unique @db.VarChar(500)
+  startedDate   DateTime
+  endDate       DateTime
+  id            Int          @id @default(autoincrement())
+  documentId    Int
+  document      Document     @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
+  employee      Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  jobPosition   JobPosition? @relation(fields: [jobPositionId], references: [id])
+}
+
+model RiskAssessment {
+  riskDescription    String?
+  riskLevel          Risk?
+  affectionLevel     Risk?
+  mitigationStrategy String?
+  isFull             Int?     @default(0)
+  id                 Int      @id @default(autoincrement())
+  documentId         Int
+  document           Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([riskDescription, mitigationStrategy])
+}
+
+model TestCase {
+  category      String          @db.VarChar(500)
+  types         String          @db.VarChar(500)
+  steps         String
+  result        String          @db.VarChar(500)
+  division      String          @db.VarChar(500)
+  testType      TestcaseEnum    @default(CREATED)
+  timeCreated   DateTime        @default(now())
+  timeUpdate    DateTime        @updatedAt
+  description   String?
+  id            Int             @id @default(autoincrement())
+  documentId    Int
+  document      Document        @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
+  testCaseImage TestCaseImage[]
+}
+
+model TestCaseImage {
+  path       String
+  createdAt  DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  testCaseId Int
+  testCase   TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+}
+
+model File {
+  id         Int      @id @default(autoincrement())
+  fileName   String   @db.VarChar(200)
+  path       String
+  createdAt  DateTime @default(now())
+  documentId Int
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Permission {
+  id          Int           @id
+  timeCreated DateTime      @default(now())
+  timeAction  DateTime      @updatedAt
+  kind        Json          @default("[]")
+  department  Department[]  @relation("department")
+  document    Document[]    @relation("document")
+  jobposition JobPosition[] @relation("jobposition")
+}
+
+model Report {
+  reportname       String           @db.VarChar(500)
+  reportpurpose    String           @db.VarChar(500)
+  reportprocessing String
+  reportconclusion String?          @db.VarChar(500)
+  reportadvice     String?          @db.VarChar(500)
+  isFull           Int?             @default(0)
+  id               Int              @id @default(autoincrement())
+  issue            ReportIssue[]    @relation("reportissue") 
+  team             ReportTeam[]     @relation("reportteam")
+  testcase         ReportTestCase[] @relation("reporttestcase")
+  document         Document[]       @relation("report_document")
+
+  @@unique([reportname, reportpurpose, reportprocessing, reportconclusion, reportadvice, id])
+  @@map("report_document")
+}
+
+model ReportTeam {
+  name     String
+  role     String   @db.VarChar(200)
+  started  DateTime @default(now())
+  ended    DateTime @updatedAt
+  id       Int      @id @default(autoincrement())
+  reportId Int
+  report   Report   @relation("reportteam", fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("report_team")
+}
+
+model ReportIssue {
+  list      String
+  level     IssueLevel @default(LOW)
+  value     String
+  id        Int        @id @default(autoincrement())
+  reportId  Int
+  exception Boolean    @default(false)
+  report    Report     @relation("reportissue", fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([level, value])
+  @@map("report_issue")
+}
+
+model ReportTestCase {
+  id          Int      @id @default(autoincrement())
+  category    String   @db.VarChar(100)
+  types       String   @db.VarChar(100)
+  steps       String
+  result      String   @db.VarChar(100)
+  division    String   @db.VarChar(100)
+  timeCreated DateTime @default(now())
+  timeUpdate  DateTime @updatedAt
+  reportId    Int
+  report      Report   @relation("reporttestcase", fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("report_testcase")
+}
+
 enum DocumentStateEnum {
   DENY
   ACCESS
   REJECT
   FORWARD
-}
-
-enum PermissionKindEnum {
-  OPENING
-  CLOSSING
 }
 
 enum Risk {
@@ -46,7 +338,7 @@ enum EmployeeRole {
 enum IssueLevel {
   INSANE
   HIGH
-  MEDIUM 
+  MEDIUM
   LOW
 }
 
@@ -54,339 +346,4 @@ enum TestcaseEnum {
   CREATED
   STARTED
   ENDED
-}
-
-model AuthUser {
-  id       Int       @id @default(autoincrement())
-  username String?   @db.VarChar(50)
-  mobile   String?   @db.VarChar(15)
-  email    String?   @db.VarChar(180)
-  status   String?   @db.VarChar(10)
-  employee Employee?
-
-  //foreign key 
-  Document Document[]
-}
-
-model Department {
-  id             Int      @id @default(autoincrement())
-  parentId       Int      @map("parent_id")
-  name           String?  @db.VarChar(255)
-  description    String?  @db.VarChar(255)
-  authDivision   Boolean  @default(false) @map("auth_division") @db.Boolean
-  isDeleted      Boolean  @default(false) @map("is_deleted") @db.Boolean
-  parentsNesting String?  @map("parents_nesting") @db.VarChar(255)
-  timeCreated    DateTime @default(now()) @map("time_created")
-  timeUpdated    DateTime @updatedAt
-
-  //foreign key
-  jobPositions           JobPosition[]
-  employees              Employee[]
-  departmentEmployeeRole DepartmentEmployeeRole[]
-}
-
-model JobPosition {
-  id           Int      @id @default(autoincrement())
-  departmentId Int      @db.Integer
-  jobGroupId   Int?     @db.Integer
-  name         String?  @db.VarChar(100)
-  description  String?  @db.VarChar(255)
-  isDeleted    Boolean  @default(false) @map("is_deleted") @db.Boolean
-  timeCreated  DateTime @default(now()) @map("time_created")
-  timeUpdated  DateTime @updatedAt
-
-  //foreign key
-  department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  employee               Employee[]
-  jobPositionGroup       JobPositionGroup?        @relation(fields: [jobGroupId], references: [id], onDelete: Cascade)
-  DocumentEmployee       DocumentEmployee[]
-  departmentEmployeeRole DepartmentEmployeeRole[]
-}
-
-model JobPositionGroup {
-  id          Int      @id @default(autoincrement())
-  name        String?  @db.VarChar(255)
-  jobAuthRank Int?     @map("job_auth_rank") @db.Integer
-  description String?  @db.VarChar(255)
-  isDeleted   Boolean  @default(false) @map("is_deleted") @db.Boolean
-  timeCreated DateTime @default(now()) @map("time_created")
-
-  // relations
-  jobPositions JobPosition[]
-}
-
-model Employee {
-  id            Int      @id @default(autoincrement()) @db.Integer
-  departmentId  Int      @map("department_id") @db.Integer
-  jobPositionId Int?     @map("job_position_id") @db.Integer
-  firstname     String   @db.VarChar(80)
-  lastname      String   @db.VarChar(80)
-  familyName    String   @map("family_name") @db.VarChar(80)
-  gender        String?  @db.VarChar(10)
-  regNum        String   @unique @map("reg_num") @db.VarChar(10)
-  birthDate     DateTime @map("birth_date") @db.Date
-  stateId       Int?     @map("state_id") @db.Integer
-  authUserId    Int?     @unique @map("auth_user_id") @db.Integer
-  isDeleted     Boolean  @default(false) @map("is_deleted") @db.Boolean
-  userCreatedId Int?     @map("user_created_id") @db.Integer
-  note          String?  @db.VarChar(255)
-  timeCreated   DateTime @default(now()) @map("time_created")
-  timeUpdated   DateTime @updatedAt
-
-  //foreign key
-
-  authUser               AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
-  jobPosition            JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
-  department             Department?              @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  DocumentEmployee       DocumentEmployee[]
-  departmentEmployeeRole DepartmentEmployeeRole[]
-}
-
-model EmployeeState {
-  id            Int      @id @default(autoincrement())
-  name          String?  @db.VarChar(255)
-  description   String?  @db.VarChar(255)
-  isDefault     Boolean  @default(false) @map("is_default") @db.Boolean
-  needFillIn    Boolean  @default(false) @map("need_fill_in") @db.Boolean
-  isDeleted     Boolean  @default(false) @map("is_deleted") @db.Boolean
-  userCreatedId Int      @map("user_created_id") @db.Integer
-  timeCreated   DateTime @default(now()) @map("time_created")
-}
-
-model AuthUserData {
-  authUserId  Int        @id @map("auth_user_id") @db.Integer
-  permissions Json       @default("[]") @map("permissions")
-  timeUpdated DateTime   @default(now()) @map("time_updated") @db.Timestamptz()
-  documents   Document[]
-}
-
-
-model Document {
-  id          Int               @id @default(autoincrement())
-  title       String            @db.VarChar(100)
-  generate    String?           @db.VarChar(30)
-  state       DocumentStateEnum @default(DENY)
-  statement   String?           @db.VarChar(50)
-  authUserId  Int?
-  userDataId  Int?
-  timeCreated DateTime          @default(now())
-  timeUpdated DateTime          @updatedAt
-  isDeleted   Boolean           @default(false)
-  isFull      Int?              @default(0)
-  detail                 DocumentDetail[]         @relation("detail")
-  attribute              DocumentAttribute[]      @relation("attribute")
-  budget                 DocumentBudget[]         @relation("budget")
-  riskassessment         RiskAssessment[]         @relation("assessent")
-  testcase               TestCase[]               @relation("testcase")
-  documentemployee       DocumentEmployee[]       @relation("documentemployee")
-  userData               AuthUserData?            @relation(fields: [userDataId], references: [authUserId], onDelete: Cascade)
-  user                   AuthUser?                @relation(fields: [authUserId], references: [id], onDelete: Cascade)
-  file                   File[]
-  departmentEmployeeRole DepartmentEmployeeRole[] 
-
-  @@unique([title, generate, statement])  
-}
-
-model DepartmentEmployeeRole {
-  id            Int               @id @default(autoincrement())
-  departmentId  Int?              @map("department_id")
-  jobPositionId Int?
-  employeeId    Int?              @map("employee_id")
-  role          String?           @map("role") @db.VarChar(30)
-  documentId    Int
-  state         DocumentStateEnum @default(DENY)
-  permissionLvl Int?              @map("permission_lvl")
-  isDeleted     Boolean           @default(false) @map("is_deleted") @db.Boolean
-  timeCreated   DateTime          @default(now()) @map("time_created")
-  timeUpdated   DateTime          @updatedAt
-
-  // Relations
-  document      Document?         @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  jobPosition   JobPosition?      @relation(fields: [jobPositionId], references: [id])
-  department    Department?       @relation(fields: [departmentId], references: [id])
-  employee      Employee?         @relation(fields: [employeeId], references: [id])
-
-  @@map("department_employee_role")
-}
-
-model DocumentDetail {
-  id    Int     @id @default(autoincrement())
-  intro String @db.VarChar(200)
-  aim   String @db.VarChar(100)
-
-  //foreign key
-  document   Document @relation("detail", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
-}
-
-model DocumentAttribute {
-  id           Int   @id @default(autoincrement())
-  categoryMain String   @db.VarChar(250)
-  category     String   @db.VarChar(250)
-  value        String   @db.Text
-  orderIndex   Int      @default(1)
-  timeCreated  DateTime @default(now())
-  updateTimed  DateTime @updatedAt
-
-  //relation
-  document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId   Int
-
-  @@unique([categoryMain, category, value, orderIndex])
-}
-
-model DocumentBudget {
-  id              Int @id @default(autoincrement())
-  productCategory String @db.Text
-  product         String @db.Text
-  amount          Int    @default(0)
-  priceUnit       Int    @default(0)
-  priceTotal      Int    @default(0)
-  isFull          Int?   @default(0)
-  //relation
-  document   Document @relation("budget", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
-}
-
-model DocumentEmployee {
-  id            Int   @id @default(autoincrement())
-  employeeId    Int
-  departmentId  Int?
-  jobPositionId Int?
-  role          String   @db.VarChar(200)   @unique
-  startedDate   DateTime
-  endDate       DateTime
-  documentId    Int
-  
-  //relation
-  document    Document @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  jobPosition JobPosition? @relation(fields: [jobPositionId], references: [id])
-}
-
-model RiskAssessment {
-  id                 Int  @id @default(autoincrement())
-  riskDescription    String? @db.Text
-  riskLevel          Risk?
-  affectionLevel     Risk?
-  mitigationStrategy String? @db.Text
-  isFull      Int?              @default(0)
-  //relation
-  document   Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
-  documentId Int
-
-  @@unique([riskDescription, mitigationStrategy])
-}
-
-model TestCase {
-  id          Int          @id @default(autoincrement())
-  category    String       @db.VarChar(100)
-  types       String       @db.VarChar(100)
-  steps       String       @db.Text
-  result      String       @db.VarChar(100)
-  division    String       @db.VarChar(100)
-  testType    TestcaseEnum  @default(CREATED)
-  description String?       @db.Text
-  timeCreated DateTime     @default(now())
-  timeUpdate  DateTime     @updatedAt
-  documentId  Int
-  //relation
-  document Document @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
-
-  //foreign key
-  testCaseImage TestCaseImage[]
-}
-
-model TestCaseImage {
-  id         Int   @id @default(autoincrement())
-  path       String   @db.Text
-  testCaseId Int
-  createdAt  DateTime @default(now())
-
-  //relation
-  testCase TestCase? @relation(fields: [testCaseId], references: [id])
-}
-
-model File {
-  id         Int      @id @default(autoincrement())
-  fileName   String   @db.VarChar(150)
-  path       String   @db.Text
-  createdAt  DateTime @default(now())
-  documentId Int
-
-  //relation 
-  document Document @relation(fields: [documentId], references: [id])
-}
-
-
-// model Permission {
-//   id    String             @id @default(uuid())
-//   kind  PermissionKindEnum
-//   state String             @db.VarChar(100)
-
-//   //relation
-//   document    Document[]    @relation("document")
-//   department  Department[]  @relation("department")
-//   jobposition JobPosition[] @relation("jobposition")
-//   timeCreated DateTime      @default(now())
-//   timeAction  DateTime      @updatedAt
-// }
-
-model Report {
-   id  Int  @id @default(autoincrement())
-   reportname String  @db.VarChar(200)
-   reportpurpose String @db.VarChar(200)
-   reportprocessing String @db.Text
-   reportconclusion String? @db.VarChar(200)
-   reportadvice String? @db.VarChar(200)
-   isFull  Int?  @default(0)
-
-  //relation
-   team ReportTeam[]   @relation("reportteam")
-   issue ReportIssue[] @relation("reportissue")
-   testcase ReportTestCase[] @relation("reporttestcase")
-   @@map("report_document")
-   @@unique([reportname, reportpurpose, reportprocessing,reportconclusion,reportadvice,id])
-}
-
-model ReportTeam {
-  id Int @id @default(autoincrement())
-  name String @db.Text
-  role String @db.VarChar(200)
-  started  DateTime @default(now())
-  ended DateTime @updatedAt
-
-  //Relation
-  reportId Int
-  report Report @relation("reportteam",fields: [reportId], references: [id], onDelete: Cascade)
-  @@map("report_team")
-}
-
-model ReportIssue {
-  id Int @id @default(autoincrement()) 
-  list String @db.Text
-  level IssueLevel @default(LOW)
-  value String @db.Text
-
-  //relation
-  reportId Int
-  report Report @relation("reportissue", fields: [reportId], references: [id])
-  @@map("report_issue")
-  @@unique([level, value])
-}
-
-model ReportTestCase {
-  id          Int       @id @default(autoincrement())
-  category    String       @db.VarChar(100)
-  types       String       @db.VarChar(100)
-  steps       String       @db.Text
-  result      String       @db.VarChar(100)
-  division    String       @db.VarChar(100)
-  timeCreated DateTime     @default(now())
-  timeUpdate  DateTime     @updatedAt
-  reportId  Int
-  //relation
-  report Report @relation("reporttestcase", fields: [reportId], references: [id], onDelete: Cascade)
-   @@map("report_testcase")
 }

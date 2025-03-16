@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <main class="p-10">
+      <div class="flex justify-between">
+        <p>ЖИМОБАЙЛ ХХК</p>
+        <p><%= document.generate %></p>
+      </div>
+      <div class="text-center">
+        <b><%= document.title %></b>
+      </div>
+      <div>
+        <p class="my-4 font-bold">
+          ТЕСТИЙН ҮЙЛ АЖИЛЛАГААНД АШИГЛАГДСАН ДУГААРУУД:
+        </p>
+        <table class="border-collapse border border-slate-400 w-full">
+          <tr>
+            <th class="border border-slate-400 p-2">№</th>
+            <th class="border border-slate-400 p-2">Үйлчилгээний төрөл</th>
+            <th class="border border-slate-400 p-2">Утасны дугаар</th>
+            <th class="border border-slate-400 p-2">Дугаарын нөхцөл</th>
+          </tr>
+          <tr class="text-center">
+            <td class="border border-slate-400 p-2">1</td>
+            <td class="border border-slate-400 p-2">1</td>
+            <td class="border border-slate-400 p-2">1</td>
+            <td class="border border-slate-400 p-2">1</td>
+          </tr>
+        </table>
+      </div>
+      <div class="mt-8">
+        <p class="my-4 font-bold">ТЕСТЭД ОРОЛЦСОН АЖИЛТНУУД:</p>
+        <table class="border-collapse border border-slate-400 w-full">
+          <thead>
+            <tr>
+              <th class="border border-slate-400 p-2">№</th>
+              <th class="border border-slate-400 p-2">Нэр</th>
+              <th class="border border-slate-400 p-2">Хэлтэс</th>
+              <th class="border border-slate-400 p-2">Албан тушаал</th>
+              <th class="border border-slate-400 p-2">Үүрэг</th>
+              <th class="border border-slate-400 p-2">Гарын үсэг</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% document.documentemployee.forEach((employeeData, index) => { %>
+            <tr class="text-center">
+              <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+              <td class="border border-slate-400 p-2">
+                <%= convertFirst(employeeData.employee.firstname) %> <%=
+                employeeData.employee.lastname %>
+              </td>
+
+              <td class="border border-slate-400 p-2">
+                <%= employeeData.employee.department ?
+                employeeData.employee.department.name : '' %>
+              </td>
+              <td class="border border-slate-400 p-2">
+                <%= employeeData.employee.jobPosition.name %>
+              </td>
+              <td class="border border-slate-400 p-2">
+                <%= employeeData.role %>
+              </td>
+              <td class="border border-slate-400 p-2"></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">ТЕСТЭД ХИЙСЭН ХУВААРЬ:</p>
+        <table class="border-collapse border border-slate-400 w-full">
+        <thead>
+          <tr>
+            <th class="border border-slate-400 p-2">Үйл ажиллагаа</th>
+            <th class="border border-slate-400 p-2">Хариуцагч</th>
+            <th class="border border-slate-400 p-2">Эхлэх хугацаа</th>
+            <th class="border border-slate-400 p-2">Дуусах хугацаа</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% document.documentemployee.forEach((employeeData, index) => { %>
+            <tr class="text-center">
+
+              <td class="border border-slate-400 p-2">
+               <%= employeeData.role %>
+              </td>
+
+              <td class="border border-slate-400 p-2">
+               <%= convertFirst(employeeData.employee.firstname) %> <%=
+                employeeData.employee.lastname %>
+              </td>
+              <td class="border border-slate-400 p-2">
+                <%= new Date(employeeData.startedDate).toLocaleDateString() %>
+              </td>
+              <td class="border border-slate-400 p-2">
+                <%= new Date(employeeData.endDate).toLocaleDateString() %>
+              </td>
+              
+            </tr>
+            <% }) %>
+          </tbody>
+        </tbody>
+        </table>
+      </div>
+
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">ТЕСТИЙН ҮР ДҮН:</p>
+      </div>
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">ТЕСТИЙН ДҮГНЭЛТ:</p>
+      </div>
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">ТЕСТЭД КЭЙС:</p>
+        <table class="border-collapse border border-slate-400 w-full">
+          <thead>
+            <tr>
+              <th class="border border-slate-400 p-2">ID</th>
+              <th class="border border-slate-400 p-2">Ангилал</th>
+              <th class="border border-slate-400 p-2">Тодорхойлолт</th>
+              <th class="border border-slate-400 p-2">Алхмууд</th>
+              <th class="border border-slate-400 p-2">Эцсийн үр дүн</th>
+              <th class="border border-slate-400 p-2">Тайлбар</th>
+            </tr>
+          </thead>
+       
+          <tbody>
+            <% document.testcase.forEach((employeeData, index) => { %>
+              <tr class="text-center">
+
+               <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+                
+                <td class="border border-slate-400 p-2"> <%= employeeData.category %></td>
+                <td class="border border-slate-400 p-2"><%= employeeData.types %></td>
+                <td class="border border-slate-400 p-2"><%= employeeData.steps %></td>
+                <td class="border border-slate-400 p-2"><%= employeeData.result %></td>
+                <td class="border border-slate-400 p-2"></td>
+              </tr>
+              <% }) %>
+           </tbody>
+        </table>
+      </div>
+
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">Бусад нөхцөл (Олгох бэлгийн мэдээлэл болон урамшууллын эрхүүд)</p>
+        <table class="border-collapse border border-slate-400 w-full">
+          <thead>
+            <tr>
+              <th class="border border-slate-400 p-2">ID</th>
+              <th class="border border-slate-400 p-2">Ангилал</th>
+              <th class="border border-slate-400 p-2">Тодорхойлолт</th>
+              <th class="border border-slate-400 p-2">Алхмууд</th>
+              <th class="border border-slate-400 p-2">Эцсийн үр дүн</th>
+              <th class="border border-slate-400 p-2">Тайлбар</th>
+            </tr>
+          </thead>
+       
+          <tbody>
+            <% document.testcase.forEach((data, index) => { %>
+              <tr class="text-center">
+
+               <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+                
+                <td class="border border-slate-400 p-2"> <%= data.category %></td>
+                <td class="border border-slate-400 p-2"><%= data.types %></td>
+                <td class="border border-slate-400 p-2"><%= data.steps %></td>
+                <td class="border border-slate-400 p-2"><%= data.result %></td>
+                <td class="border border-slate-400 p-2"></td>
+              </tr>
+              <% }) %>
+           </tbody>
+        </table>
+      </div>
+
+      <div class="mt-8">
+        <p class="my-4 font-bold">Алдааны бүртгэлийн хуудас</p>
+        <table class="border-collapse border border-slate-400 w-full">
+          <thead>
+            <tr>
+              <th class="border border-slate-400 p-2">№</th>
+              <th class="border border-slate-400 p-2">Алдааны жагсаалт</th>
+              <th class="border border-slate-400 p-2">Алдааны түвшин</th>
+              <th class="border border-slate-400 p-2">Алдаа гарсан эсэх</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% document.report.forEach((report) => { %> 
+              <% report.issue.forEach((issueData, index) => { %>
+                <tr class="text-center">
+                  <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+                  <td class="border border-slate-400 p-2"><%= issueData.list %></td>
+                  <td class="border border-slate-400 p-2"><%= issueData.level %></td>
+                  <td class="border border-slate-400 p-2">
+                    <%= issueData.exception ? "Тийм" : "Үгүй" %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+       <div class="mt-8">
+        <p class="my-4 font-bold">Үндсэн сервер дээр хийгдсэн тестийн үр дүн:</p>
+      </div>
+
+     <table class="border-collapse border border-slate-400 w-full">
+      <tbody>
+        <% document.testcase.forEach((data, index) => { %> 
+          <tr class="text-center">
+            <td class="border border-slate-400 p-2"> <%= data.result %></td>
+          </tr>
+          <tr>
+            <td class="border border-slate-400 px-6"> <%= data.description %></td>
+          </tr>
+          <% if (data.testCaseImage.length > 0) { %>
+            <tr>
+              <td class="border border-slate-400 px-6 flex flex-wrap gap-2">
+                <% data.testCaseImage.forEach((image) => { %>
+                  <img src="http://127.0.0.1:3000<%= image.path %>" alt="Test Image" class="w-32 h-32 object-cover border border-gray-300" />
+                <% }) %>
+              </td>
+            </tr>
+          <% } %>
+        <% }) %>
+      </tbody>
+    </table>
+      
+    </main>
+    <% function convertFirst(firstname){ return firstname[0]+"." } %>
+    
+  </body>
+</html>

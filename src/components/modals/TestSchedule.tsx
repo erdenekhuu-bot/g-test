@@ -1,7 +1,7 @@
 "use client";
 import { Form, Input, Table, Button, Select, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import axios from "axios";
@@ -158,18 +158,32 @@ export function TestSchedule() {
     },
   ];
 
-  const employeeList = async function (params: any) {
-    try {
-      const record = await axios.post("/api/employee", {
-        name: params,
-      });
-      if (record.data.success) {
-        setEmployee(record.data.data);
+  // const employeeList = async function (params: any) {
+  //   try {
+  //     const record = await axios.post("/api/employee", {
+  //       name: params,
+  //     });
+  //     if (record.data.success) {
+  //       setEmployee(record.data.data);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+  const employeeList = useCallback(
+    async (params: any) => {
+      try {
+        const record = await axios.post("/api/employee", { name: params });
+        if (record.data.success) {
+          console.log(record.data.data);
+          setEmployee(record.data.data);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    },
+    [search]
+  );
 
   useEffect(() => {
     employeeList(search);

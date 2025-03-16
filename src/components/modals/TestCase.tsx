@@ -3,6 +3,7 @@ import { Form, Input, Table, Button, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 interface DataType {
   key: number;
@@ -47,7 +48,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
           initialValue={record.category}
         >
           <Select
-            placeholder="Select name"
+            placeholder=""
             style={{ width: "100%" }}
             options={[
               {
@@ -92,7 +93,7 @@ export function TestCase({ documentId }: { documentId?: any }) {
           initialValue={record.types}
         >
           <Select
-            placeholder="Select name"
+            placeholder=""
             style={{ width: "100%" }}
             options={[
               {
@@ -210,10 +211,12 @@ export function TestCase({ documentId }: { documentId?: any }) {
       title: "",
       key: "",
       render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
+        <Image
+          src="/trash.svg"
+          alt=""
+          className="hover:cursor-pointer"
+          width={20}
+          height={20}
           onClick={() => handleDelete(record.key)}
         />
       ),

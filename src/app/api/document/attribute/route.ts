@@ -12,13 +12,14 @@ export async function POST(req: NextRequest) {
       value: attribute.value,
       documentId: parseInt(attribute.documentId),
     }));
+
     const createdAttributes = await prisma.documentAttribute.createMany({
       data: attributeData,
       skipDuplicates: true,
     });
     await prisma.document.update({
       where: {
-        id: request.id,
+        id: request.documentId,
       },
       data: {
         isFull: 1,

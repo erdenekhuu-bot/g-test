@@ -54,7 +54,6 @@ export async function PATCH(req: NextRequest, { params }: any) {
       data: record,
     });
   } catch (error) {
-    console.log(error);
     return NextResponse.json({
       success: false,
       data: error,

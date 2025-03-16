@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Table, Pagination, Input, Dropdown } from "antd";
+import React, { useState, useCallback } from "react";
+import { Table, Input, Dropdown, Steps, Modal, Form, Button, Menu } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 import {
   formatHumanReadable,
@@ -9,52 +10,45 @@ import {
 } from "@/components/usable";
 import type { MenuProps } from "antd";
 import { ListDataType } from "@/types/type";
-import type { GetProps } from "antd";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import { FullModal } from "../modals/FullModal";
+import { CreateReportModal } from "../modals/CreateReportModal";
+import { useRouter } from "next/navigation";
 
-type SearchProps = GetProps<typeof Input.Search>;
-const { Search } = Input;
+export default function PermissionDocument({
+  documents,
+  total,
+  pageSize,
+  page,
+  order,
+}: any) {
+  const [searchTerm, setSearchTerm] = useState<string>(order);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [findId, setFindId] = useState<number | null>(null);
+  const [ordering, setOrder] = useState("");
+  const [trigger, setTrigger] = useState(false);
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
-export default function PermissionDocument() {
-  const [getData, setData] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-    total: number;
-  }>();
-  const [search, setSearch] = useState("");
-
-  const fetching = async function () {
-    try {
-      const record = await axios.post(`/api/document/filter`, {
-        order: search,
-        page: page,
-        pageSize: pageSize,
-      });
-      if (record.data.success) {
-        setPagination(record.data.pagination);
-        setData(
-          record.data.data.filter((action: any) => action.state === "FORWARD")
-        );
-        setPage(record.data.page + 1);
-      }
-    } catch (error) {}
+  const showOrder = () => {
+    setOpen(true);
   };
 
   const items = (id: number): MenuProps["items"] => [
     {
       label: (
-        <span
-          onClick={async () => {
-            await axios.patch(`/api/document/detail/${id}`, {
-              reject: false,
-            });
-          }}
-        >
-          Цохох
-        </span>
+        // <span
+        //   onClick={async () => {
+        //     await axios.patch(`/api/document/detail/${id}`, {
+        //       reject: 2,
+        //     });
+        //     router.refresh();
+        //   }}
+        // >
+        //   Цохох
+        // </span>
+        <span onClick={showOrder}>Цохох</span>
       ),
       key: "0",
     },
@@ -66,8 +60,9 @@ export default function PermissionDocument() {
         <span
           onClick={async () => {
             await axios.patch(`/api/document/detail/${id}`, {
-              reject: true,
+              reject: 0,
             });
+            router.refresh();
           }}
         >
           Буцаах
@@ -80,29 +75,81 @@ export default function PermissionDocument() {
     },
   ];
 
-  useEffect(() => {
-    fetching();
-  }, [page, pageSize, search]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+
+      const params = new URLSearchParams({
+        page: "1",
+        pageSize: pageSize.toString(),
+        order: value || "",
+      });
+      router.push(`/home/permission?${params.toString()}`);
+    },
+    [router, pageSize]
+  );
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setOpen(false);
+  };
+
+  const menu = (
+    <Menu
+      items={[
+        { key: "1", label: "Option 1" },
+        { key: "2", label: "Option 2" },
+        { key: "3", label: "Option 3" },
+      ]}
+    />
+  );
   return (
     <section>
-      <Search
-        placeholder=""
-        onKeyDown={(e: any) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-        style={{ width: 200 }}
+      <Input.Search
+        placeholder="Тушаалаар хайх"
+        value={searchTerm}
+        onChange={handleSearchChange}
+        allowClear
+        style={{ width: 400 }}
       />
+      <div className="text-end mb-8 ">
+        {trigger && <CreateReportModal generate={order} detailId={findId} />}
+      </div>
       <div className="bg-white">
         <Table<ListDataType>
-          dataSource={getData}
-          pagination={false}
+          dataSource={documents}
+          pagination={{
+            current: page,
+            pageSize: pageSize,
+            total: total,
+          }}
           rowKey="id"
         >
           <Table.Column
             title="Тоот"
             dataIndex="generate"
             sortDirections={["descend"]}
+            render={(generate: string, record: any) => (
+              <span
+                className="hover:cursor-pointer"
+                onClick={() => {
+                  setOrder(generate);
+                  setFindId(Number(record.id));
+                  setTrigger(true);
+                }}
+              >
+                {generate}
+              </span>
+            )}
           />
           <Table.Column
             title="Тестийн нэр"
@@ -130,7 +177,26 @@ export default function PermissionDocument() {
               new Date(b.timeCreated).getTime()
             }
             render={(timeCreated: string) => (
-              <span>{formatHumanReadable(timeCreated)}</span>
+              <span>
+                {formatHumanReadable(new Date(timeCreated).toISOString())}
+              </span>
+            )}
+          />
+          <Table.Column
+            title="Харах"
+            dataIndex="id"
+            render={(id: number) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={() => {
+                  showModal();
+                  setFindId(id);
+                }}
+              />
             )}
           />
 
@@ -155,17 +221,68 @@ export default function PermissionDocument() {
           />
         </Table>
       </div>
-      <div className="flex justify-end my-6">
-        <Pagination
-          current={pagination?.page}
-          pageSize={pagination?.pageSize}
-          total={pagination?.total}
-          onChange={(newPage: number, newPageSize: number) => {
-            setPage(newPage);
-            setPageSize(newPageSize);
-          }}
-        />
-      </div>
+
+      <FullModal
+        open={isModalOpen}
+        handleOk={handleOk}
+        onCancel={handleCancel}
+        detailId={findId}
+      />
+
+      <Modal open={open} onOk={handleOk} onCancel={handleCancel} width={900}>
+        <Form className="p-4 flex gap-x-8">
+          <div className="flex-1 w-2/4">
+            <div className="flex justify-between items-center">
+              НХМаягт БМ - 6
+              <p className="w-60 text-[12px]">
+                Сангийн сайдын 2017 оны 12 дугаар сарын 5-ны өдрийн 347 тоот
+                тушаалын хавсралт
+              </p>
+            </div>
+
+            <div className="text-center my-4">
+              ШААРДАХ ХУУДАС № <span className="underline">2024/0000/1</span>
+            </div>
+            <div className="flex my-4 justify-between">
+              <span>Жимобайл ХХК</span>
+              <span>2023 он 9 сар 27 өдөр</span>
+            </div>
+            <div className="my-2">
+              <Input placeholder="Хэнээс" />
+              <p className="text-center opacity-40">(Овог нэр, албан тушаал)</p>
+            </div>
+            <div className="my-2">
+              <Input placeholder="Хаана" />
+              <p className="text-center opacity-40">(Цех, тасаг, алба)</p>
+            </div>
+            <div className="my-2">
+              <Input placeholder="Зориулалт" />
+            </div>
+          </div>
+          <div className="w-1/4">
+            <Steps
+              direction="vertical"
+              size="default"
+              current={0}
+              className="min-h-96"
+              items={[
+                { title: "Хянасан" },
+                { title: "Зөвшөөрсөн" },
+                {
+                  description: (
+                    <Dropdown overlay={menu} trigger={["click"]}>
+                      <Button type="link">
+                        Select an option <DownOutlined />
+                      </Button>
+                    </Dropdown>
+                  ),
+                },
+                { title: "Хүлээгдэж байгаа" },
+              ]}
+            />
+          </div>
+        </Form>
+      </Modal>
     </section>
   );
 }

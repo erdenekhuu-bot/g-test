@@ -36,12 +36,10 @@ export function ReportTestError() {
       title: "Алдааны жагсаалт",
       dataIndex: "list",
       key: "list",
-
       render: (_, record) => (
         <Form.Item
           name={["list", record.key]}
           rules={[{ required: true, message: "Алдааны жагсаалт" }]}
-          initialValue={record.list}
         >
           <Input
             placeholder=""
@@ -70,10 +68,9 @@ export function ReportTestError() {
         <Form.Item
           name={["level", record.key]}
           rules={[{ required: true, message: "Алдааны түвшин" }]}
-          initialValue={record.level}
         >
           <Select
-            placeholder="Select name"
+            placeholder=""
             style={{ width: "100%" }}
             options={[
               {
@@ -107,6 +104,46 @@ export function ReportTestError() {
       ),
     },
     {
+      title: "Алдаа гарсан эсэх",
+      dataIndex: "exception",
+      key: "exception",
+      width: 200,
+      render: (_, record) => (
+        <Form.Item
+          name={["exception", record.key]}
+          rules={[{ required: true, message: "Алдааны гарсан" }]}
+        >
+          <Select
+            placeholder=""
+            style={{ width: "100%" }}
+            options={[
+              {
+                label: "Гараагүй",
+                value: false,
+              },
+              {
+                label: "Гарсан",
+                value: true,
+              },
+            ]}
+            onChange={(value) => {
+              const newData = [...dataSource];
+              const index = newData.findIndex(
+                (item) => record.key === item.key
+              );
+
+              newData[index] = { ...newData[index], level: value };
+              setDataSource(newData);
+            }}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </Form.Item>
+      ),
+    },
+    {
       title: "Шийдвэрлэсэн эсэх",
       dataIndex: "solve",
       key: "solve",
@@ -115,7 +152,6 @@ export function ReportTestError() {
         <Form.Item
           name={["solve", record.key]}
           rules={[{ required: true, message: "Шийдвэрлэсэн туай" }]}
-          initialValue={record.list}
         >
           <Input
             placeholder=""

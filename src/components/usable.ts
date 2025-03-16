@@ -22,7 +22,7 @@ export const mongollabel = (label: string) => {
     case "ENDED":
       return "Дууссан";
     default:
-      return "Цуцлагдсан";
+      return "Хянаагүй";
   }
 };
 

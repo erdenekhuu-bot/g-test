@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, createContext, useEffect } from "react";
 import { Button, Form, Table, Select, Input, Modal } from "antd";
-import { MainDocumentModal } from "./MainDocumentModal";
 import { SecondStep } from "./SecondStep";
 import { ThirdStep } from "./ThirdStep";
 import axios from "axios";
@@ -9,6 +8,8 @@ import { capitalizeFirstLetter } from "../usable";
 import type { ColumnsType } from "antd/es/table";
 import Image from "next/image";
 import { convertUtil } from "../usable";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface DataType {
   key: number;
@@ -22,8 +23,9 @@ const { TextArea } = Input;
 export const DocumentContext = createContext<string | null>(null);
 
 export function CreateDocumentModal() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [currentModal, setCurrentModal] = useState(0);
-  const [data, setData] = useState<any>([]);
   const [getEmployee, setEmployee] = useState<any>([]);
   const [job, setJobPosition] = useState<{
     value: string | number;
@@ -90,6 +92,7 @@ export function CreateDocumentModal() {
     try {
       const values = await mainForm.validateFields();
       const data = {
+        // authuserId: session?.user.id,
         authuserId: 1,
         aim: values.aim,
         title: values.title,
@@ -101,14 +104,13 @@ export function CreateDocumentModal() {
           : [],
       };
       const request = await axios.post("/api/document", data);
-      console.log(request);
       if (request.data.success) {
         setDocumentId(request.data.data.id);
         handleNext();
+        router.refresh();
       }
     } catch (error) {
       console.log(error);
-      return;
     }
   };
 
@@ -121,7 +123,6 @@ export function CreateDocumentModal() {
         <Form.Item
           name={["names", record.key]}
           rules={[{ required: true, message: "Нэр сонгох шаардлагатай" }]}
-          initialValue={record.name}
         >
           <Select
             style={{ width: "100%" }}
@@ -184,7 +185,6 @@ export function CreateDocumentModal() {
               message: "Гүйцэтгэх үүрэг оруулах шаардалагатай",
             },
           ]}
-          initialValue={record.role}
         >
           <Input
             placeholder=""
@@ -226,11 +226,6 @@ export function CreateDocumentModal() {
         Тестийн төлөвлөгөө үүсгэх
       </Button>
 
-      {/* <MainDocumentModal
-        open={currentModal === 1}
-        next={handleNext}
-        onCancel={handleCancel}
-      /> */}
       <Modal
         open={currentModal === 1}
         onOk={handleSubmit}
@@ -240,10 +235,10 @@ export function CreateDocumentModal() {
         style={{ overflowY: "auto", maxHeight: "800px" }}
         footer={[
           <Button key="back" onClick={handleCancel}>
-            Cancel
+            Болих
           </Button>,
           <Button key="next" type="primary" onClick={handleSubmit}>
-            Next
+            Цааш
           </Button>,
         ]}
       >
@@ -255,7 +250,6 @@ export function CreateDocumentModal() {
             <Form.Item
               name="title"
               rules={[{ required: true, message: "Тестийн нэр!" }]}
-              initialValue={data.title}
             >
               <Input size="large" placeholder="Тестийн нэр бичнэ үү..." />
             </Form.Item>

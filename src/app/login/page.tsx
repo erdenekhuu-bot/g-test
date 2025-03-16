@@ -1,22 +1,37 @@
 "use client";
 import type { FormProps } from "antd";
 import { Button, Form, Input } from "antd";
-import Image from "next/image";
-import axios from "axios";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type FieldType = {
   username?: string;
   password?: string;
 };
 
-const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-  console.log(await axios.post("/api/login", values));
-};
-
 export default function Login() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+    try {
+      setLoading(true);
+      const result = await signIn("credentials", {
+        username: values.username,
+        password: values.password,
+        redirect: false,
+      });
+      if (result?.ok) {
+        router.push("/home/create");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <div className="w-full h-full flex justify-center items-center">
-      <Image src="/background.png" alt="" fill className="absolute z-0" />
+    <div className="w-full h-screen flex justify-center items-center relative">
       <Form
         initialValues={{ remember: true }}
         onFinish={onFinish}
@@ -37,7 +52,7 @@ export default function Login() {
           <Form.Item<FieldType>
             label=""
             name="password"
-            rules={[{ required: true, message: "Нууц үгээ нэвтрүүлнэ үү" }]}
+            rules={[{ required: true, message: "Нууц үгээ оруулна уу" }]}
           >
             <Input.Password placeholder="Нууц үг" className="w-96 py-2" />
           </Form.Item>

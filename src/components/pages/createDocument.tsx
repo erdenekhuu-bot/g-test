@@ -1,157 +1,164 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Table, Form, Pagination, Steps, Popover } from "antd";
-import axios from "axios";
-import {
-  formatHumanReadable,
-  convertName,
-  mongollabel,
-} from "@/components/usable";
-import { ListDataType } from "@/types/type";
-import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
-import { CreateDocumentModal } from "../modals/CreateDocumentModal";
-import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
+import { useRouter } from "next/navigation";
+import { Table, Steps, Dropdown, Button } from "antd";
+import { useState, useCallback } from "react";
+import type { TablePaginationConfig } from "antd/es/table";
+import { convertName, formatHumanReadable } from "../usable";
 import { FirstCheckout } from "../modals/checkmissing/FirstCheckout";
+import { SecondCheckout } from "../modals/checkmissing/SecondCheckout";
+import { ThirdCheckout } from "../modals/checkmissing/ThirdCheckout";
+import { CreateDocumentModal } from "../modals/CreateDocumentModal";
+import { Badge } from "@/components/ui/badge";
+import axios from "axios";
 
-export default function CreateDocument() {
-  const [getData, setData] = useState<any[]>([]);
-  const [open, setOpen] = useState(false);
-  const [currentModal, setCurrentModal] = useState(0);
-  const [form] = Form.useForm();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-    total: number;
-  }>();
-  const [activeStep, setActiveStep] = useState<number | null>(null);
+export default function CreateDocument({
+  documents,
+  total,
+  pageSize,
+  page,
+  order,
+}: any) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState<string>(order);
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
     null
+  );
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const handlePaginationChange = useCallback(
+    (pagination: TablePaginationConfig) => {
+      const newPage = pagination.current ?? page;
+      const newPageSize = pagination.pageSize ?? pageSize;
+
+      const params = new URLSearchParams({
+        page: newPage.toString(),
+        pageSize: newPageSize.toString(),
+        order: searchTerm || "",
+      });
+      router.push(`/home/create?${params.toString()}`);
+    },
+    [router, page, pageSize, searchTerm]
   );
 
   const handleCloseModal = () => {
     setActiveStep(null);
   };
 
-  const fetching = async function () {
-    try {
-      const record = await axios.post(`/api/document/filter`, {
-        page: page,
-        pageSize: pageSize,
-      });
-      if (record.data.success) {
-        setPagination(record.data.pagination);
-        setData(record.data.data);
-        setPage(record.data.page + 1);
-      }
-    } catch (error) {}
-  };
-  const showModal = () => {
-    setOpen(true);
-    setCurrentModal(1);
-  };
-  const handleNext = () => {
-    setCurrentModal((prev) => prev + 1);
-  };
-  const handleCancel = () => {
-    setOpen(false);
-    setCurrentModal(0);
-  };
-
-  useEffect(() => {
-    fetching();
-  }, [page, pageSize]);
-
   return (
     <section>
       <div className="text-end mb-8 ">
         <CreateDocumentModal />
       </div>
-      <div className="bg-white">
-        <Table<ListDataType>
-          dataSource={getData}
-          pagination={false}
-          rowKey="id"
-        >
-          <Table.Column
-            title="Тоот"
-            dataIndex="generate"
-            sortDirections={["descend"]}
-          />
-          <Table.Column
-            title="Тестийн нэр"
-            dataIndex="title"
-            defaultSortOrder="descend"
-          />
+      <Table<any>
+        dataSource={documents}
+        rowKey="id"
+        pagination={{
+          current: page,
+          pageSize: pageSize,
+          total: total,
+        }}
+        onChange={handlePaginationChange}
+      >
+        <Table.Column
+          title="Тоот"
+          dataIndex="generate"
+          sortDirections={["descend"]}
+        />
+        <Table.Column
+          title="Тестийн нэр"
+          dataIndex="title"
+          defaultSortOrder="descend"
+        />
 
-          <Table.Column
-            title="Тушаал"
-            dataIndex="order"
-            render={() => <span>-</span>}
-          />
+        <Table.Column
+          title="Тушаал"
+          dataIndex="order"
+          render={() => <span>-</span>}
+        />
 
-          <Table.Column
-            title="Үүсгэсэн ажилтан"
-            dataIndex="user"
-            render={(user: any) => <span>{convertName(user.employee)}</span>}
-          />
+        <Table.Column
+          title="Үүсгэсэн ажилтан"
+          dataIndex="user"
+          render={(user: any) => <span>{convertName(user.employee)}</span>}
+        />
 
-          <Table.Column
-            title="Огноо"
-            dataIndex="timeCreated"
-            sorter={(a, b) =>
-              new Date(a.timeCreated).getTime() -
-              new Date(b.timeCreated).getTime()
-            }
-            render={(timeCreated: string) => (
-              <span>{formatHumanReadable(timeCreated)}</span>
-            )}
-          />
-
-          <Table.Column
-            title="Төлөв"
-            dataIndex="id"
-            align="center"
-            width={80}
-            render={(id: number) => (
-              <Steps
-                current={0}
-                percent={25}
-                items={[
-                  {
-                    onClick: () => {
-                      setActiveStep(0), setSelectedDocumentId(id);
-                    },
-                  },
-                  {
-                    onClick: () => {
-                      setActiveStep(1), setSelectedDocumentId(id);
-                    },
-                  },
-                  {
-                    onClick: () => {
-                      setActiveStep(2), setSelectedDocumentId(id);
-                    },
-                  },
-                ]}
-              />
-            )}
-          />
-        </Table>
-      </div>
-      <div className="flex justify-end my-6">
-        <Pagination
-          current={pagination?.page}
-          pageSize={pagination?.pageSize}
-          total={pagination?.total}
-          onChange={(newPage: number, newPageSize: number) => {
-            setPage(newPage);
-            setPageSize(newPageSize);
+        <Table.Column
+          title="Огноо"
+          dataIndex="timeCreated"
+          sorter={(a, b) =>
+            new Date(a.timeCreated).getTime() -
+            new Date(b.timeCreated).getTime()
+          }
+          render={(timeCreated: string) => {
+            return (
+              <span>
+                {formatHumanReadable(new Date(timeCreated).toISOString())}
+              </span>
+            );
           }}
         />
-      </div>
 
+        <Table.Column
+          title=""
+          dataIndex="id"
+          align="center"
+          width={80}
+          render={(id: number, record: any) => (
+            <Steps
+              current={record.isFull}
+              percent={100}
+              items={[
+                {
+                  onClick: () => {
+                    setActiveStep(0), setSelectedDocumentId(id);
+                  },
+                },
+                {
+                  onClick: () => {
+                    setActiveStep(1), setSelectedDocumentId(id);
+                  },
+                },
+                {
+                  onClick: () => {
+                    setActiveStep(2), setSelectedDocumentId(id);
+                  },
+                },
+              ]}
+            />
+          )}
+        />
+        <Table.Column
+          title="Төлөв"
+          dataIndex="id"
+          align="center"
+          width={80}
+          render={(id: number, record: any) =>
+            record.state === "FORWARD" ? (
+              <Badge
+                variant="info"
+                className="py-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                Илгээсэн
+              </Badge>
+            ) : (
+              <Button
+                type="primary"
+                disabled={record.isFull === 2 ? false : true}
+                onClick={async () => {
+                  await axios.patch(`/api/document/detail/${id}`, {
+                    reject: 1,
+                  });
+                  router.refresh();
+                }}
+              >
+                Илгээх
+              </Button>
+            )
+          }
+        />
+      </Table>
       {activeStep === 0 && (
         <FirstCheckout
           open={true}
@@ -159,7 +166,6 @@ export default function CreateDocument() {
           documentId={selectedDocumentId}
         />
       )}
-
       {activeStep === 1 && (
         <SecondCheckout
           open={true}

@@ -5,6 +5,7 @@ import { useState, useContext } from "react";
 import { selectConvert } from "../usable";
 import { DocumentContext } from "./CreateDocumentModal";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 type ModalProps = {
   open: boolean;
@@ -15,6 +16,7 @@ export function ThirdStep({ open, onCancel }: ModalProps) {
   const [data, setData] = useState<any>([]);
   const [caseForm] = Form.useForm();
   const documentId = useContext(DocumentContext);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     try {
@@ -34,6 +36,7 @@ export function ThirdStep({ open, onCancel }: ModalProps) {
       console.log(request);
       if (request.data.success) {
         onCancel();
+        router.refresh();
       }
     } catch (error) {}
   };

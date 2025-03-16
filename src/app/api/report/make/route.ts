@@ -6,13 +6,20 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
+
     const record = await prisma.report.create({
       data: {
         reportname: request.reportname,
         reportpurpose: request.reportpurpose,
         reportprocessing: request.reportprocessing,
+        document: {
+          connect: {
+            id: request.documentId,
+          },
+        },
       },
     });
+
     const teamsData = request.name.map((item: any, index: number) => ({
       name: item,
       role: request.role[index],

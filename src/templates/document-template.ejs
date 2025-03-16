@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document PDF</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      .content {
+        margin-top: 20px;
+      }
+      .field {
+        margin-bottom: 10px;
+      }
+      .field label {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Document: <%= document.title %></h1>
+
+    <div class="content">
+      <div class="field">
+        <label>Generate:</label>
+        <p><%= document.generate ? document.generate : 'Not Provided' %></p>
+      </div>
+
+      <div class="field">
+        <label>State:</label>
+        <p><%= document.state %></p>
+      </div>
+
+      <div class="field">
+        <label>Statement:</label>
+        <p><%= document.statement ? document.statement : 'Not Provided' %></p>
+      </div>
+
+      <div class="field">
+        <label>Created At:</label>
+        <p><%= document.timeCreated %></p>
+      </div>
+
+      <div class="field">
+        <label>Updated At:</label>
+        <p><%= document.timeUpdated %></p>
+      </div>
+
+      <div class="field">
+        <label>Deleted:</label>
+        <p><%= document.isDeleted ? 'Yes' : 'No' %></p>
+      </div>
+    </div>
+  </body>
+</html>

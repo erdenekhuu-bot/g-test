@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { CheckErp } from "@/modules/level";
+import { DocumentStateEnum } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -28,19 +30,8 @@ export async function GET(req: NextRequest, { params }: any) {
           },
         },
         departmentEmployeeRole: {
-          select: {
-            // employee: {
-            //   select: {
-            //     firstname: true,
-            //     lastname: true,
-            //     jobPosition: true,
-            //   },
-            employee: {
-              include: {
-                authUser: true,
-              },
-            },
-            role: true,
+          include: {
+            employee: true,
           },
         },
         attribute: true,
@@ -68,34 +59,37 @@ export async function GET(req: NextRequest, { params }: any) {
   }
 }
 
-const middle = (arg: number) => {
-  switch (arg) {
-    case 0:
-      return "DENY";
-    case 1:
-      return "FORWARD";
-    case 2:
-      return "ACCESS";
-    default:
-      return "DENY";
-  }
-};
-
 export async function PATCH(req: NextRequest, { params }: any) {
   try {
     const { slug } = await params;
     const request = await req.json();
-    const detail = await prisma.document.update({
+    const authuser = await prisma.authUser.findUnique({
+      where: {
+        id: request.authuserId,
+      },
+      include: {
+        employee: true,
+      },
+    });
+    const trigger = await prisma.departmentEmployeeRole.update({
+      where: {
+        employeeId: authuser?.employee?.id,
+      },
+      data: {
+        state: DocumentStateEnum.ACCESS,
+      },
+    });
+    await prisma.document.update({
       where: {
         id: parseInt(slug),
       },
       data: {
-        state: middle(request.reject),
+        state: request.reject === 0 ? "DENY" : "FORWARD",
       },
     });
-
-    return NextResponse.json({ success: true, data: detail });
+    return NextResponse.json({ success: true, data: trigger });
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    console.log(error);
+    return NextResponse.json({ success: false, data: error });
   }
 }

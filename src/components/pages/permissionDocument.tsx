@@ -37,19 +37,7 @@ export default function PermissionDocument({
 
   const items = (id: number): MenuProps["items"] => [
     {
-      label: (
-        // <span
-        //   onClick={async () => {
-        //     await axios.patch(`/api/document/detail/${id}`, {
-        //       reject: 2,
-        //     });
-        //     router.refresh();
-        //   }}
-        // >
-        //   Цохох
-        // </span>
-        <span onClick={showOrder}>Цохох</span>
-      ),
+      label: <span onClick={showOrder}>Цохох</span>,
       key: "0",
     },
     {

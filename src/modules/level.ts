@@ -9,6 +9,9 @@ export async function CheckErp(data: any) {
       authUserId: data.id,
     },
   });
+  if (!record) {
+    return null;
+  }
   const checkout =
     data.employee.jobPosition.name.includes("дарга") ||
     data.employee.jobPosition.name.includes("захирал");

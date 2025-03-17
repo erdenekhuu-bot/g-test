@@ -13,51 +13,55 @@ export default async function ListLayout({
   const order = searchParams.order || "";
   const prisma = new PrismaClient();
   const session = await getServerSession(authOptions);
-  console.log(session);
 
   try {
-    const employee = await prisma.authUser.findUnique({
+    const records = await prisma.departmentEmployeeRole.findMany({
       where: {
-        id: session.user.id,
+        AND: [
+          {
+            document: {
+              authUserId: session.user.id,
+            },
+          },
+          {
+            role: "VIEWER",
+          },
+          {
+            document: {
+              generate: {
+                contains: order,
+              },
+            },
+          },
+        ],
       },
       include: {
-        employee: true,
-      },
-    });
-    const records =
-      employee &&
-      (await prisma.document.findMany({
-        where: {
-          generate: {
-            contains: order,
-            mode: "insensitive",
-          },
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        include: {
-          user: {
-            select: {
-              employee: {
-                select: {
-                  firstname: true,
-                  lastname: true,
+        document: {
+          select: {
+            title: true,
+            generate: true,
+            user: {
+              select: {
+                employee: {
+                  select: {
+                    firstname: true,
+                    lastname: true,
+                  },
                 },
               },
             },
           },
-          file: true,
         },
-        orderBy: {
-          timeCreated: "asc",
-        },
-      }));
+      },
+    });
 
-    const totalCount = await prisma.document.count({
+    const totalCount = await prisma.departmentEmployeeRole.count({
       where: {
-        generate: {
-          contains: order,
-          mode: "insensitive",
+        document: {
+          generate: {
+            contains: order,
+            mode: "insensitive",
+          },
         },
       },
     });

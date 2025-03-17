@@ -126,25 +126,27 @@ model Document {
   departmentEmployeeRole DepartmentEmployeeRole[]
   permission             Permission[]             @relation("document")
   report                 Report[]                 @relation("report_document")
+
   @@unique([title, generate, statement])
 }
 
+
 model DepartmentEmployeeRole {
-  departmentId  Int?              @map("department_id")
+  departmentId  Int?         @map("department_id")
   jobPositionId Int?
-  employeeId    Int?              @map("employee_id")
-  role          String?           @map("role") @db.VarChar(30)
-  state         Json
-  permissionLvl Int?              @map("permission_lvl")
-  isDeleted     Boolean           @default(false) @map("is_deleted")
-  timeCreated   DateTime          @default(now()) @map("time_created")
-  timeUpdated   DateTime          @updatedAt
-  id            Int               @id @default(autoincrement())
+  employeeId    Int?         @map("employee_id") @unique
+  permissionLvl Int?         @map("permission_lvl")
+  isDeleted     Boolean      @default(false) @map("is_deleted")
+  timeCreated   DateTime     @default(now()) @map("time_created")
+  timeUpdated   DateTime     @updatedAt
+  id            Int          @id @default(autoincrement())
+  state         DocumentStateEnum     @default(DENY)
+  role          Role         @default(VIEWER)
   documentId    Int
-  department    Department?       @relation(fields: [departmentId], references: [id])
-  document      Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  employee      Employee?         @relation(fields: [employeeId], references: [id])
-  jobPosition   JobPosition?      @relation(fields: [jobPositionId], references: [id])
+  department    Department?  @relation(fields: [departmentId], references: [id])
+  document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  employee      Employee?    @relation(fields: [employeeId], references: [id])
+  jobPosition   JobPosition? @relation(fields: [jobPositionId], references: [id])
 
   @@map("department_employee_role")
 }
@@ -261,7 +263,7 @@ model Report {
   reportadvice     String?          @db.VarChar(500)
   isFull           Int?             @default(0)
   id               Int              @id @default(autoincrement())
-  issue            ReportIssue[]    @relation("reportissue") 
+  issue            ReportIssue[]    @relation("reportissue")
   team             ReportTeam[]     @relation("reportteam")
   testcase         ReportTestCase[] @relation("reporttestcase")
   document         Document[]       @relation("report_document")
@@ -346,4 +348,9 @@ enum TestcaseEnum {
   CREATED
   STARTED
   ENDED
+}
+
+enum Role {
+  ACCESSER
+  VIEWER
 }

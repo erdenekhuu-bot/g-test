@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useCallback } from "react";
-import { Table, Pagination, Input, Flex } from "antd";
+import { Table, Dropdown, Input, Flex, Button } from "antd";
+import type { MenuProps } from "antd";
 import { formatHumanReadable, convertName } from "@/components/usable";
 import { ListDataType } from "@/types/type";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,8 @@ import { mongollabel } from "@/components/usable";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FullModal } from "../modals/FullModal";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 export default function ListDocument({
   documents,
@@ -20,6 +23,8 @@ export default function ListDocument({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const [find, findId] = useState(0);
+  const { data: session, status } = useSession();
+
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -46,6 +51,51 @@ export default function ListDocument({
     [router, pageSize]
   );
 
+  const items = (id: number): MenuProps["items"] => [
+    {
+      label: (
+        <span
+          onClick={async () => {
+            console.log(
+              await axios.patch(`/api/document/detail/${id}`, {
+                reject: 1,
+                authuserId: session?.user.id,
+              })
+            );
+            router.refresh();
+          }}
+        >
+          Хянах
+        </span>
+      ),
+      key: "0",
+    },
+    {
+      type: "divider",
+    },
+    {
+      label: (
+        <span
+          onClick={async () => {
+            console.log(
+              await axios.patch(`/api/document/detail/${id}`, {
+                reject: 0,
+                authuserId: session?.user.id,
+              })
+            );
+            router.refresh();
+          }}
+        >
+          Буцаах
+        </span>
+      ),
+      key: "1",
+    },
+    {
+      type: "divider",
+    },
+  ];
+
   return (
     <section>
       <Flex gap={20}>
@@ -69,13 +119,15 @@ export default function ListDocument({
         >
           <Table.Column
             title="Тоот"
-            dataIndex="generate"
+            dataIndex="document"
             sortDirections={["descend"]}
+            render={(document: any) => document.generate}
           />
           <Table.Column
             title="Тестийн нэр"
-            dataIndex="title"
+            dataIndex="document"
             defaultSortOrder="descend"
+            render={(document: any) => document.title}
           />
 
           <Table.Column
@@ -86,8 +138,10 @@ export default function ListDocument({
 
           <Table.Column
             title="Үүсгэсэн ажилтан"
-            dataIndex="user"
-            render={(user: any) => <span>{convertName(user.employee)}</span>}
+            dataIndex="document"
+            render={(document: any) => (
+              <span>{convertName(document.user.employee)}</span>
+            )}
           />
 
           <Table.Column
@@ -117,18 +171,24 @@ export default function ListDocument({
               />
             )}
           />
+
           <Table.Column
             title="Төлөв"
-            dataIndex="state"
+            dataIndex="id"
             align="center"
             width={80}
-            render={(state) => (
-              <Badge
-                variant={state === "FORWARD" ? "info" : "destructive"}
-                className="py-1"
-              >
-                {mongollabel(state)}
-              </Badge>
+            render={(id: number, record: any) => (
+              <Dropdown menu={{ items: items(id) }}>
+                <Badge
+                  variant="info"
+                  className="py-1"
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  {mongollabel(record.state)}
+                </Badge>
+              </Dropdown>
             )}
           />
         </Table>

@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import CreateDocument from "@/components/pages/createDocument";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
 
 export default async function CreateLayout({
   searchParams,
@@ -8,11 +10,14 @@ export default async function CreateLayout({
 }) {
   const page = parseInt(searchParams.page || "1", 10) || 1;
   const pageSize = parseInt(searchParams.pageSize || "10", 10) || 10;
-
+  const session = await getServerSession(authOptions);
   const prisma = new PrismaClient();
 
   try {
     const records = await prisma.document.findMany({
+      where: {
+        authUserId: session.user.id,
+      },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {

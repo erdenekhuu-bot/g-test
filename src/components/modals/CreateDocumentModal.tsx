@@ -33,7 +33,6 @@ export function CreateDocumentModal() {
   } | null>(null);
   const [getJob, setJob] = useState<string | null>(null);
   const [mainForm] = Form.useForm();
-  const [tableForm] = Form.useForm();
   const [search, setSearch] = useState("");
   const [documentId, setDocumentId] = useState<string | null>(null);
 
@@ -92,8 +91,7 @@ export function CreateDocumentModal() {
     try {
       const values = await mainForm.validateFields();
       const data = {
-        // authuserId: session?.user.id,
-        authuserId: 1,
+        authuserId: session?.user.id,
         aim: values.aim,
         title: values.title,
         intro: values.intro,

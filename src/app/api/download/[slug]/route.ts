@@ -1,119 +1,106 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import PDFDocument from "pdfkit";
-import path from "path";
+import puppeteer from "puppeteer";
+import ejs from "ejs";
 import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient();
 
+export const config = {
+  runtime: "nodejs",
+};
+
 export async function GET(req: NextRequest, { params }: any) {
-  return NextResponse.json({
-    success: true,
-  });
+  try {
+    const { slug } = params;
+    const document = await prisma.document.findUnique({
+      where: { id: parseInt(slug) },
+      include: {
+        user: {
+          select: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+                jobPosition: true,
+                department: true,
+              },
+            },
+          },
+        },
+        detail: true,
+        attribute: true,
+        budget: true,
+        riskassessment: true,
+        testcase: {
+          include: {
+            testCaseImage: true,
+          },
+        },
+        documentemployee: {
+          select: {
+            employee: {
+              select: {
+                firstname: true,
+                lastname: true,
+                jobPosition: true,
+              },
+            },
+            role: true,
+            startedDate: true,
+            endDate: true,
+          },
+        },
+        report: {
+          include: {
+            issue: true,
+            team: true,
+            testcase: true,
+          },
+        },
+      },
+    });
+
+    const templatePath = path.join(
+      process.cwd(),
+      "public",
+      "templates",
+      "document.ejs"
+    );
+    const templateContent = fs.readFileSync(templatePath, "utf-8");
+    const htmlContent = ejs.render(templateContent, { document });
+
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({ format: "A4" });
+
+    await browser.close();
+
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename=document_${slug}.pdf`,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        data: error,
+      },
+      { status: 500 }
+    );
+  }
 }
-
-// export async function GET(req: NextRequest, { params }: any) {
-//   const { slug } = await params;
-//   const record = await prisma.document.findUnique({
-//     where: {
-//       id: parseInt(slug),
-//     },
-//     include: {
-//       detail: true,
-//       documentemployee: true,
-//     },
-//   });
-
-//   if (!record) {
-//     return NextResponse.json(
-//       { success: false, error: "Баримт олдсонгүй" },
-//       { status: 404 }
-//     );
-//   }
-
-//   const pdfDir = path.join(process.cwd(), "public", "pdf");
-//   if (!fs.existsSync(pdfDir)) {
-//     fs.mkdirSync(pdfDir, { recursive: true });
-//   }
-
-//   const fontPath = path.join(process.cwd(), "public", "fonts", "Arial.ttf");
-//   const outputPath = path.join(pdfDir, `${record.generate}.pdf`);
-//   const doc = new PDFDocument({
-//     font: "",
-//   });
-
-//   const stream = fs.createWriteStream(outputPath);
-//   doc.pipe(stream);
-
-//   doc.registerFont("Arial", fontPath);
-//   doc.font("Arial");
-//   doc.fontSize(14);
-
-//   doc.fontSize(14).text(`"ЖИМОБАЙЛ"ХХК ${record.generate}`, {
-//     align: "justify",
-//     width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
-//   });
-
-//   const text = record.title;
-//   const textWidth = doc.widthOfString(text);
-//   const pageWidth = doc.page.width;
-//   const x = (pageWidth - textWidth) / 2;
-
-//   doc.moveDown(0.5);
-//   doc.fontSize(20).text(text, x, doc.y);
-
-//   doc.moveDown(1);
-//   doc.fontSize(12).text(`ЗОРИЛГО: ${record.detail[0].intro}`, 50, doc.y);
-
-//   doc.fontSize(12).text(`${record.documentemployee}`).moveDown(0.5);
-
-//   doc.text(`${record.generate}`);
-//   doc.text(`"ЖИМОБАЙЛ"ХХК`, { align: "center" });
-//   doc.moveDown();
-//   doc.text(`${record.generate || ""}`, { align: "center" });
-//   doc.moveDown();
-//   doc.text(`${record.title || ""}`);
-
-//   return new Promise((resolve, reject) => {
-//     stream.on("finish", () => {
-//       const fileStream = fs.createReadStream(outputPath);
-//       const readableStream = new ReadableStream({
-//         start(controller) {
-//           fileStream.on("data", (chunk) => {
-//             controller.enqueue(chunk);
-//           });
-
-//           fileStream.on("end", () => {
-//             controller.close();
-//           });
-
-//           fileStream.on("error", (err) => {
-//             controller.error(err);
-//           });
-//         },
-//       });
-
-//       const encodedFilename = encodeURIComponent(`${record.generate}.pdf`);
-
-//       const response = new NextResponse(readableStream);
-//       response.headers.set(
-//         "Content-Disposition",
-//         `attachment; filename*=UTF-8''${encodedFilename}`
-//       );
-//       response.headers.set("Content-Type", "application/pdf");
-
-//       resolve(response);
-//     });
-
-//     stream.on("error", (error) => {
-//       reject(
-//         NextResponse.json({
-//           success: false,
-//           data: error.message,
-//         })
-//       );
-//     });
-
-//     doc.end();
-//   });
-// }

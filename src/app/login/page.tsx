@@ -4,6 +4,7 @@ import { Button, Form, Input } from "antd";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 type FieldType = {
   username?: string;
@@ -21,22 +22,28 @@ export default function Login() {
         password: values.password,
         redirect: false,
       });
+
       if (result?.ok) {
         router.push("/home/create");
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) {}
   };
   return (
     <div className="w-full h-screen flex justify-center items-center relative">
+      <Image
+        alt=""
+        src="/background.png"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        width={0}
+        height={0}
+        fill
+      />
+
       <Form
         initialValues={{ remember: true }}
         onFinish={onFinish}
         autoComplete="off"
-        className="z-10"
+        className="relative z-10 p-8 rounded-lg"
       >
         <div className="my-8">
           <Form.Item<FieldType>

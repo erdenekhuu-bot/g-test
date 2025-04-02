@@ -9,7 +9,6 @@ export type ListDataType = {
 };
 
 import { JwtPayload } from "jsonwebtoken";
-import { Request } from "express";
 
 export interface AuthUserLoginModel {
   username: string;

@@ -15,57 +15,57 @@
         <b><%= document.title %></b>
       </div>
       <div>
-        <p class="my-4 font-bold">
+        <p class="title">
           ТЕСТИЙН ҮЙЛ АЖИЛЛАГААНД АШИГЛАГДСАН ДУГААРУУД:
         </p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <table class="custom-table">
           <tr>
-            <th class="border border-slate-400 p-2">№</th>
-            <th class="border border-slate-400 p-2">Үйлчилгээний төрөл</th>
-            <th class="border border-slate-400 p-2">Утасны дугаар</th>
-            <th class="border border-slate-400 p-2">Дугаарын нөхцөл</th>
+            <th >№</th>
+            <th >Үйлчилгээний төрөл</th>
+            <th >Утасны дугаар</th>
+            <th >Дугаарын нөхцөл</th>
           </tr>
           <tr class="text-center">
-            <td class="border border-slate-400 p-2">1</td>
-            <td class="border border-slate-400 p-2">1</td>
-            <td class="border border-slate-400 p-2">1</td>
-            <td class="border border-slate-400 p-2">1</td>
+            <td >1</td>
+            <td >1</td>
+            <td >1</td>
+            <td >1</td>
           </tr>
         </table>
       </div>
       <div class="mt-8">
-        <p class="my-4 font-bold">ТЕСТЭД ОРОЛЦСОН АЖИЛТНУУД:</p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <p class="title">ТЕСТЭД ОРОЛЦСОН АЖИЛТНУУД:</p>
+        <table class="custom-table">
           <thead>
             <tr>
-              <th class="border border-slate-400 p-2">№</th>
-              <th class="border border-slate-400 p-2">Нэр</th>
-              <th class="border border-slate-400 p-2">Хэлтэс</th>
-              <th class="border border-slate-400 p-2">Албан тушаал</th>
-              <th class="border border-slate-400 p-2">Үүрэг</th>
-              <th class="border border-slate-400 p-2">Гарын үсэг</th>
+              <th >№</th>
+              <th >Нэр</th>
+              <th >Хэлтэс</th>
+              <th >Албан тушаал</th>
+              <th >Үүрэг</th>
+              <th >Гарын үсэг</th>
             </tr>
           </thead>
           <tbody>
             <% document.documentemployee.forEach((employeeData, index) => { %>
             <tr class="text-center">
-              <td class="border border-slate-400 p-2"><%= index + 1 %></td>
-              <td class="border border-slate-400 p-2">
+              <td ><%= index + 1 %></td>
+              <td >
                 <%= convertFirst(employeeData.employee.firstname) %> <%=
                 employeeData.employee.lastname %>
               </td>
 
-              <td class="border border-slate-400 p-2">
+              <td >
                 <%= employeeData.employee.department ?
                 employeeData.employee.department.name : '' %>
               </td>
-              <td class="border border-slate-400 p-2">
+              <td >
                 <%= employeeData.employee.jobPosition.name %>
               </td>
-              <td class="border border-slate-400 p-2">
+              <td >
                 <%= employeeData.role %>
               </td>
-              <td class="border border-slate-400 p-2"></td>
+              <td ></td>
             </tr>
             <% }) %>
           </tbody>
@@ -73,32 +73,32 @@
       </div>
 
       <div class="mt-8">
-        <p class="my-4 font-bold">ТЕСТЭД ХИЙСЭН ХУВААРЬ:</p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <p class="title">ТЕСТЭД ХИЙСЭН ХУВААРЬ:</p>
+        <table class="custom-table">
         <thead>
           <tr>
-            <th class="border border-slate-400 p-2">Үйл ажиллагаа</th>
-            <th class="border border-slate-400 p-2">Хариуцагч</th>
-            <th class="border border-slate-400 p-2">Эхлэх хугацаа</th>
-            <th class="border border-slate-400 p-2">Дуусах хугацаа</th>
+            <th >Үйл ажиллагаа</th>
+            <th >Хариуцагч</th>
+            <th >Эхлэх хугацаа</th>
+            <th >Дуусах хугацаа</th>
           </tr>
         </thead>
         <tbody>
           <% document.documentemployee.forEach((employeeData, index) => { %>
             <tr class="text-center">
 
-              <td class="border border-slate-400 p-2">
+              <td >
                <%= employeeData.role %>
               </td>
 
-              <td class="border border-slate-400 p-2">
+              <td >
                <%= convertFirst(employeeData.employee.firstname) %> <%=
                 employeeData.employee.lastname %>
               </td>
-              <td class="border border-slate-400 p-2">
+              <td >
                 <%= new Date(employeeData.startedDate).toLocaleDateString() %>
               </td>
-              <td class="border border-slate-400 p-2">
+              <td >
                 <%= new Date(employeeData.endDate).toLocaleDateString() %>
               </td>
               
@@ -109,26 +109,17 @@
         </table>
       </div>
 
-
       <div class="mt-8">
-        <p class="my-4 font-bold">ТЕСТИЙН ҮР ДҮН:</p>
-      </div>
-
-      <div class="mt-8">
-        <p class="my-4 font-bold">ТЕСТИЙН ДҮГНЭЛТ:</p>
-      </div>
-
-      <div class="mt-8">
-        <p class="my-4 font-bold">ТЕСТЭД КЭЙС:</p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <p class="title">ТЕСТЭД КЭЙС:</p>
+        <table class="custom-table">
           <thead>
             <tr>
-              <th class="border border-slate-400 p-2">ID</th>
-              <th class="border border-slate-400 p-2">Ангилал</th>
-              <th class="border border-slate-400 p-2">Тодорхойлолт</th>
-              <th class="border border-slate-400 p-2">Алхмууд</th>
-              <th class="border border-slate-400 p-2">Эцсийн үр дүн</th>
-              <th class="border border-slate-400 p-2">Тайлбар</th>
+              <th >ID</th>
+              <th >Ангилал</th>
+              <th >Тодорхойлолт</th>
+              <th >Алхмууд</th>
+              <th >Эцсийн үр дүн</th>
+              <th >Тайлбар</th>
             </tr>
           </thead>
        
@@ -136,13 +127,13 @@
             <% document.testcase.forEach((employeeData, index) => { %>
               <tr class="text-center">
 
-               <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+               <td ><%= index + 1 %></td>
                 
-                <td class="border border-slate-400 p-2"> <%= employeeData.category %></td>
-                <td class="border border-slate-400 p-2"><%= employeeData.types %></td>
-                <td class="border border-slate-400 p-2"><%= employeeData.steps %></td>
-                <td class="border border-slate-400 p-2"><%= employeeData.result %></td>
-                <td class="border border-slate-400 p-2"></td>
+                <td > <%= employeeData.category %></td>
+                <td ><%= employeeData.types %></td>
+                <td ><%= employeeData.steps %></td>
+                <td ><%= employeeData.result %></td>
+                <td ></td>
               </tr>
               <% }) %>
            </tbody>
@@ -151,16 +142,16 @@
 
 
       <div class="mt-8">
-        <p class="my-4 font-bold">Бусад нөхцөл (Олгох бэлгийн мэдээлэл болон урамшууллын эрхүүд)</p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <p class="title">Бусад нөхцөл (Олгох бэлгийн мэдээлэл болон урамшууллын эрхүүд)</p>
+        <table class="custom-table">
           <thead>
             <tr>
-              <th class="border border-slate-400 p-2">ID</th>
-              <th class="border border-slate-400 p-2">Ангилал</th>
-              <th class="border border-slate-400 p-2">Тодорхойлолт</th>
-              <th class="border border-slate-400 p-2">Алхмууд</th>
-              <th class="border border-slate-400 p-2">Эцсийн үр дүн</th>
-              <th class="border border-slate-400 p-2">Тайлбар</th>
+              <th >ID</th>
+              <th >Ангилал</th>
+              <th >Тодорхойлолт</th>
+              <th >Алхмууд</th>
+              <th >Эцсийн үр дүн</th>
+              <th >Тайлбар</th>
             </tr>
           </thead>
        
@@ -168,13 +159,13 @@
             <% document.testcase.forEach((data, index) => { %>
               <tr class="text-center">
 
-               <td class="border border-slate-400 p-2"><%= index + 1 %></td>
+               <td ><%= index + 1 %></td>
                 
-                <td class="border border-slate-400 p-2"> <%= data.category %></td>
-                <td class="border border-slate-400 p-2"><%= data.types %></td>
-                <td class="border border-slate-400 p-2"><%= data.steps %></td>
-                <td class="border border-slate-400 p-2"><%= data.result %></td>
-                <td class="border border-slate-400 p-2"></td>
+                <td > <%= data.category %></td>
+                <td ><%= data.types %></td>
+                <td ><%= data.steps %></td>
+                <td ><%= data.result %></td>
+                <td ></td>
               </tr>
               <% }) %>
            </tbody>
@@ -182,24 +173,24 @@
       </div>
 
       <div class="mt-8">
-        <p class="my-4 font-bold">Алдааны бүртгэлийн хуудас</p>
-        <table class="border-collapse border border-slate-400 w-full">
+        <p class="title">Алдааны бүртгэлийн хуудас</p>
+        <table class="custom-table">
           <thead>
             <tr>
-              <th class="border border-slate-400 p-2">№</th>
-              <th class="border border-slate-400 p-2">Алдааны жагсаалт</th>
-              <th class="border border-slate-400 p-2">Алдааны түвшин</th>
-              <th class="border border-slate-400 p-2">Алдаа гарсан эсэх</th>
+              <th >№</th>
+              <th >Алдааны жагсаалт</th>
+              <th >Алдааны түвшин</th>
+              <th >Алдаа гарсан эсэх</th>
             </tr>
           </thead>
           <tbody>
             <% document.report.forEach((report) => { %> 
               <% report.issue.forEach((issueData, index) => { %>
                 <tr class="text-center">
-                  <td class="border border-slate-400 p-2"><%= index + 1 %></td>
-                  <td class="border border-slate-400 p-2"><%= issueData.list %></td>
-                  <td class="border border-slate-400 p-2"><%= issueData.level %></td>
-                  <td class="border border-slate-400 p-2">
+                  <td ><%= index + 1 %></td>
+                  <td ><%= issueData.list %></td>
+                  <td ><%= issueData.level %></td>
+                  <td >
                     <%= issueData.exception ? "Тийм" : "Үгүй" %>
                   </td>
                 </tr>
@@ -210,27 +201,28 @@
       </div>
 
        <div class="mt-8">
-        <p class="my-4 font-bold">Үндсэн сервер дээр хийгдсэн тестийн үр дүн:</p>
+        <p class="title">Үндсэн сервер дээр хийгдсэн тестийн үр дүн:</p>
       </div>
 
-     <table class="border-collapse border border-slate-400 w-full">
+     <table class="custom-table">
       <tbody>
         <% document.testcase.forEach((data, index) => { %> 
           <tr class="text-center">
-            <td class="border border-slate-400 p-2"> <%= data.result %></td>
+            <td > <%= data.result %></td>
           </tr>
           <tr>
             <td class="border border-slate-400 px-6"> <%= data.description %></td>
           </tr>
           <% if (data.testCaseImage.length > 0) { %>
-            <tr>
-              <td class="border border-slate-400 px-6 flex flex-wrap gap-2">
-                <% data.testCaseImage.forEach((image) => { %>
-                  <img src="http://127.0.0.1:3000<%= image.path %>" alt="Test Image" class="w-32 h-32 object-cover border border-gray-300" />
-                <% }) %>
-              </td>
-            </tr>
-          <% } %>
+          <tr>
+            <td class="">
+              <% data.testCaseImage.forEach((image) => { %>
+                <img src="http://127.0.0.1:3000<%= image.path %>" alt="" width="100" height="100" />
+              <% }) %>
+            </td>
+          </tr>
+        <% } %>
+
         <% }) %>
       </tbody>
     </table>
@@ -239,4 +231,36 @@
     <% function convertFirst(firstname){ return firstname[0]+"." } %>
     
   </body>
+  <style>
+    @font-face {
+    font-family: 'ArialCustom';
+    src: url('/Arial.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+    html {
+      padding: 20px;
+    }
+  .title {
+    margin: 16px 0;
+    font-weight: bold;
+  }
+
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #94a3b8;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    border: 1px solid #94a3b8;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .custom-table th {
+    background-color: #f1f5f9;
+  }
+</style>
 </html>

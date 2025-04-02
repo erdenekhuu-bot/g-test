@@ -1,54 +1,64 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
+import { OTP } from "@prisma/client";
 
 const prisma = new PrismaClient();
-export async function POST() {
-  return NextResponse.json(true);
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { authuserId } = await req.json();
+
+    const authuser = await prisma.authUser.findUnique({
+      where: {
+        id: authuserId,
+      },
+      select: {
+        mobile: true,
+      },
+    });
+
+    const generate = Math.floor(100000 + Math.random() * 900000);
+
+    const sendSms = `http://sms-special.gmobile.mn/cgi-bin/sendsms?username=${process.env.OTP_USERNAME}&password=${process.env.OTP_PASSWORD}&from=245&to=${authuser?.mobile}&text=${generate}`;
+    const response = await axios.get(sendSms);
+
+    if (response.data !== "0: Accepted for delivery") {
+      return NextResponse.json(
+        {
+          success: false,
+          data: "Хүлээн авагчийн дугаар буруу",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+    await prisma.authUser.update({
+      where: {
+        id: authuserId,
+      },
+      data: {
+        otp: generate,
+        checkotp: OTP.PENDING,
+      },
+    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: generate,
+      },
+      {
+        status: 200,
+      }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        data: error,
+      },
+      { status: 500 }
+    );
+  }
 }
-
-// (globalThis as any).otpStore = (globalThis as any).otpStore || {};
-// export const otpStore: { [key: string]: { otp: number; expires: number } } = (
-//   globalThis as any
-// ).otpStore;
-
-// export async function POST(req: Request) {
-//   try {
-//     const { authuserId } = await req.json();
-
-//     const authuser = await prisma.authUser.findUnique({
-//       where: {
-//         id: authuserId,
-//       },
-//       select: {
-//         mobile: true,
-//       },
-//     });
-
-//     const phone = authuser?.mobile;
-
-//     if (!phone) {
-//       return NextResponse.json({
-//         success: false,
-//         message: "Phone number is required",
-//       });
-//     }
-
-//     const otp = Math.floor(100000 + Math.random() * 900000);
-//     otpStore[phone] = { otp, expires: Date.now() + 5 * 60 * 1000 };
-
-//     const sendSms = `http://sms-special.gmobile.mn/cgi-bin/sendsms?username=test1234&password=test12*34&from=245&to=${phone}&text=${otp}`;
-//     const response = await axios.get(sendSms);
-
-//     if (response.status !== 200) {
-//       return NextResponse.json({
-//         success: false,
-//         message: "Failed to send OTP via SMS",
-//       });
-//     }
-
-//     return NextResponse.json({ success: true, message: "success", otp });
-//   } catch (error) {
-//     return NextResponse.json({ success: false, message: error });
-//   }
-// }

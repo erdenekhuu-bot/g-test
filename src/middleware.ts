@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { jwtVerify } from "jose";
 
 export async function middleware(req: NextRequest) {
@@ -6,48 +7,31 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
   }
 
-  const res = NextResponse.next();
+  const token = await getToken({ req, secret: process.env.SECRET_KEY });
 
-  res.headers.append("Access-Control-Allow-Credentials", "true");
-  res.headers.append("Access-Control-Allow-Origin", "*");
-  res.headers.append(
-    "Access-Control-Allow-Methods",
-    "GET,DELETE,PATCH,POST,PUT"
-  );
-  res.headers.append(
-    "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-  );
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl));
+  }
 
-  // if (req.nextUrl.pathname.startsWith("/api/")) {
-  //   const authHeader = req.headers.get("authorization");
+  try {
+    const { payload } = await jwtVerify(
+      token.accessToken,
+      new TextEncoder().encode(process.env.SECRET_KEY)
+    );
 
-  //   if (!authHeader || !authHeader.startsWith("Bearer")) {
-  //     return NextResponse.json(
-  //       { success: false, data: "Токен авах шаардлагатай" },
-  //       { status: 401 }
-  //     );
-  //   }
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < currentTime) {
+      return NextResponse.redirect(new URL("/login", req.nextUrl));
+    }
+  } catch (error) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl));
+  }
 
-  //   const token = authHeader.split(" ")[1];
-  //   try {
-  //     const secret = new TextEncoder().encode(process.env.SECRET_KEY as string);
-  //     const { payload } = await jwtVerify(token, secret);
-
-  //     req.headers.set("user", JSON.stringify(payload));
-
-  //     return NextResponse.next();
-  //   } catch (error) {
-  //     return NextResponse.json(
-  //       { success: false, data: "Буруу токен" },
-  //       { status: 401 }
-  //     );
-  //   }
-  // }
-
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/home", "/", "/api/document/:path*"],
+  matcher: [
+    "/((?!login|api|_next/static|_next/image|favicon.ico|upload/images).*)",
+  ],
 };

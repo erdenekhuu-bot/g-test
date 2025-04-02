@@ -1,3 +1,9 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,6 +21,8 @@ model AuthUser {
   status   String?    @db.VarChar(10)
   Document Document[]
   employee Employee?
+  otp      Int?
+  checkotp OTP?        @default(DENY)
 }
 
 model Department {
@@ -29,7 +37,6 @@ model Department {
   timeUpdated            DateTime                 @updatedAt
   employees              Employee[]
   jobPositions           JobPosition[]
-  departmentEmployeeRole DepartmentEmployeeRole[]
   permission             Permission[]             @relation("department")
 }
 
@@ -46,7 +53,6 @@ model JobPosition {
   employee               Employee[]
   department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   jobPositionGroup       JobPositionGroup?        @relation(fields: [jobGroupId], references: [id], onDelete: Cascade)
-  departmentEmployeeRole DepartmentEmployeeRole[]
   permission             Permission[]             @relation("jobposition")
 }
 
@@ -82,6 +88,7 @@ model Employee {
   department             Department               @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   jobPosition            JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
   departmentEmployeeRole DepartmentEmployeeRole[]
+  report                 Report[]                 @relation("employee_report")
 }
 
 model EmployeeState {
@@ -126,29 +133,26 @@ model Document {
   departmentEmployeeRole DepartmentEmployeeRole[]
   permission             Permission[]             @relation("document")
   report                 Report[]                 @relation("report_document")
-
+  
   @@unique([title, generate, statement])
 }
 
-
 model DepartmentEmployeeRole {
-  departmentId  Int?         @map("department_id")
-  jobPositionId Int?
-  employeeId    Int?         @map("employee_id") @unique
-  permissionLvl Int?         @map("permission_lvl")
-  isDeleted     Boolean      @default(false) @map("is_deleted")
-  timeCreated   DateTime     @default(now()) @map("time_created")
-  timeUpdated   DateTime     @updatedAt
-  id            Int          @id @default(autoincrement())
+  id  Int @id @default(autoincrement())
+  permissionLvl Int?    @map("permission_lvl")
   state         DocumentStateEnum     @default(DENY)
   role          Role         @default(VIEWER)
+  employeeId    Int?         @map("employee_id") 
+  employee      Employee?    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   documentId    Int
-  department    Department?  @relation(fields: [departmentId], references: [id])
   document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  employee      Employee?    @relation(fields: [employeeId], references: [id])
-  jobPosition   JobPosition? @relation(fields: [jobPositionId], references: [id])
+  timeCreated   DateTime     @default(now()) @map("time_created")
+  timeUpdated   DateTime     @updatedAt
 
-  @@map("department_employee_role")
+  @@unique([employeeId, documentId]) 
+  @@index([employeeId])
+  @@index([documentId])
+
 }
 
 model DocumentDetail {
@@ -160,9 +164,9 @@ model DocumentDetail {
 }
 
 model DocumentAttribute {
-  categoryMain String   @db.VarChar(500)
-  category     String   @db.VarChar(500)
-  value        String
+  categoryMain String?   @db.VarChar(500)
+  category     String?   @db.VarChar(500)
+  value        String?   @db.Text
   orderIndex   Int      @default(1)
   timeCreated  DateTime @default(now())
   updateTimed  DateTime @updatedAt
@@ -174,11 +178,11 @@ model DocumentAttribute {
 }
 
 model DocumentBudget {
-  productCategory String
-  product         String
-  amount          Int      @default(0)
-  priceUnit       Int      @default(0)
-  priceTotal      Int      @default(0)
+  productCategory String?   @db.VarChar(500)
+  product         String?   @db.VarChar(500)
+  amount          Int?      @default(0)
+  priceUnit       Int?      @default(0)
+  priceTotal      Int?      @default(0)
   isFull          Int?     @default(0)
   id              Int      @id @default(autoincrement())
   documentId      Int
@@ -200,10 +204,10 @@ model DocumentEmployee {
 }
 
 model RiskAssessment {
-  riskDescription    String?
-  riskLevel          Risk?
+  riskDescription    String?  @db.VarChar(500)
+  riskLevel          Risk?  
   affectionLevel     Risk?
-  mitigationStrategy String?
+  mitigationStrategy String?  @db.VarChar(500)
   isFull             Int?     @default(0)
   id                 Int      @id @default(autoincrement())
   documentId         Int
@@ -213,12 +217,12 @@ model RiskAssessment {
 }
 
 model TestCase {
-  category      String          @db.VarChar(500)
-  types         String          @db.VarChar(500)
-  steps         String
-  result        String          @db.VarChar(500)
-  division      String          @db.VarChar(500)
-  testType      TestcaseEnum    @default(CREATED)
+  category      String?          @db.VarChar(500)
+  types         String?          @db.VarChar(500)
+  steps         String?          @db.VarChar(500)
+  result        String?          @db.VarChar(500)
+  division      String?          @db.VarChar(500)
+  testType      StateTestCase   @default(CREATED)
   timeCreated   DateTime        @default(now())
   timeUpdate    DateTime        @updatedAt
   description   String?
@@ -226,6 +230,7 @@ model TestCase {
   documentId    Int
   document      Document        @relation("testcase", fields: [documentId], references: [id], onDelete: Cascade)
   testCaseImage TestCaseImage[]
+  report        Report[] 
 }
 
 model TestCaseImage {
@@ -238,11 +243,13 @@ model TestCaseImage {
 
 model File {
   id         Int      @id @default(autoincrement())
-  fileName   String   @db.VarChar(200)
+  fileName   String?   @db.VarChar(200)
   path       String
   createdAt  DateTime @default(now())
-  documentId Int
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId Int?
+  reportId   Int?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  report     Report?   @relation("report_file", fields: [reportId], references: [id], onDelete: Cascade)
 }
 
 model Permission {
@@ -263,11 +270,13 @@ model Report {
   reportadvice     String?          @db.VarChar(500)
   isFull           Int?             @default(0)
   id               Int              @id @default(autoincrement())
-  issue            ReportIssue[]    @relation("reportissue")
+  issue            ReportIssue[]    @relation("reportissue") 
   team             ReportTeam[]     @relation("reportteam")
-  testcase         ReportTestCase[] @relation("reporttestcase")
   document         Document[]       @relation("report_document")
-
+  testcase         TestCase[]
+  employee         Employee[]       @relation("employee_report")       
+  file             File[]          @relation("report_file")
+  usedphone       UsedPhone[]      @relation("used_phone")
   @@unique([reportname, reportpurpose, reportprocessing, reportconclusion, reportadvice, id])
   @@map("report_document")
 }
@@ -297,19 +306,19 @@ model ReportIssue {
   @@map("report_issue")
 }
 
-model ReportTestCase {
-  id          Int      @id @default(autoincrement())
-  category    String   @db.VarChar(100)
-  types       String   @db.VarChar(100)
-  steps       String
-  result      String   @db.VarChar(100)
-  division    String   @db.VarChar(100)
-  timeCreated DateTime @default(now())
-  timeUpdate  DateTime @updatedAt
-  reportId    Int
-  report      Report   @relation("reporttestcase", fields: [reportId], references: [id], onDelete: Cascade)
+model UsedPhone {
+  id Int @id @default(autoincrement())
+  type PhoneType @default(PERPAID)
+  phone String @db.VarChar(10)
+  description String? 
+  report Report  @relation("used_phone", fields: [reportId], references: [id], onDelete: Cascade)
+  reportId Int
 
-  @@map("report_testcase")
+}
+
+enum PhoneType {
+  POSTPAID
+  PERPAID
 }
 
 enum DocumentStateEnum {
@@ -317,6 +326,7 @@ enum DocumentStateEnum {
   ACCESS
   REJECT
   FORWARD
+  PENDING
 }
 
 enum Risk {
@@ -325,17 +335,6 @@ enum Risk {
   LOW
 }
 
-enum States {
-  PENDING
-  DECLINED
-  ACCESSED
-}
-
-enum EmployeeRole {
-  EMPLOYEE
-  AUTHOR
-  DISTRIBUTOR
-}
 
 enum IssueLevel {
   INSANE
@@ -344,13 +343,25 @@ enum IssueLevel {
   LOW
 }
 
-enum TestcaseEnum {
-  CREATED
-  STARTED
-  ENDED
+enum ActionType {
+  VIEWED
+  ACCESSED
+  NONVIEWED
 }
 
 enum Role {
   ACCESSER
   VIEWER
+}
+
+enum StateTestCase {
+  CREATED
+  STARTED
+  ENDED
+}
+
+enum OTP {
+  PENDING 
+  DENY
+  ACCESS
 }

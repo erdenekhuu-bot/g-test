@@ -6,33 +6,56 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
-    const page = 1;
-    const pageSize = 100;
     const employee = await prisma.employee.findMany({
       where: {
-        isDeleted: false,
-        firstname: {
-          contains: request.firstname,
-        },
+        AND: [
+          {
+            isDeleted: false,
+          },
+          {
+            firstname: {
+              contains: request.firstname || "",
+              mode: "insensitive",
+            },
+          },
+          {
+            jobPosition: {
+              jobPositionGroup: {
+                isNot: null,
+              },
+            },
+          },
+        ],
       },
       include: {
-        jobPosition: true,
-        department: true,
+        jobPosition: {
+          include: {
+            jobPositionGroup: true,
+          },
+        },
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
     });
 
     const totalEmployee = await prisma.employee.count();
-    return NextResponse.json({
-      success: true,
-      data: employee,
-      total: totalEmployee,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: employee,
+        total: totalEmployee,
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      data: error,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        data: error,
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }

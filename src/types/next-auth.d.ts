@@ -5,6 +5,8 @@ declare module "next-auth" {
     user: User;
     accessToken: string;
     refreshToken: string;
+    permission: any;
+    employee: any;
   }
 
   interface User extends DefaultUser {
@@ -15,6 +17,8 @@ declare module "next-auth" {
     status: string;
     accessToken: string;
     refreshToken: string;
+    permission: any;
+    employee: any;
   }
 }
 
@@ -27,5 +31,6 @@ declare module "next-auth/jwt" {
     status: string;
     accessToken: string;
     refreshToken: string;
+    employee: any;
   }
 }

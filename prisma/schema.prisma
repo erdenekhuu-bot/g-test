@@ -24,7 +24,6 @@ model AuthUser {
   otp      Int?
   checkotp OTP?        @default(DENY)
 }
-
 model Department {
   id                     Int                      @id @default(autoincrement())
   parentId               Int                      @map("parent_id")
@@ -89,17 +88,7 @@ model Employee {
   jobPosition            JobPosition?             @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
   departmentEmployeeRole DepartmentEmployeeRole[]
   report                 Report[]                 @relation("employee_report")
-}
-
-model EmployeeState {
-  id            Int      @id @default(autoincrement())
-  name          String?  @db.VarChar(255)
-  description   String?  @db.VarChar(255)
-  isDefault     Boolean  @default(false) @map("is_default")
-  needFillIn    Boolean  @default(false) @map("need_fill_in")
-  isDeleted     Boolean  @default(false) @map("is_deleted")
-  userCreatedId Int      @map("user_created_id")
-  timeCreated   DateTime @default(now()) @map("time_created")
+  shareGroup             ShareGroup[]             @relation("share_group")
 }
 
 model AuthUserData {
@@ -114,6 +103,7 @@ model Document {
   generate               String                   @db.VarChar(30)
   state                  DocumentStateEnum        @default(DENY)
   statement              String?                  @db.VarChar(500)
+  bank                   Json?
   authUserId             Int?
   userDataId             Int?
   timeCreated            DateTime                 @default(now())
@@ -132,27 +122,22 @@ model Document {
   testcase               TestCase[]               @relation("testcase")
   departmentEmployeeRole DepartmentEmployeeRole[]
   permission             Permission[]             @relation("document")
-  report                 Report[]                 @relation("report_document")
-  
-  @@unique([title, generate, statement])
+  report                 Report?                  @relation("report_document")
+  shareGroup             ShareGroup[]             @relation("document_group")
 }
 
 model DepartmentEmployeeRole {
-  id  Int @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   permissionLvl Int?    @map("permission_lvl")
   state         DocumentStateEnum     @default(DENY)
   role          Role         @default(VIEWER)
-  employeeId    Int?         @map("employee_id") 
+  employeeId    Int?         @map("employee_id")
   employee      Employee?    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  rode          Boolean      @default(false)
   documentId    Int
   document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  timeCreated   DateTime     @default(now()) @map("time_created")
-  timeUpdated   DateTime     @updatedAt
-
-  @@unique([employeeId, documentId]) 
-  @@index([employeeId])
-  @@index([documentId])
-
+  startedDate   DateTime     @default(now()) @map("time_created")
+  endDate   DateTime     @updatedAt
 }
 
 model DocumentDetail {
@@ -173,8 +158,6 @@ model DocumentAttribute {
   id           Int      @id @default(autoincrement())
   documentId   Int
   document     Document @relation("attribute", fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@unique([categoryMain, category, value, orderIndex])
 }
 
 model DocumentBudget {
@@ -193,11 +176,12 @@ model DocumentEmployee {
   employeeId    Int
   departmentId  Int?
   jobPositionId Int?
-  role          String       @unique @db.VarChar(500)
+  role          String
   startedDate   DateTime
   endDate       DateTime
   id            Int          @id @default(autoincrement())
   documentId    Int
+  report        Report[]     @relation("report_document_team")
   document      Document     @relation("documentemployee", fields: [documentId], references: [id], onDelete: Cascade)
   employee      Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   jobPosition   JobPosition? @relation(fields: [jobPositionId], references: [id])
@@ -212,8 +196,6 @@ model RiskAssessment {
   id                 Int      @id @default(autoincrement())
   documentId         Int
   document           Document @relation("assessent", fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@unique([riskDescription, mitigationStrategy])
 }
 
 model TestCase {
@@ -267,18 +249,33 @@ model Report {
   reportpurpose    String           @db.VarChar(500)
   reportprocessing String
   reportconclusion String?          @db.VarChar(500)
-  reportadvice     String?          @db.VarChar(500)
+  reportadvice     String?          @db.VarChar(500)             
   isFull           Int?             @default(0)
   id               Int              @id @default(autoincrement())
+  documentId       Int              @unique
+  document         Document         @relation("report_document", fields: [documentId], references: [id], onDelete: Cascade)
   issue            ReportIssue[]    @relation("reportissue") 
   team             ReportTeam[]     @relation("reportteam")
-  document         Document[]       @relation("report_document")
   testcase         TestCase[]
   employee         Employee[]       @relation("employee_report")       
-  file             File[]          @relation("report_file")
-  usedphone       UsedPhone[]      @relation("used_phone")
-  @@unique([reportname, reportpurpose, reportprocessing, reportconclusion, reportadvice, id])
+  file             File[]           @relation("report_file")
+  usedphone        UsedPhone[]      @relation("used_phone")
+  budget           ReportBudget[]   @relation("reportbudget")
+  documentEmployee DocumentEmployee[] @relation("report_document_team")
+  rode          Boolean      @default(false)
+  started  DateTime @default(now())
   @@map("report_document")
+}
+
+model ReportBudget {
+  id Int @id @default(autoincrement())
+  total Int 
+  spent Int
+  excess Int
+  report Report @relation("reportbudget", fields: [reportId], references: [id], onDelete: Cascade)
+  reportId Int
+
+  @@map("report_budget")
 }
 
 model ReportTeam {
@@ -302,7 +299,6 @@ model ReportIssue {
   exception Boolean    @default(false)
   report    Report     @relation("reportissue", fields: [reportId], references: [id], onDelete: Cascade)
 
-  @@unique([level, value])
   @@map("report_issue")
 }
 
@@ -311,9 +307,17 @@ model UsedPhone {
   type PhoneType @default(PERPAID)
   phone String @db.VarChar(10)
   description String? 
+  serial String?
   report Report  @relation("used_phone", fields: [reportId], references: [id], onDelete: Cascade)
   reportId Int
+}
 
+model ShareGroup {
+  id Int @id @default(autoincrement())
+  document Document @relation("document_group", fields: [documentId], references: [id])
+  documentId Int 
+  employee Employee @relation("share_group", fields: [employeeId], references: [id])
+  employeeId Int
 }
 
 enum PhoneType {
@@ -364,4 +368,10 @@ enum OTP {
   PENDING 
   DENY
   ACCESS
+}
+
+enum EROLE {
+  VIEWER
+  DEV
+  REPORT
 }

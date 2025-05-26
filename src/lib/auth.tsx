@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = process.env.NEXTAUTH_URL;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -79,7 +79,6 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: `${API_URL}`,
-    signOut: `${API_URL}`,
   },
 
   session: {

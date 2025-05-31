@@ -331,6 +331,8 @@ enum DocumentStateEnum {
   REJECT
   FORWARD
   PENDING
+  MIDDLE
+  SHARED
 }
 
 enum Risk {
@@ -338,7 +340,6 @@ enum Risk {
   MEDIUM
   LOW
 }
-
 
 enum IssueLevel {
   INSANE

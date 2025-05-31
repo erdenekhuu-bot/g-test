@@ -1,3 +1,5 @@
+import HomeLayout from "./home/layout";
+
 export default async function Home() {
-  return <div>Hello World</div>;
+  return <HomeLayout />;
 }

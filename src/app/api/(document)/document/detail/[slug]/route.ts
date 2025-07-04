@@ -68,6 +68,11 @@ export async function GET(req: NextRequest, { params }: any) {
               usedphone: true,
             },
           },
+          confirm: {
+            include: {
+              employee: true,
+            },
+          },
         },
       });
       return detail;

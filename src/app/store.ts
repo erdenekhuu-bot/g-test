@@ -12,6 +12,8 @@ type NotificationStore = {
   setDocumentId: (slug: number) => void;
   planNotification: number;
   setPlanNotification: (slug: number) => Promise<void>;
+  documentName: string;
+  getDocumentName: (slug: string) => void;
 };
 
 export const globalState = create<NotificationStore>((set) => ({
@@ -60,4 +62,6 @@ export const globalState = create<NotificationStore>((set) => ({
       console.log(error);
     }
   },
+  documentName: "",
+  getDocumentName: (slug: string) => set({ documentName: slug }),
 }));

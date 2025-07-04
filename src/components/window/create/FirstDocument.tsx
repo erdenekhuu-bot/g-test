@@ -12,6 +12,7 @@ import {
 import { SecondDocument } from "./SecondDocument";
 import { ThirdDocument } from "./ThirdDocument";
 import Image from "next/image";
+import { globalState } from "@/app/store";
 
 export const DocumentContext = createContext<string | null>(null);
 
@@ -24,6 +25,7 @@ export function FirstDocument() {
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [mainForm] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+  const { getDocumentName } = globalState();
 
   const handleSearch = (value: any) => {
     setSearch(capitalizeFirstLetter(value));
@@ -66,6 +68,7 @@ export function FirstDocument() {
   const handleSubmit = async () => {
     try {
       const values = await mainForm.validateFields();
+      getDocumentName(values.title);
       const converting = {
         ...removeDepartment(values),
         authuserId: session?.user.id,

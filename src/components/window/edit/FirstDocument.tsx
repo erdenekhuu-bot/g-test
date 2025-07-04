@@ -34,7 +34,7 @@ export function FirstRead({ open, onCancel }: ModalProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const { documentId } = globalState();
+  const { documentId, getDocumentName } = globalState();
 
   const detail = async ({ id }: { id: number }) => {
     try {
@@ -110,11 +110,13 @@ export function FirstRead({ open, onCancel }: ModalProps) {
   const handlesubmit = async () => {
     try {
       const values = await mainForm.validateFields();
+      getDocumentName(values.title);
       const converting = {
         ...values,
         documentId: documentId,
         authuserId: session?.user.id,
       };
+
       const request = await axios.put("/api/document", converting);
       if (request.data.success) {
         onCancel();

@@ -89,6 +89,7 @@ model Employee {
   departmentEmployeeRole DepartmentEmployeeRole[]
   report                 Report[]                 @relation("employee_report")
   shareGroup             ShareGroup[]             @relation("share_group")
+  confirm                ConfirmPaper[]
 }
 
 model AuthUserData {
@@ -103,6 +104,7 @@ model Document {
   generate               String                   @db.VarChar(30)
   state                  DocumentStateEnum        @default(DENY)
   statement              String?                  @db.VarChar(500)
+  rejection              Json?                    
   bank                   Json?
   authUserId             Int?
   userDataId             Int?
@@ -124,6 +126,7 @@ model Document {
   permission             Permission[]             @relation("document")
   report                 Report?                  @relation("report_document")
   shareGroup             ShareGroup[]             @relation("document_group")
+  confirm                ConfirmPaper[]           @relation("confirm")
 }
 
 model DepartmentEmployeeRole {
@@ -314,10 +317,27 @@ model UsedPhone {
 
 model ShareGroup {
   id Int @id @default(autoincrement())
-  document Document @relation("document_group", fields: [documentId], references: [id])
+  document Document @relation("document_group", fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int 
-  employee Employee @relation("share_group", fields: [employeeId], references: [id])
+  employee Employee @relation("share_group", fields: [employeeId], references: [id], onDelete: Cascade)
   employeeId Int
+}
+
+model ConfirmPaper {
+  id Int @id @default(autoincrement())
+  document Document @relation("confirm",fields: [documentId], references: [id], onDelete: Cascade)
+  documentId Int 
+  employee Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId Int @unique
+  system String @db.VarChar(100)
+  description String @db.VarChar(500)
+  module String @db.VarChar(200)
+  version String @db.VarChar(100)
+  jobs    String
+  title   String @db.VarChar(200)
+  startedDate DateTime @default(now())
+  endData     DateTime @updatedAt
+  rode    Boolean   @default(false)
 }
 
 enum PhoneType {

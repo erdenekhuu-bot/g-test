@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { DefineLevel } from "@/lib/checkout";
 import { prisma } from "@/lib/prisma";
+import { filterByPermissionLevels } from "@/lib/checkout";
 
 export default async function Page({ searchParams }: any) {
   const session = await getServerSession(authOptions);
@@ -20,8 +21,20 @@ export default async function Page({ searchParams }: any) {
           employee: true,
         },
       });
-      const record = await tx.departmentEmployeeRole.findMany({
+      const list = await tx.departmentEmployeeRole.findMany({
+        where: {
+          document: {
+            generate: {
+              contains: order || "",
+            },
+          },
+        },
         distinct: ["employeeId"],
+        orderBy: {
+          document: {
+            timeCreated: "desc",
+          },
+        },
         include: {
           employee: {
             include: {
@@ -30,53 +43,6 @@ export default async function Page({ searchParams }: any) {
                   jobPositionGroup: true,
                 },
               },
-            },
-          },
-        },
-      });
-
-      const dataWithLevels = record.map((item) => ({
-        ...item,
-        level: DefineLevel(
-          item.employee?.jobPosition?.jobPositionGroup?.name || ""
-        ),
-      }));
-
-      const convert = dataWithLevels.filter((item: any) => item.level < 6);
-
-      const result = convert.every((item) => item.rode === true);
-
-      const list = await tx.departmentEmployeeRole.findMany({
-        where: {
-          AND: [
-            {
-              employeeId: data?.employee?.id,
-            },
-            {
-              document: {
-                AND: [
-                  {
-                    generate: {
-                      contains: order || "",
-                    },
-                  },
-                  result ? { state: "FORWARD" } : { state: { not: "FORWARD" } },
-                ],
-              },
-            },
-          ],
-        },
-        distinct: ["documentId"],
-        orderBy: {
-          document: {
-            timeCreated: "desc",
-          },
-        },
-        include: {
-          employee: {
-            select: {
-              firstname: true,
-              lastname: true,
             },
           },
           document: {
@@ -95,8 +61,16 @@ export default async function Page({ searchParams }: any) {
           },
         },
       });
-
-      return list;
+      const dataWithLevels = list.map((item) => ({
+        ...item,
+        level: DefineLevel(
+          item.employee?.jobPosition?.jobPositionGroup?.name || ""
+        ),
+      }));
+      const filteredData = filterByPermissionLevels(dataWithLevels).filter(
+        (item: any) => item.employeeId === data?.employee?.id
+      );
+      return filteredData;
     });
     const totalCount = records?.length;
 

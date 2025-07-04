@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useCallback } from "react";
-import { Table, Input, Flex, Badge, message, Button } from "antd";
-import { formatHumanReadable, convertName } from "@/components/usable";
+import { Table, Input, Flex, message, Button } from "antd";
 import { redirect, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ListDataType } from "@/types/type";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { ActionModal } from "@/components/window/full/Action";
 import { globalState } from "@/app/store";
+import { convertName, formatHumanReadable } from "@/components/usable";
 
 export function SharedList({ documents, total, pageSize, page, order }: any) {
   const [searchTerm, setSearchTerm] = useState<string>(order);
@@ -27,28 +25,10 @@ export function SharedList({ documents, total, pageSize, page, order }: any) {
         pageSize: pageSize.toString(),
         order: value || "",
       });
-      router.push(`/home/list?${params.toString()}`);
+      router.push(`/home/shared?${params.toString()}`);
     },
     [router, pageSize]
   );
-
-  const handleDownload = async (id: number) => {
-    try {
-      const response = await axios.get(`/api/download/${id}`, {
-        responseType: "blob",
-      });
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `Удирдамж_${id}.pdf`;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      messageApi.error("Амжилтгүй боллоо.");
-    }
-  };
 
   return (
     <section>
@@ -73,31 +53,35 @@ export function SharedList({ documents, total, pageSize, page, order }: any) {
           rowKey="id"
         >
           <Table.Column title="Тоот" dataIndex="id" render={(id) => id} />
-          {/* <Table.Column
+          <Table.Column
             title="Тестийн нэр"
             dataIndex="document"
             render={(document: any) => document.title}
-          /> */}
+          />
 
-          {/* <Table.Column
+          <Table.Column
             title="Үүсгэсэн ажилтан"
-            dataIndex="document"
-            render={(document: any) => convertName(document.user.employee)}
-          /> */}
+            dataIndex="employee"
+            render={(employee: any) => convertName(employee)}
+          />
 
-          {/* <Table.Column
+          <Table.Column
             title="Огноо"
-            dataIndex="startedDate"
-            sorter={(a, b) =>
-              new Date(a.startedDate).getTime() -
-              new Date(b.startedDate).getTime()
+            dataIndex="document"
+            sorter={(a: any, b: any) =>
+              new Date(a.document.timeCreated).getTime() -
+              new Date(b.document.timeCreated).getTime()
             }
-            render={(startedDate: string) => (
-              <span>
-                {formatHumanReadable(new Date(startedDate).toISOString())}
-              </span>
-            )}
-          /> */}
+            render={(record: any) => {
+              return (
+                <span>
+                  {formatHumanReadable(
+                    new Date(record.timeCreated).toISOString()
+                  )}
+                </span>
+              );
+            }}
+          />
           <Table.Column
             title="Шалгах"
             dataIndex="documentId"
@@ -115,25 +99,8 @@ export function SharedList({ documents, total, pageSize, page, order }: any) {
               />
             )}
           />
-          {/* <Table.Column
-            title="PDF"
-            dataIndex="documentId"
-            render={(documentId) => {
-              return (
-                <Flex justify="center">
-                  <Image
-                    src="/download.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="hover:cursor-pointer"
-                    onClick={() => handleDownload(documentId)}
-                  />
-                </Flex>
-              );
-            }}
-          /> */}
-          {/* <Table.Column
+
+          <Table.Column
             title="Share хасах"
             dataIndex="documentId"
             render={(documentId) => {
@@ -157,7 +124,7 @@ export function SharedList({ documents, total, pageSize, page, order }: any) {
                 </Button>
               );
             }}
-          /> */}
+          />
         </Table>
       </div>
     </section>

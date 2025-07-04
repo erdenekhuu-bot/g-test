@@ -41,7 +41,7 @@ export function AccessDetail({ document, step }: any) {
   const [messageApi, contextHolder] = message.useMessage();
   const [append, setAppend] = useState("");
   const router = useRouter();
-  const { documentId } = globalState();
+  const { documentId, getNotification } = globalState();
 
   const formValues = {
     title: document.title,
@@ -66,13 +66,8 @@ export function AccessDetail({ document, step }: any) {
     bankname: document.bank?.name,
     bank: document.bank?.address,
   };
-  const filteredAttributes = document.attribute.filter(
-    (attr: any) =>
-      attr.categoryMain === "Түтгэлзүүлэх болон дахин эхлүүлэх шалгуур"
-  );
 
   attributeForm.setFieldsValue(formValues);
-  // setFilteredTableData(filteredAttributes);
 
   const showOTP = () => {
     setOtp(true);
@@ -107,6 +102,7 @@ export function AccessDetail({ document, step }: any) {
       });
       if (response.data.success && session?.user?.id) {
         cancelOTP();
+        getNotification(session.user.id);
         router.refresh();
       }
     } catch (error) {

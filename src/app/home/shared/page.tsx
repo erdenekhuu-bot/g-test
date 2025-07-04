@@ -23,10 +23,20 @@ export default async function Page({ searchParams }: any) {
         authUser &&
         (await tx.shareGroup.findMany({
           where: {
-            employeeId: authUser.employee?.id,
+            AND: [
+              {
+                employeeId: authUser.employee?.id,
+              },
+              {
+                document: {
+                  state: "SHARED",
+                },
+              },
+            ],
           },
           include: {
             employee: true,
+            document: true,
           },
         }));
       return document;

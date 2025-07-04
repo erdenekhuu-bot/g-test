@@ -1,21 +1,22 @@
 "use client";
 import React, { useState, useCallback } from "react";
-import { Table, Input, Flex, Badge, message, Button } from "antd";
+import { Table, Input, Flex, Badge, message, Button, Form, Modal } from "antd";
 import { formatHumanReadable, convertName } from "@/components/usable";
 import { redirect, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ListDataType } from "@/types/type";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { ActionModal } from "@/components/window/full/Action";
 import { globalState } from "@/app/store";
 
 export function List({ documents, total, pageSize, page, order }: any) {
   const [searchTerm, setSearchTerm] = useState<string>(order);
   const router = useRouter();
   const { data: session } = useSession();
-  const [messageApi, contextHolder] = message.useMessage();
   const { getNotification, setDocumentId, setPlanNotification } = globalState();
+  const [form] = Form.useForm();
+  const [open, setOpen] = useState(false);
+  const [id, setId] = useState(0);
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,33 +33,22 @@ export function List({ documents, total, pageSize, page, order }: any) {
     [router, pageSize]
   );
 
-  // const handleOk = async () => {
-  //   try {
-  //     await axios.patch("/api/final/" + find, {
-  //       authuserId: session?.user.id,
-  //       access: 4,
-  //       documentId: find,
-  //     });
-  //     setIsModalOpen(false);
-  //   } catch (error) {}
-  // };
-
-  const handleDownload = async (id: number) => {
-    try {
-      const response = await axios.get(`/api/download/${id}`, {
-        responseType: "blob",
-      });
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `Удирдамж_${id}.pdf`;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      messageApi.error("Амжилтгүй боллоо.");
+  const handleOk = async () => {
+    const values = await form.validateFields();
+    const data = {
+      documentId: id,
+      userId: session?.user.id,
+      rejection: values.rejection,
+      cause: 0,
+    };
+    const response = await axios.patch("/api/rejection", data);
+    if (response.data.success) {
+      setOpen(false);
     }
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
   };
 
   return (
@@ -73,7 +63,6 @@ export function List({ documents, total, pageSize, page, order }: any) {
         />
       </Flex>
       <div className="bg-white mt-8">
-        {contextHolder}
         <Table<ListDataType>
           dataSource={documents}
           pagination={{
@@ -155,24 +144,7 @@ export function List({ documents, total, pageSize, page, order }: any) {
               />
             )}
           />
-          <Table.Column
-            title="PDF"
-            dataIndex="documentId"
-            render={(documentId) => {
-              return (
-                <Flex justify="center">
-                  <Image
-                    src="/download.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="hover:cursor-pointer"
-                    onClick={() => handleDownload(documentId)}
-                  />
-                </Flex>
-              );
-            }}
-          />
+
           {/* <Table.Column
             title="Буцаах"
             dataIndex="documentId"
@@ -200,14 +172,22 @@ export function List({ documents, total, pageSize, page, order }: any) {
           /> */}
         </Table>
       </div>
-      {/* {find && (
-        <ActionModal
-          open={isModalOpen}
-          handleOk={handleOk}
-          onCancel={handleCancel}
-          detailId={find}
-        />
-      )} */}
+      <Modal
+        title="Тайлбар оруулна уу"
+        open={open}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <Form form={form}>
+          <Form.Item name="rejection">
+            <Input.TextArea
+              style={{ marginTop: 10 }}
+              placeholder="Яагаад буцаах болсон тухай тайлбар оруулна уу..."
+              rows={10}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </section>
   );
 }

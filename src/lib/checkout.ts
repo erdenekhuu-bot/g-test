@@ -116,3 +116,21 @@ export function DefineLevel(arg: string): number {
   if (!arg) return 0;
   return levels[arg as JobPosition] ?? 0;
 }
+
+export function filterByPermissionLevels(dataWithLevels: any[]) {
+  const level2 = dataWithLevels.filter((item) => item.level === 2);
+  const level4 = dataWithLevels.filter((item) => item.level === 4);
+  const level6 = dataWithLevels.filter((item) => item.level === 6);
+
+  let result = [...level2];
+
+  if (level2.length && level2.every((item) => item.rode === true)) {
+    result = result.concat(level4);
+
+    if (level4.length && level4.every((item) => item.rode === true)) {
+      result = result.concat(level6);
+    }
+  }
+
+  return result;
+}

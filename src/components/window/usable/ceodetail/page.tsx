@@ -41,7 +41,7 @@ export function CEODetail({ document, step }: any) {
   const [messageApi, contextHolder] = message.useMessage();
   const [append, setAppend] = useState("");
   const router = useRouter();
-  const { documentId } = globalState();
+  const { documentId, getNotification } = globalState();
 
   const formValues = {
     title: document.title,
@@ -107,6 +107,7 @@ export function CEODetail({ document, step }: any) {
       });
       if (response.data.success && session?.user?.id) {
         cancelOTP();
+        getNotification(session.user.id);
         router.refresh();
       }
     } catch (error) {

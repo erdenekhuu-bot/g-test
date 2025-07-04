@@ -14,14 +14,14 @@
         <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           1. ТЕСТИЙН ҮЙЛ АЖИЛЛАГААНЫ ЗОРИЛГО:
         </p>
-        <p style="font-size: 10px"><%= document.detail[0].aim %></p>
+        <p style="font-size: 10px"><%= document?.detail[0]?.aim %></p>
       </div>
       <div>
         <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           2. ТӨСЛИЙН ТАНИЛЦУУЛГА:
         </p>
         <p style="font-size: 10px">
-          <%- document.detail[0].intro.replace(/\n/g, '<br />') %>
+          <%- document?.detail[0]?.intro.replace(/\n/g, '<br />') %>
         </p>
       </div>
       <div>
@@ -40,40 +40,39 @@
             </tr>
           </thead>
           <tbody>
-            <% document.documentemployee.forEach((data, index) => { %>
+            <% document?.documentemployee?.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
               <td>
-                <%= filterDepartment(data.employee.department.name) %> - <%=
-                data.employee.jobPosition.name %>
+                <%= filterDepartment(data?.employee?.department?.name) %> - <%=
+                data?.employee?.jobPosition?.name %>
               </td>
               <td>
-                <%= convertFirst(data.employee.lastname) %>
-                <%=data.employee.firstname %>
+                <%= convertFirst(data?.employee?.lastname) %>
+                <%=data?.employee?.firstname %>
               </td>
-              <td><%= data.role %></td>
-              <td><%= new Date(data.startedDate).toLocaleDateString() %></td>
-              <td><%= new Date(data.endDate).toLocaleDateString() %></td>
+              <td><%= data?.role %></td>
+              <td><%= new Date(data?.startedDate).toLocaleDateString() %></td>
+              <td><%= new Date(data?.endDate).toLocaleDateString() %></td>
             </tr>
             <% }) %>
           </tbody>
         </table>
       </div>
+
       <div>
-        <p style="font-weight: bold; font-size: 20px; color: rgb(55, 159, 228)">
+        <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           3. ТЕСТИЙН ҮР ДҮНГИЙН ТААМАГЛАЛ, ЭРСДЭЛ, ХАРААТ БАЙДАЛ:
         </p>
-        <p style="margin-left: 20px">4.1 Таамаглал</p>
+        <p style="margin-left: 20px; font-size: 12px">4.1 Таамаглал</p>
 
-        <% document.attribute .filter(attr => attr.category === "Таамаглал")
+        <% document?.attribute?.filter(attr => attr?.category === "Таамаглал")
         .forEach(attr => { %>
-        <p style="margin-left: 25px">
-          <%- attr.value.replace(/\n/g, '<br />') %>
+        <p style="margin-left: 25px; font-size: 10px">
+          <%- attr?.value.replace(/\n/g, '<br />') %>
         </p>
         <% }) %>
-
-        <p style="margin-left: 20px">4.2 Эрсдэл</p>
-
+        <p style="margin-left: 20px; font-size: 12px">4.2 Эрсдэл</p>
         <table class="custom-table">
           <thead>
             <tr>
@@ -85,7 +84,7 @@
             </tr>
           </thead>
           <tbody>
-            <% document.riskassessment.forEach((data, index) => { %>
+            <% document?.riskassessment?.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
               <td><%= data.riskDescription %></td>
@@ -97,30 +96,28 @@
           </tbody>
         </table>
 
-        <p style="margin-left: 20px">4.3 Хараат байдал</p>
-
-        <% document.attribute .filter(attr => attr.category === "Хараат байдал")
-        .forEach(attr => { %>
-        <p style="margin-left: 25px">
-          <%- attr.value.replace(/\n/g, '<br />') %>
+        <p style="margin-left: 20px; font-size: 12px">4.3 Хараат байдал</p>
+        <% const mhn = "Хараат байдал"; document?.attribute ?.filter(attr =>
+        attr?.category === mhn) ?.forEach(attr => { %>
+        <p style="margin-left: 25px; font-size: 10px">
+          <%- attr?.value?.replace(/\n/g, '<br />') %>
         </p>
-        <% }) %>
+        <% }); %>
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px; color: rgb(55, 159, 228)">
+        <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           4. ТЕСТИЙН ҮЕ ШАТ:
         </p>
-        <p style="margin-left: 20px">5.1 Бэлтгэл үе</p>
-
-        <% document.attribute .filter(attr => attr.category === "Бэлтгэл үе")
-        .forEach(attr => { %>
-        <p style="margin-left: 25px">
-          <%- attr.value.replace(/\n/g, '<br />') %>
+        <p style="margin-left: 20px; font-size: 12px">5.1 Бэлтгэл үе</p>
+        <% const mhn1 = "Бэлтгэл үе"; document?.attribute?.filter(attr =>
+        attr?.category === mhn1) ?.forEach(attr => { %>
+        <p style="margin-left: 25px; font-size: 10px">
+          <%- attr?.value?.replace(/\n/g, '<br />') %>
         </p>
-        <% }) %>
+        <% }); %>
 
-        <p style="margin-left: 20px">5.3 Тестийн кэйс</p>
+        <p style="margin-left: 20px; font-size: 10px">5.3 Тестийн кэйс</p>
 
         <table class="custom-table">
           <thead>
@@ -134,31 +131,32 @@
             </tr>
           </thead>
           <tbody>
-            <% document.testcase.forEach((data, index) => { %>
+            <% document?.testcase?.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
-              <td><%= data.category %></td>
-              <td><%= data.types %></td>
-              <td><%= data.steps %></td>
-              <td><%= data.result %></td>
-              <td><%= data.division %></td>
+              <td><%= data?.category %></td>
+              <td><%= data?.types %></td>
+              <td><%= data?.steps %></td>
+              <td><%= data?.result %></td>
+              <td><%= data?.division %></td>
             </tr>
             <% }) %>
           </tbody>
         </table>
 
-        <p style="margin-left: 20px">5.4 Тестийн хаалт</p>
+        <p style="margin-left: 20px; font-size: 12px">5.4 Тестийн хаалт</p>
 
-        <% document.attribute .filter(attr => attr.category === "Тестийн хаалт")
+        <% const mhn2 = "Тестийн хаалт; font-size: 10px";
+        document?.attribute?.filter(attr => attr?.category === mhn2)
         .forEach(attr => { %>
-        <p style="margin-left: 25px">
-          <%- attr.value.replace(/\n/g, '<br />') %>
+        <p style="margin-left: 25px; font-size: 10px">
+          <%- attr?.value.replace(/\n/g, '<br />') %>
         </p>
         <% }) %>
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px; color: rgb(55, 159, 228)">
+        <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           5. ТҮДГЭЛЗҮҮЛЭХ БОЛОН ДАХИН ЭХЛҮҮЛЭХ ШАЛГУУР:
         </p>
         <table class="custom-table">
@@ -169,11 +167,11 @@
             </tr>
           </thead>
           <tbody>
-            <% document.attribute .filter(attr => attr.categoryMain ===
+            <% document?.attribute?.filter(attr => attr?.categoryMain ===
             "Түтгэлзүүлэх болон дахин эхлүүлэх шалгуур") .forEach(attr => { %>
             <tr>
-              <td><%= attr.category %></td>
-              <td><%- attr.value.replace(/\n/g, '<br />') %></td>
+              <td><%= attr?.category %></td>
+              <td><%- attr?.value.replace(/\n/g, '<br />') %></td>
             </tr>
             <% }) %>
           </tbody>
@@ -181,10 +179,9 @@
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px; color: rgb(55, 159, 228)">
+        <p style="font-weight: bold; font-size: 12px; color: rgb(55, 159, 228)">
           6. ТЕСТИЙН ТӨСӨВ:
         </p>
-
         <table class="custom-table">
           <thead>
             <tr>
@@ -197,14 +194,14 @@
             </tr>
           </thead>
           <tbody>
-            <% document.budget.forEach((data, index) => { %>
+            <% document?.budget?.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
-              <td><%= data.productCategory %></td>
-              <td><%= data.product %></td>
-              <td><%= data.amount %></td>
-              <td><%= data.priceUnit %></td>
-              <td><%= data.priceTotal %></td>
+              <td><%= data?.productCategory %></td>
+              <td><%= data?.product %></td>
+              <td><%= data?.amount %></td>
+              <td><%= data?.priceUnit %></td>
+              <td><%= data?.priceTotal %></td>
             </tr>
             <% }) %>
           </tbody>

@@ -102,6 +102,7 @@ export async function PUT(req: NextRequest) {
         };
       })
     );
+
     const record = await prisma.$transaction(async (tx) => {
       const authuser = await tx.authUser.findUnique({
         where: {
@@ -157,7 +158,7 @@ export async function PUT(req: NextRequest) {
       return doc;
     });
 
-    return NextResponse.json({ success: true, data: record }, { status: 201 });
+    return NextResponse.json({ success: true, data: record }, { status: 200 });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ success: false, data: error }, { status: 500 });

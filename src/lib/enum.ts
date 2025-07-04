@@ -10,6 +10,8 @@ export function Checking(arg: any) {
       return DocumentStateEnum.FORWARD;
     case 3:
       return DocumentStateEnum.ACCESS;
+    case 4:
+      return DocumentStateEnum.SHARED;
     default:
       return DocumentStateEnum.DENY;
   }

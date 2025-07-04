@@ -10,17 +10,17 @@ export async function POST(req: NextRequest) {
     const request: AuthUserLoginModel = await req.json();
     const response: any = await DecryptAndChecking(request);
 
-    // if (response.status !== 200) {
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       data: "Нууц үг буруу байна",
-    //     },
-    //     {
-    //       status: 404,
-    //     }
-    //   );
-    // }
+    if (response.status !== 200) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: "Нууц үг буруу байна",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
     const record = await prisma.authUser.findFirst({
       where: {
         username: request.username,

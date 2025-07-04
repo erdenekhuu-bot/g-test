@@ -1,14 +1,29 @@
 "use client";
-import { Table, Form, Input, Button, Flex, Select, DatePicker } from "antd";
+import {
+  Table,
+  Form,
+  Input,
+  Button,
+  Flex,
+  Select,
+  DatePicker,
+  message,
+} from "antd";
 import { v4 as uuidv4 } from "uuid";
 import { convertName, convertUtil } from "@/components/usable";
 import { UserOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { testcaselist } from "@/components/usable";
-import { capitalizeFirstLetter } from "@/components/usable";
+import {
+  testcaselist,
+  capitalizeFirstLetter,
+  selectConvert,
+} from "@/components/usable";
 import dayjs from "dayjs";
+import { globalState } from "@/app/store";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 const dateFormat = "YYYY/MM/DD";
 
@@ -17,6 +32,10 @@ export function ShareDocument({ document }: any) {
   const [search, setSearch] = useState("");
   const [getEmployee, setEmployee] = useState<any[]>([]);
   const [dataSource, setDataSource] = useState<any[]>([]);
+  let [mean, setMean] = useState<number>(0);
+  const { documentId } = globalState();
+  const { data: session } = useSession();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const departmentrole = document.departmentEmployeeRole.map((data: any) => ({
     key: uuidv4(),
@@ -27,115 +46,118 @@ export function ShareDocument({ document }: any) {
     role: data.role,
   }));
 
-  const updatedData = document.documentemployee.map((data: any) => {
-    const startedDate =
-      data.startedDate && dayjs(data.startedDate, dateFormat).isValid()
-        ? data.startedDate
-        : "";
-    const endDate =
-      data.endDate && dayjs(data.endDate, dateFormat).isValid()
-        ? data.endDate
-        : "";
-    return {
-      key: uuidv4(),
-      id: data.employee.id,
-      employeeId: `${data.employee.firstname} ${data.employee.lastname}` || "",
-      role: data.role || "",
-      startedDate,
-      endDate,
-    };
-  });
+  useEffect(() => {
+    if (document) {
+      const initialData = departmentrole.map((item: any) => ({
+        key: item.key,
+        employeeId: { value: item.id, label: item.employee },
+        jobposition: item.jobPosition,
+        role: item.role,
+        department: item.department,
+      }));
 
-  mainform.setFieldsValue({
-    title: document.title,
-    aim: document.detail[0]?.aim,
-    intro: document.detail[0]?.intro,
-    predict:
-      document.attribute.find((attr: any) => attr.category === "Таамаглал")
-        ?.value || "",
-    dependecy:
-      document.attribute.find((attr: any) => attr.category === "Хараат байдал")
-        ?.value || "",
-    standby:
-      document.attribute.find((attr: any) => attr.category === "Бэлтгэл үе")
-        ?.value || "",
-    execute:
-      document.attribute.find(
-        (attr: any) => attr.category === "Тестийн гүйцэтгэл"
-      )?.value || "",
-    terminate:
-      document.attribute.find((attr: any) => attr.category === "Тестийн хаалт")
-        ?.value || "",
-    adding:
-      document.attribute.find((attr: any) => attr.category === "Нэмэлт")
-        ?.value || "",
-    departmentemployee: departmentrole.map((item: any) => ({
-      employeeId: { value: item.id, label: item.employee },
-      jobposition: item.jobPosition,
-      role: item.role,
-    })),
-    testschedule: updatedData.map((item: any) => ({
-      ...item,
-      startedDate: item.startedDate ? dayjs(item.startedDate) : null,
-      endDate: item.endDate ? dayjs(item.endDate) : null,
-    })),
-    testrisk: document.riskassessment.map((risk: any) => ({
-      key: uuidv4(),
-      riskDescription: risk.riskDescription,
-      riskLevel: risk.riskLevel,
-      affectionLevel: risk.affectionLevel,
-      mitigationStrategy: risk.mitigationStrategy,
-    })),
-    attribute: document.attribute.map((attr: any) => ({
-      key: uuidv4(),
-      category: attr.category,
-      value: attr.value,
-    })),
-    testcase: document.testcase.map((test: any) => ({
-      key: uuidv4(),
-      category: test.category,
-      types: test.types,
-      steps: test.steps,
-      result: test.result,
-      division: test.division,
-    })),
-    budget: document.budget.map((budget: any) => ({
-      key: uuidv4(),
-      name: budget.name,
-      amount: budget.amount,
-    })),
-    bankname: document.bank.name,
-    bank: document.bank.address,
-    testenv: document.budget.map((data: any) => ({
-      key: uuidv4(),
-      id: data.id,
-      productCategory: data.productCategory || "",
-      product: data.product || "",
-      amount: data.amount || 0,
-      priceUnit: data.priceUnit || 0,
-      priceTotal: data.priceTotal || 0,
-    })),
-  });
+      mainform.setFieldsValue({
+        title: document.title,
+        aim: document.detail[0]?.aim,
+        intro: document.detail[0]?.intro,
+        predict:
+          document.attribute.find((attr: any) => attr.category === "Таамаглал")
+            ?.value || "",
+        dependecy:
+          document.attribute.find(
+            (attr: any) => attr.category === "Хараат байдал"
+          )?.value || "",
+        standby:
+          document.attribute.find((attr: any) => attr.category === "Бэлтгэл үе")
+            ?.value || "",
+        execute:
+          document.attribute.find(
+            (attr: any) => attr.category === "Тестийн гүйцэтгэл"
+          )?.value || "",
+        terminate:
+          document.attribute.find(
+            (attr: any) => attr.category === "Тестийн хаалт"
+          )?.value || "",
+        adding:
+          document.attribute.find((attr: any) => attr.category === "Нэмэлт")
+            ?.value || "",
+        departmentemployee: initialData,
+        testschedule: document.documentemployee.map((data: any) => ({
+          key: uuidv4(),
+          id: data.employee.id,
+          employeeId:
+            `${data.employee.firstname} ${data.employee.lastname}` || "",
+          role: data.role || "",
+          startedDate:
+            data.startedDate && dayjs(data.startedDate, dateFormat).isValid()
+              ? dayjs(data.startedDate)
+              : null,
+          endDate:
+            data.endDate && dayjs(data.endDate, dateFormat).isValid()
+              ? dayjs(data.endDate)
+              : null,
+        })),
+        testrisk: document.riskassessment.map((risk: any) => ({
+          key: uuidv4(),
+          riskDescription: risk.riskDescription,
+          riskLevel: risk.riskLevel,
+          affectionLevel: risk.affectionLevel,
+          mitigationStrategy: risk.mitigationStrategy,
+        })),
+        attribute: document.attribute.map((attr: any) => ({
+          key: uuidv4(),
+          category: attr.category,
+          value: attr.value,
+        })),
+        testcase: document.testcase.map((test: any) => ({
+          key: uuidv4(),
+          category: test.category,
+          types: test.types,
+          steps: test.steps,
+          result: test.result,
+          division: test.division,
+        })),
+        budget: document.budget.map((budget: any) => ({
+          key: uuidv4(),
+          name: budget.name,
+          amount: budget.amount,
+        })),
+        bankname: document.bank?.name,
+        bank: document.bank?.address,
+        testenv: document.budget.map((data: any) => ({
+          key: uuidv4(),
+          id: data.id,
+          productCategory: data.productCategory || "",
+          product: data.product || "",
+          amount: data.amount || 0,
+          priceUnit: data.priceUnit || 0,
+          priceTotal: data.priceTotal || 0,
+        })),
+      });
 
-  const fetchEmployees = async (searchValue: string) => {
+      setDataSource(initialData);
+    }
+  }, [document, mainform]);
+
+  const fetchEmployees = useCallback(async (searchValue: string) => {
     try {
       const response = await axios.post("/api/employee", {
-        firstname: searchValue || "",
+        firstname: searchValue,
       });
       if (response.data.success) {
         setEmployee(response.data.data);
       }
     } catch (error) {
-      return;
+      setEmployee([]);
     }
-  };
+  }, []);
 
   const findEmployee = async (id: number) => {
     try {
       const response = await axios.get(`/api/employee/${id}`);
       return response.data.data;
     } catch (error) {
-      return;
+      return null;
     }
   };
 
@@ -148,15 +170,142 @@ export function ShareDocument({ document }: any) {
       }
     }, 500);
     return () => clearTimeout(delayDebounce);
-  }, [search]);
+  }, [search, fetchEmployees]);
 
   const handleSearch = (value: string) => {
     setSearch(capitalizeFirstLetter(value));
   };
 
+  const submit = async () => {
+    try {
+      const values = await mainform.validateFields();
+      const detail = {
+        title: values.title,
+        aim: values.aim,
+        intro: values.intro,
+        departmentemployee: [...(values.departmentemployee || [])],
+        authuserId: session?.user.id,
+        documentId,
+      };
+      const bank = {
+        bankname: values.bankname || "",
+        bank: values.bank || "",
+        documentId: documentId,
+      };
+      const testteam = (values.testschedule || []).map((item: any) => ({
+        employeeId: item.employeeId,
+        role: item.role,
+        startedDate: dayjs(item.startedDate).format("YYYY-MM-DDTHH:mm:ssZ"),
+        endDate: dayjs(item.endDate).format("YYYY-MM-DDTHH:mm:ssZ"),
+        documentId: documentId,
+        authUserId: session?.user.id,
+      }));
+      const budgetdata = (values.testenv || []).map((item: any) => ({
+        productCategory: String(item.productCategory),
+        product: String(item.product),
+        priceUnit: parseInt(item.priceUnit),
+        priceTotal: parseInt(item.priceTotal),
+        amount: parseInt(item.amount),
+        documentId: documentId,
+      }));
+      let attributeData = [
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Бэлтгэл үе",
+          value: values.predict || "",
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Тестийн гүйцэтгэл",
+          value: values.dependecy || "",
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Тестийн үе шат",
+          category: "Тестийн хаалт",
+          value: values.standby || "",
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал",
+          category: "Таамаглал",
+          value: values.execute || "",
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал",
+          category: "Хараат байдал",
+          value: values.terminate || "",
+          documentId: documentId,
+        },
+        {
+          categoryMain: "Төслийн үр дүнгийн таамаглал, эрсдэл, хараат байдал",
+          category: "Нэмэлт",
+          value: values.adding || "",
+          documentId: documentId,
+        },
+      ];
+
+      const addition = (values.attribute || []).map((item: any) => {
+        return {
+          categoryMain: "Түтгэлзүүлэх болон дахин эхлүүлэх шалгуур",
+          category: item.category,
+          value: item.value,
+          documentId: documentId,
+        };
+      });
+
+      addition.forEach((item: any) => {
+        attributeData.push(item);
+      });
+
+      const riskdata = (values.testrisk || []).map((item: any) => {
+        return {
+          affectionLevel: selectConvert(item.affectionLevel),
+          mitigationStrategy: item.mitigationStrategy,
+          riskDescription: item.riskDescription,
+          riskLevel: selectConvert(item.riskLevel),
+          documentId: documentId,
+        };
+      });
+
+      const testcase = (values.testcase || []).map((item: any) => {
+        return {
+          category: item.category,
+          division: item.division,
+          result: item.result,
+          steps: item.steps,
+          types: item.types,
+          documentId: documentId,
+        };
+      });
+      const apiRequests = [
+        axios.put("/api/document", detail),
+        axios.put("/api/document/testteam", testteam),
+        axios.put("/api/document/attribute", attributeData),
+        axios.put("/api/document/risk", riskdata),
+        axios.put("/api/document/bank", bank),
+        axios.put("/api/document/budget", budgetdata),
+        axios.put("/api/document/testcase", testcase),
+      ];
+      const responses = await Promise.all(apiRequests);
+      for (let i in responses) {
+        mean += responses[i].status;
+      }
+
+      if (mean / responses.length === 200) {
+        messageApi.info("Амжилттай.");
+      }
+    } catch (error) {
+      messageApi.error("Удирдамж буруу байна.");
+    }
+  };
+
   return (
-    <div className="bg-white  py-4 rounded-lg shadow">
+    <div className="bg-white py-4 rounded-lg shadow">
       <Flex justify="space-evenly">
+        {contextHolder}
         <section className="w-3/4">
           {document && (
             <Form form={mainform} layout="vertical">
@@ -183,7 +332,7 @@ export function ShareDocument({ document }: any) {
                     <section>
                       <Table
                         rowKey="key"
-                        dataSource={fields}
+                        dataSource={dataSource}
                         pagination={false}
                         bordered
                         columns={[
@@ -203,44 +352,58 @@ export function ShareDocument({ document }: any) {
                                   style={{ width: "100%" }}
                                   placeholder=""
                                   options={convertUtil(getEmployee)}
-                                  onSearch={(value) => setSearch(value)}
+                                  onSearch={handleSearch}
                                   filterOption={false}
-                                  onChange={async (data, option) => {
-                                    const selectedEmployee = await findEmployee(
-                                      data.value
-                                    );
-                                    if (selectedEmployee) {
-                                      const newData = [...dataSource];
+                                  onChange={async (data) => {
+                                    const currentValues =
+                                      mainform.getFieldValue(
+                                        "departmentemployee"
+                                      ) || [];
+                                    const newData = [...dataSource];
+                                    if (!data) {
                                       newData[index] = {
                                         ...newData[index],
-                                        id: selectedEmployee.id,
-                                        employee: `${selectedEmployee.firstname} ${selectedEmployee.lastname}`,
-                                        department:
-                                          selectedEmployee.department?.name ||
-                                          "",
-                                        jobPosition:
-                                          selectedEmployee.jobPosition?.name ||
-                                          "",
+                                        id: null,
+                                        employee: "",
+                                        department: "",
+                                        jobPosition: "",
                                       };
-                                      setDataSource(newData);
-                                      const currentValues =
-                                        mainform.getFieldValue(
-                                          "departmentemployee"
-                                        ) || [];
                                       currentValues[index] = {
                                         ...currentValues[index],
-                                        employeeId: {
-                                          value: selectedEmployee.id,
-                                          label: `${selectedEmployee.firstname} ${selectedEmployee.lastname}`,
-                                        },
-                                        jobposition:
-                                          selectedEmployee.jobPosition?.name ||
-                                          "",
+                                        employeeId: null,
+                                        jobposition: "",
                                       };
-                                      mainform.setFieldsValue({
-                                        departmentemployee: currentValues,
-                                      });
+                                    } else {
+                                      const selectedEmployee =
+                                        await findEmployee(data.value);
+                                      if (selectedEmployee) {
+                                        newData[index] = {
+                                          ...newData[index],
+                                          id: selectedEmployee.id,
+                                          employee: `${selectedEmployee.firstname} ${selectedEmployee.lastname}`,
+                                          department:
+                                            selectedEmployee.department?.name ||
+                                            "",
+                                          jobPosition:
+                                            selectedEmployee.jobPosition
+                                              ?.name || "",
+                                        };
+                                        currentValues[index] = {
+                                          ...currentValues[index],
+                                          employeeId: {
+                                            value: selectedEmployee.id,
+                                            label: `${selectedEmployee.firstname} ${selectedEmployee.lastname}`,
+                                          },
+                                          jobposition:
+                                            selectedEmployee.jobPosition
+                                              ?.name || "",
+                                        };
+                                      }
                                     }
+                                    setDataSource(newData);
+                                    mainform.setFieldsValue({
+                                      departmentemployee: currentValues,
+                                    });
                                   }}
                                 />
                               </Form.Item>
@@ -297,7 +460,12 @@ export function ShareDocument({ document }: any) {
                                 className="hover:cursor-pointer"
                                 width={20}
                                 height={20}
-                                onClick={() => remove(index)}
+                                onClick={() => {
+                                  remove(index);
+                                  const newData = [...dataSource];
+                                  newData.splice(index, 1);
+                                  setDataSource(newData);
+                                }}
                               />
                             ),
                           },
@@ -306,15 +474,18 @@ export function ShareDocument({ document }: any) {
                       <div className="text-end mt-4">
                         <Button
                           type="primary"
-                          onClick={() =>
-                            add({
+                          onClick={() => {
+                            const newRow = {
                               key: uuidv4(),
+                              id: null,
                               employee: "",
                               jobPosition: "",
                               role: "",
                               department: "",
-                            })
-                          }
+                            };
+                            add(newRow);
+                            setDataSource([...dataSource, newRow]);
+                          }}
                         >
                           Мөр нэмэх
                         </Button>
@@ -348,7 +519,7 @@ export function ShareDocument({ document }: any) {
                 </Form.Item>
               </div>
               <div className="font-bold my-2 text-lg mx-4">
-                3.ТЕСТИЙН БАГИЙН БҮРЭЛДЭХҮҮН, ТЕСТ ХИЙСЭН ХУВААРЬ
+                3. ТЕСТИЙН БАГИЙН БҮРЭЛДЭХҮҮН, ТЕСТ ХИЙСЭН ХУВААРЬ
               </div>
               <Form.List name="testschedule">
                 {(fields, { add, remove }) => (
@@ -453,8 +624,8 @@ export function ShareDocument({ document }: any) {
                             key: uuidv4(),
                             employeeId: "",
                             role: "",
-                            startedDate: "",
-                            endDate: "",
+                            startedDate: null,
+                            endDate: null,
                           })
                         }
                       >
@@ -520,18 +691,9 @@ export function ShareDocument({ document }: any) {
                                   placeholder=""
                                   style={{ width: "100%" }}
                                   options={[
-                                    {
-                                      label: "HIGH",
-                                      value: 1,
-                                    },
-                                    {
-                                      label: "MEDIUM",
-                                      value: 2,
-                                    },
-                                    {
-                                      label: "LOW",
-                                      value: 3,
-                                    },
+                                    { label: "HIGH", value: 1 },
+                                    { label: "MEDIUM", value: 2 },
+                                    { label: "LOW", value: 3 },
                                   ]}
                                   showSearch
                                   filterOption={(input, option) =>
@@ -553,18 +715,9 @@ export function ShareDocument({ document }: any) {
                                   placeholder=""
                                   style={{ width: "100%" }}
                                   options={[
-                                    {
-                                      label: "HIGH",
-                                      value: 1,
-                                    },
-                                    {
-                                      label: "MEDIUM",
-                                      value: 2,
-                                    },
-                                    {
-                                      label: "LOW",
-                                      value: 3,
-                                    },
+                                    { label: "HIGH", value: 1 },
+                                    { label: "MEDIUM", value: 2 },
+                                    { label: "LOW", value: 3 },
                                   ]}
                                   showSearch
                                   filterOption={(input, option) =>
@@ -615,11 +768,6 @@ export function ShareDocument({ document }: any) {
                           onClick={() =>
                             add({
                               key: uuidv4(),
-                              id:
-                                Math.max(
-                                  0,
-                                  ...dataSource.map((item) => item.id)
-                                ) + 1,
                               riskDescription: "",
                               riskLevel: "",
                               affectionLevel: "",
@@ -635,38 +783,34 @@ export function ShareDocument({ document }: any) {
                 </Form.List>
               </div>
               <div>
-                <Form.Item name="execute">
-                  <div>
-                    <li>
-                      4.2 Таамаглал
-                      <ul className="ml-8">
-                        • Эхний оруулсан таамаглал энэ форматын дагуу харагдах.
-                        Хэдэн ч мөр байх боломжтой.
-                      </ul>
-                    </li>
-                    <div className="mt-2">
-                      <Form.Item name="predict">
-                        <Input.TextArea rows={5} style={{ resize: "none" }} />
-                      </Form.Item>
-                    </div>
-                  </div>
-                </Form.Item>
-                <div className="font-bold my-2 text-lg mx-4">
-                  5. Тестийн үе шат
+                <li>
+                  4.2 Таамаглал
+                  <ul className="ml-8">
+                    • Эхний оруулсан таамаглал энэ форматын дагуу харагдах.
+                    Хэдэн ч мөр байх боломжтой.
+                  </ul>
+                </li>
+                <div className="mt-2">
+                  <Form.Item name="predict">
+                    <Input.TextArea rows={5} style={{ resize: "none" }} />
+                  </Form.Item>
                 </div>
-                <div>
-                  <li>
-                    5.1 Бэлтгэл үе
-                    <ul className="ml-8">
-                      • Эхний оруулсан бэлтгэл үе энэ форматын дагуу харагдах.
-                      Хэдэн ч мөр байх боломжтой.
-                    </ul>
-                  </li>
-                  <div className="mt-2">
-                    <Form.Item name="standby">
-                      <Input.TextArea rows={5} style={{ resize: "none" }} />
-                    </Form.Item>
-                  </div>
+              </div>
+              <div className="font-bold my-2 text-lg mx-4">
+                5. Тестийн үе шат
+              </div>
+              <div>
+                <li>
+                  5.1 Бэлтгэл үе
+                  <ul className="ml-8">
+                    • Эхний оруулсан бэлтгэл үе энэ форматын дагуу харагдах.
+                    Хэдэн ч мөр байх боломжтой.
+                  </ul>
+                </li>
+                <div className="mt-2">
+                  <Form.Item name="standby">
+                    <Input.TextArea rows={5} style={{ resize: "none" }} />
+                  </Form.Item>
                 </div>
               </div>
               <div>
@@ -726,7 +870,7 @@ export function ShareDocument({ document }: any) {
                                 options={[
                                   {
                                     label: "Түтгэлзүүлэх",
-                                    value: "Түтгэлзүүлэр",
+                                    value: "Түтгэлзүүлэх",
                                   },
                                   {
                                     label: "Дахин эхлүүлэх",
@@ -779,11 +923,6 @@ export function ShareDocument({ document }: any) {
                         onClick={() =>
                           add({
                             key: uuidv4(),
-                            id:
-                              Math.max(
-                                0,
-                                ...dataSource.map((item) => item.id)
-                              ) + 1,
                             category: "",
                             value: "",
                           })
@@ -795,7 +934,6 @@ export function ShareDocument({ document }: any) {
                   </section>
                 )}
               </Form.List>
-
               <div className="font-bold my-2 text-lg mx-4">
                 7. Тестийн төсөв /Тестийн орчин/
               </div>
@@ -892,11 +1030,6 @@ export function ShareDocument({ document }: any) {
                         onClick={() =>
                           add({
                             key: uuidv4(),
-                            id:
-                              Math.max(
-                                0,
-                                ...dataSource.map((item) => item.id)
-                              ) + 1,
                             productCategory: "",
                             product: "",
                             amount: 0,
@@ -1038,6 +1171,26 @@ export function ShareDocument({ document }: any) {
                   </section>
                 )}
               </Form.List>
+              <div className="mt-8">
+                <Flex gap={20} justify="flex-end">
+                  <Button
+                    type="primary"
+                    style={{ backgroundColor: "green", width: 250, height: 50 }}
+                    onClick={() => {
+                      redirect("/home/create/");
+                    }}
+                  >
+                    Болих
+                  </Button>
+                  <Button
+                    type="primary"
+                    style={{ backgroundColor: "green", width: 250, height: 50 }}
+                    onClick={submit}
+                  >
+                    Хадгалах
+                  </Button>
+                </Flex>
+              </div>
             </Form>
           )}
         </section>

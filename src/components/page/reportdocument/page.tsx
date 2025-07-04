@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Flex, Input, Table, Button, message } from "antd";
+import { useRouter, redirect } from "next/navigation";
+import { Flex, Input, Table, Button, message, Modal, Form } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import { convertName, formatHumanReadable } from "@/components/usable";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,31 @@ import { globalState } from "@/app/store";
 export function Report({ documents, total, pageSize, page, order }: any) {
   const [searchTerm, setSearchTerm] = useState<string>(order);
   const router = useRouter();
-  const [messageApi, contextHolder] = message.useMessage();
+
   const { data: session } = useSession();
-  const { setPlanNotification, getNotification } = globalState();
+  const { setPlanNotification, getNotification, documentId, setDocumentId } =
+    globalState();
+  const [open, setOpen] = useState(false);
+  const [form] = Form.useForm();
+  const [id, setId] = useState(0);
+
+  const handleOk = async () => {
+    const values = await form.validateFields();
+    const data = {
+      documentId: id,
+      userId: session?.user.id,
+      rejection: values.rejection,
+      cause: 0,
+    };
+    const response = await axios.patch("/api/rejection", data);
+    if (response.data.success) {
+      setOpen(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+  };
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,24 +68,6 @@ export function Report({ documents, total, pageSize, page, order }: any) {
     [router, page, pageSize, searchTerm]
   );
 
-  const handleDownload = async (id: number) => {
-    try {
-      const response = await axios.get(`/api/download/${id}`, {
-        responseType: "blob",
-      });
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `Удирдамж_${id}.pdf`;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      messageApi.error("Амжилтгүй боллоо.");
-    }
-  };
-
   const flattenedData = documents.reduce((acc: any[], curr: any) => {
     if (
       curr.authUser &&
@@ -81,6 +85,7 @@ export function Report({ documents, total, pageSize, page, order }: any) {
           timeCreated: doc.timeCreated,
           documentId: doc.id,
           state: doc.state,
+          document: doc,
         })),
       ];
     }
@@ -89,7 +94,6 @@ export function Report({ documents, total, pageSize, page, order }: any) {
 
   return (
     <section>
-      {contextHolder}
       <Flex gap={20}>
         <Input.Search
           placeholder="Тоотоор хайх"
@@ -152,9 +156,12 @@ export function Report({ documents, total, pageSize, page, order }: any) {
             title="Зөвшөөрөл"
             dataIndex="documentId"
             align="center"
-            width={80}
             render={(documentId: number, record: any) =>
-              record.state === "FORWARD" ? (
+              record.state === "DENY" ? (
+                <Button disabled className="py-1">
+                  Буцаагдсан
+                </Button>
+              ) : record.state === "FORWARD" ? (
                 <Badge
                   variant="outline"
                   className="py-1"
@@ -196,27 +203,9 @@ export function Report({ documents, total, pageSize, page, order }: any) {
           />
 
           <Table.Column
-            title="Үйлдэл"
-            dataIndex="documentId"
-            render={(documentId) => {
-              return (
-                <Image
-                  src="/download.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="hover:cursor-pointer"
-                  onClick={() => handleDownload(documentId)}
-                />
-              );
-            }}
-          />
-
-          <Table.Column
             title="Төлөв"
             dataIndex="state"
             align="center"
-            width={80}
             render={(id: number, record: any) =>
               record.state === "PENDING" ? (
                 <Badge
@@ -235,6 +224,10 @@ export function Report({ documents, total, pageSize, page, order }: any) {
               ) : record.state === "ACCESS" ? (
                 <Badge variant="info" className="py-1">
                   Зөвшөөрөгдсөн
+                </Badge>
+              ) : record.state === "DENY" ? (
+                <Badge variant="destructive" className="py-1">
+                  Буцаагдсан
                 </Badge>
               ) : (
                 <Button
@@ -258,31 +251,83 @@ export function Report({ documents, total, pageSize, page, order }: any) {
               )
             }
           />
-
           <Table.Column
-            title="Устгах"
+            title="Шалгах"
+            dataIndex="document"
+            render={(document: any) => (
+              <Image
+                src="/eye.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="hover:cursor-pointer"
+                onClick={() => {
+                  setDocumentId(document.id);
+                  redirect(`/home/report/${document.id}`);
+                }}
+              />
+            )}
+          />
+          <Table.Column
+            title="Буцаах"
             dataIndex="documentId"
             align="center"
             width={80}
-            render={(documentId: number) => (
-              <Button
-                type="dashed"
-                onClick={async () => {
-                  await axios.put("/api/final", {
-                    authuserId: session?.user.id,
-                    documentId,
-                    reject: 0,
-                  });
-                  session?.user?.id && setPlanNotification(session.user.id);
-                  router.refresh();
-                }}
-              >
-                Буцаах
-              </Button>
-            )}
+            render={(documentId: number, record: any) => {
+              return record.state === "ACCESS" ? (
+                <Badge variant="secondary" className="py-1">
+                  -
+                </Badge>
+              ) : (
+                <Button
+                  type="dashed"
+                  onClick={async () => {
+                    await axios.put("/api/final", {
+                      authuserId: session?.user.id,
+                      documentId,
+                      reject: 0,
+                    });
+                    session?.user?.id && setPlanNotification(session.user.id);
+                    router.refresh();
+                  }}
+                >
+                  Буцаах
+                </Button>
+              );
+            }}
+          />
+          <Table.Column
+            title="Буцаагдсан шалтгаан"
+            dataIndex="document"
+            align="center"
+            width={500}
+            render={(record: any) => {
+              return record.state === "ACCESS" ? null : (
+                <span>
+                  {record?.document?.rejection?.rejection} "
+                  {record?.document?.rejection?.employee}"
+                </span>
+              );
+            }}
           />
         </Table>
       </div>
+      <Modal
+        title="Тайлбар оруулна уу"
+        open={open}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <Form form={form}>
+          <Form.Item name="rejection">
+            <Input.TextArea
+              style={{ marginTop: 10 }}
+              placeholder="Яагаад буцаах болсон тухай тайлбар оруулна уу..."
+              rows={10}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </section>
   );
 }

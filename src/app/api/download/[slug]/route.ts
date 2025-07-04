@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import puppeteer from "puppeteer";
 import ejs from "ejs";
@@ -12,7 +11,7 @@ export const config = {
 
 export async function GET(req: NextRequest, { params }: any) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const document = await prisma.document.findUnique({
       where: { id: parseInt(slug) },
       include: {
@@ -71,7 +70,6 @@ export async function GET(req: NextRequest, { params }: any) {
     );
     const templateContent = fs.readFileSync(templatePath, "utf-8");
     const htmlContent = ejs.render(templateContent, { document });
-
     const browser = await puppeteer.launch({
       headless: true,
       args: [

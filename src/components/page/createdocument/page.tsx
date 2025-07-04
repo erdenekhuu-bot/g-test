@@ -13,13 +13,15 @@ import { ThirdRead } from "@/components/window/edit/ThirdDocument";
 import { useSession } from "next-auth/react";
 import { globalState } from "@/app/store";
 import { Share } from "@/components/window/usable/askshare/Share";
+import { ConfirmEditDocument } from "@/components/window/edit/ConfirmDocument";
+import { redirect } from "next/navigation";
 
 export function Create({ documents, total, pageSize, page, order }: any) {
   const [searchTerm, setSearchTerm] = useState<string>(order);
   const router = useRouter();
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const { data: session } = useSession();
-  const { setDocumentId } = globalState();
+  const { setDocumentId, documentId } = globalState();
 
   const handlePaginationChange = useCallback(
     (pagination: TablePaginationConfig) => {
@@ -137,6 +139,11 @@ export function Create({ documents, total, pageSize, page, order }: any) {
                     setActiveStep(2), setDocumentId(id);
                   },
                 },
+                {
+                  onClick: () => {
+                    setActiveStep(3), setDocumentId(id);
+                  },
+                },
               ]}
             />
           )}
@@ -146,18 +153,30 @@ export function Create({ documents, total, pageSize, page, order }: any) {
           dataIndex="id"
           align="center"
           width={80}
-          render={(id: number) => (
-            <Button
-              color="cyan"
-              variant="solid"
-              onClick={() => {
-                setActiveStep(3);
-                setDocumentId(id);
-              }}
-            >
-              SHARE
-            </Button>
-          )}
+          render={(id: number, record: any) => {
+            return record.state === "SHARED" ? (
+              <Badge
+                variant="viewing"
+                className="py-1 hover:cursor-pointer"
+                onClick={() => {
+                  redirect("/home/create/" + id);
+                }}
+              >
+                SHARED
+              </Badge>
+            ) : (
+              <Button
+                color="cyan"
+                variant="solid"
+                onClick={() => {
+                  setActiveStep(4);
+                  setDocumentId(id);
+                }}
+              >
+                SHARE
+              </Button>
+            );
+          }}
         />
         <Table.Column
           title="Төлөв"
@@ -187,6 +206,10 @@ export function Create({ documents, total, pageSize, page, order }: any) {
               <Badge variant="info" className="py-1">
                 Зөвшөөрөгдсөн
               </Badge>
+            ) : record.state === "SHARED" ? (
+              <Badge variant="secondary" className="py-1">
+                Хуваалцсан
+              </Badge>
             ) : (
               <Button
                 type="primary"
@@ -210,17 +233,19 @@ export function Create({ documents, total, pageSize, page, order }: any) {
           dataIndex="id"
           align="center"
           width={80}
-          render={(id: number, record: any) => (
-            <Button
-              type="dashed"
-              onClick={async () => {
-                await axios.delete(`/api/document/delete/${id}`);
-                router.refresh();
-              }}
-            >
-              Устгах
-            </Button>
-          )}
+          render={(id: number, record: any) => {
+            return record.state === "ACCESS" ? null : (
+              <Button
+                type="dashed"
+                onClick={async () => {
+                  await axios.delete(`/api/document/delete/${id}`);
+                  router.refresh();
+                }}
+              >
+                Устгах
+              </Button>
+            );
+          }}
         />
       </Table>
       {activeStep === 0 && (
@@ -233,7 +258,11 @@ export function Create({ documents, total, pageSize, page, order }: any) {
         <ThirdRead open={true} onCancel={handleCloseModal} />
       )}
 
-      {activeStep === 3 && <Share open={true} onCancel={handleCloseModal} />}
+      {activeStep === 3 && (
+        <ConfirmEditDocument open={true} onCancel={handleCloseModal} />
+      )}
+
+      {activeStep === 4 && <Share open={true} onCancel={handleCloseModal} />}
     </section>
   );
 }

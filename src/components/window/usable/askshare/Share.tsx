@@ -1,5 +1,5 @@
 "use client";
-import { Button, Select, Table, Modal, Form, message } from "antd";
+import { Button, Select, Table, Modal, Form, message, Input } from "antd";
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -19,7 +19,6 @@ export function Share({ open, onCancel }: ModalProps) {
   const [search, setSearch] = useState("");
   const { documentId } = globalState();
   const [messageApi, contextHolder] = message.useMessage();
-  const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
 
   const fetchEmployees = useCallback(async (searchValue: string) => {
@@ -61,6 +60,8 @@ export function Share({ open, onCancel }: ModalProps) {
       const request = await axios.put("/api/document/share", {
         sharegroup,
         documentId: documentId,
+        userId: session?.user.id,
+        share: 4,
       });
       if (request.data.success) {
         router.push("/home/create/" + documentId);

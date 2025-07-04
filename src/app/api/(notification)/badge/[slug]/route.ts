@@ -1,10 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { DefineLevel } from "@/lib/checkout";
+import { filterByPermissionLevels } from "@/lib/checkout";
 
 export async function GET(req: NextRequest, { params }: any) {
   try {
     const { slug } = await params;
+
     const record = await prisma.$transaction(async (tx) => {
       const data = await tx.authUser.findUnique({
         where: {
@@ -14,8 +16,18 @@ export async function GET(req: NextRequest, { params }: any) {
           employee: true,
         },
       });
-      const filt = await tx.departmentEmployeeRole.findMany({
-        distinct: ["documentId"],
+      const list = await tx.departmentEmployeeRole.findMany({
+        distinct: ["employeeId"],
+        orderBy: {
+          document: {
+            timeCreated: "desc",
+          },
+        },
+        where: {
+          document: {
+            state: "FORWARD",
+          },
+        },
         include: {
           employee: {
             include: {
@@ -26,41 +38,23 @@ export async function GET(req: NextRequest, { params }: any) {
               },
             },
           },
+          document: true,
         },
       });
-      const dataWithLevels = filt.map((item) => ({
+
+      const dataWithLevels = list.map((item) => ({
         ...item,
         level: DefineLevel(
           item.employee?.jobPosition?.jobPositionGroup?.name || ""
         ),
       }));
-      const convert = dataWithLevels.filter(
-        (item: any) => item.level < 4 || item.level > 6
+
+      const filteredData = filterByPermissionLevels(dataWithLevels).filter(
+        (item: any) =>
+          item.employeeId === data?.employee?.id && item.rode === false
       );
 
-      const result = convert.every((item) => item.rode === true);
-
-      const list = await tx.departmentEmployeeRole.findMany({
-        where: {
-          AND: [
-            {
-              employeeId: data?.employee?.id,
-            },
-            {
-              rode: false,
-            },
-            {
-              document: {
-                AND: [
-                  result ? { state: "FORWARD" } : { state: { not: "FORWARD" } },
-                ],
-              },
-            },
-          ],
-        },
-        distinct: ["documentId"],
-      });
-      return list;
+      return filteredData;
     });
 
     return NextResponse.json({ success: true, data: record }, { status: 200 });

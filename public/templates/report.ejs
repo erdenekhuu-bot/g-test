@@ -9,18 +9,18 @@
   <body>
     <main style="padding: 20px 40px; font-family: Arial, Helvetica, sans-serif">
       <div>
-        <p style="opacity: 70%">ЖИМОБАЙЛ ХХК</p>
-        <p style="font-weight: bold; text-align: center; font-size: 28px">
-          <%= record.report.reportname %>
+        <p style="opacity: 70%; font-size: 12px">ЖИМОБАЙЛ ХХК</p>
+        <p style="font-weight: bold; text-align: center; font-size: 10px">
+          <%= record?.report?.reportname %>
         </p>
       </div>
       <div>
-        <p style="font-weight: bold; font-size: 20px">ЗОРИЛГО:</p>
-        <p><%= record.report.reportpurpose %></p>
+        <p style="font-weight: bold; font-size: 12px">ЗОРИЛГО:</p>
+        <p style="font-size: 10px"><%= record?.report?.reportpurpose %></p>
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px">
+        <p style="font-weight: bold; font-size: 12px">
           ТЕСТИЙН ҮЙЛ АЖИЛЛАГААНД АШИГЛАСАН ДУГААРУУД:
         </p>
         <table class="custom-table">
@@ -34,20 +34,20 @@
             </tr>
           </thead>
           <tbody>
-            <% record.report.usedphone.forEach((data, index) => { %>
+            <% record?.report?.usedphone.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
-              <td><%= convertPhoneType(data.type) %></td>
-              <td><%= data.phone %></td>
-              <td><%= data.description %></td>
-              <td><%= data.serial %></td>
+              <td><%= convertPhoneType(data?.type) %></td>
+              <td><%= data?.phone %></td>
+              <td><%= data?.description %></td>
+              <td><%= data?.serial %></td>
             </tr>
             <% }) %>
           </tbody>
         </table>
       </div>
       <div>
-        <p style="font-weight: bold; font-size: 20px">
+        <p style="font-weight: bold; font-size: 12px">
           ТЕСТИЙН БАГИЙН БҮРЭЛДЭХҮҮН, ТЕСТ ХИЙСЭН ХУВААРЬ
         </p>
         <table class="custom-table">
@@ -62,37 +62,37 @@
             </tr>
           </thead>
           <tbody>
-            <% record.documentemployee.forEach((data, index) => { %>
+            <% record?.documentemployee?.forEach((data, index) => { %>
             <tr>
               <td><%= index+1 %></td>
               <td>
-                <%= filterDepartment(data.employee.department?.name) %> - <%=
-                data.employee.jobPosition?.name %>
+                <%= filterDepartment(data?.employee?.department?.name) %> - <%=
+                data?.employee?.jobPosition?.name %>
               </td>
               <td>
-                <%= convertFirst(data.employee.lastname) %>
-                <%=data.employee.firstname %>
+                <%= convertFirst(data?.employee?.lastname) %>
+                <%=data?.employee?.firstname %>
               </td>
-              <td><%= data.role %></td>
-              <td><%= new Date(data.startedDate).toLocaleDateString() %></td>
-              <td><%= new Date(data.endDate).toLocaleDateString() %></td>
+              <td><%= data?.role %></td>
+              <td><%= new Date(data?.startedDate).toLocaleDateString() %></td>
+              <td><%= new Date(data?.endDate).toLocaleDateString() %></td>
             </tr>
             <% }) %>
           </tbody>
         </table>
       </div>
       <div>
-        <p style="font-weight: bold; font-size: 20px">ТЕСТИЙН ЯВЦЫН ТОЙМ:</p>
-        <%= record.report.reportprocessing %>
+        <p style="font-weight: bold; font-size: 12px">ТЕСТИЙН ЯВЦЫН ТОЙМ:</p>
+        <%= record?.report?.reportprocessing %>
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px">
+        <p style="font-weight: bold; font-size: 12px">
           ТЕСТИЙН КЭЙСИЙН ҮР ДҮН:
         </p>
         <table class="custom-table">
           <tbody>
-            <% record.report.testcase.forEach((data, index) => { %>
+            <% record?.report?.testcase.forEach((data, index) => { %>
             <tr
               style="
                 text-align: center;
@@ -100,11 +100,11 @@
                 background-color: rgb(122, 175, 236);
               "
             >
-              <td><%= data.types %></td>
+              <td><%= data?.types %></td>
             </tr>
             <tr>
               <td style="border: 1px solid gray; padding: 6px">
-                <%= data.description %>
+                <%= data?.description %>
               </td>
             </tr>
             <tr>
@@ -117,11 +117,11 @@
                     gap: 20px;
                   "
                 >
-                  <% data.testCaseImage.forEach((image, imgIndex) => { %>
+                  <% data?.testCaseImage?.forEach((image, imgIndex) => { %>
                   <section>
                     <div style="text-align: center; margin-bottom: 5px">
                       <span style="background: #f0f0f0; padding: 3px">
-                        Зураг <%= imgIndex + 1 %>/<%= data.testCaseImage.length
+                        Зураг <%= imgIndex + 1 %>/<%= data?.testCaseImage.length
                         %>
                       </span>
                     </div>
@@ -146,7 +146,7 @@
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px">
+        <p style="font-weight: bold; font-size: 12px">
           ТЕСТИЙН ТӨСӨВ ЗАРЦУУЛСАН БАЙДАЛ:
         </p>
         <table class="custom-table">
@@ -161,7 +161,7 @@
             </tr>
           </thead>
           <tbody>
-            <% if (record.budget.length === 0) { %>
+            <% if (record?.budget?.length === 0) { %>
             <tr>
               <td>1</td>
               <td>0</td>
@@ -170,14 +170,14 @@
               <td>0</td>
               <td>0</td>
             </tr>
-            <% } else { %> <% record.budget.forEach((data, index) => { %>
+            <% } else { %> <% record?.budget?.forEach((data, index) => { %>
             <tr>
               <td><%= index + 1 %></td>
-              <td><%= data.productCategory %></td>
-              <td><%= data.product %></td>
-              <td><%= data.amount %></td>
-              <td><%= data.priceUnit %></td>
-              <td><%= data.priceTotal %></td>
+              <td><%= data?.productCategory %></td>
+              <td><%= data?.product %></td>
+              <td><%= data?.amount %></td>
+              <td><%= data?.priceUnit %></td>
+              <td><%= data?.priceTotal %></td>
             </tr>
             <% }) %> <% } %>
           </tbody>
@@ -195,19 +195,20 @@
             </tr>
           </thead>
           <tbody>
-            <% if (record.report.budget.length < 1) { %>
+            <% if (record?.report?.budget.length < 1) { %>
             <tr>
               <td>1</td>
               <td>0</td>
               <td>0</td>
               <td>0</td>
             </tr>
-            <% } else { %> <% record.report.budget.forEach((data, index) => { %>
+            <% } else { %> <% record?.report?.budget.forEach((data, index) => {
+            %>
             <tr>
               <td><%= index + 1 %></td>
-              <td><%= data.total %></td>
-              <td><%= data.spent %></td>
-              <td><%= data.excess %></td>
+              <td><%= data?.total %></td>
+              <td><%= data?.spent %></td>
+              <td><%= data?.excess %></td>
             </tr>
             <% }) %> <% } %>
           </tbody>
@@ -215,8 +216,8 @@
       </div>
 
       <div>
-        <p style="font-weight: bold; font-size: 20px">ТЕСТИЙН ДҮГНЭЛТ:</p>
-        <%= record.report.reportconclusion %>
+        <p style="font-weight: bold; font-size: 12px">ТЕСТИЙН ДҮГНЭЛТ:</p>
+        <%= record?.report?.reportconclusion %>
       </div>
     </main>
 
@@ -232,6 +233,7 @@
       width: 100%;
       border-collapse: collapse;
       border: 1px solid black;
+      font-size: "10px";
     }
     .custom-table th,
     .custom-table td {

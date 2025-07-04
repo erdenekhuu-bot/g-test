@@ -64,7 +64,7 @@ export function Menu() {
         </div>
       ) : null}
 
-      {chekcout > 1 || manager === "cc573" ? null : (
+      {chekcout > 1 ? null : (
         <p
           onClick={() => {
             handleMenuClick("/home/create");
@@ -79,6 +79,24 @@ export function Menu() {
             className="mr-2"
           />
           <span className="text-[#01443F] font-medium">Төлөвлөгөө үүсгэх</span>
+        </p>
+      )}
+
+      {chekcout > 1 ? null : (
+        <p
+          onClick={() => {
+            handleMenuClick("/home/confirm");
+          }}
+          className="text-[#01443F] mt-8 p-4 hover:cursor-pointer flex items-center hover:bg-[#F1F3F5]"
+        >
+          <Image
+            src="/file-plus.svg"
+            alt=""
+            width={25}
+            height={25}
+            className="mr-2"
+          />
+          <span className="text-[#01443F] font-medium">Батлах хуудас</span>
         </p>
       )}
 
@@ -105,7 +123,7 @@ export function Menu() {
                 </Badge>
               </div>
             )}
-            <span className="text-[#01443F] font-bold">Ирсэн төлөвлөгөөө1</span>
+            <span className="text-[#01443F] font-medium">Ирсэн төлөвлөгөө</span>
           </div>
         ) : chekcout > 2 ? (
           <div
@@ -129,7 +147,7 @@ export function Menu() {
                 </Badge>
               </div>
             )}
-            <span className="text-[#01443F] font-bold">Ирсэн төлөвлөгөө</span>
+            <span className="text-[#01443F] font-medium">Ирсэн төлөвлөгөө</span>
           </div>
         ) : (
           <div

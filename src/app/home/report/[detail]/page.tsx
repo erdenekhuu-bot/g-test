@@ -1,19 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { ShareDocument } from "@/components/page/sharedocument/page";
+import { DefineLevel } from "@/lib/checkout";
+import { ReportDetail } from "@/components/window/usable/reportdetail/page";
 
 export const dynamic = "force-dynamic";
 
-export default async function Page({ params }: any) {
-  const { share } = await params;
-
-  const records = await prisma.$transaction(async (tx) => {
-    const document = await prisma.document.findUnique({
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ detail: number }>;
+}) {
+  const { detail } = await params;
+  const record = await prisma.$transaction(async (tx) => {
+    const data = await tx.document.findUnique({
       where: {
-        id: parseInt(share),
+        id: Number(detail),
       },
       include: {
         documentemployee: {
-          distinct: ["employeeId"],
           select: {
             employee: {
               select: {
@@ -27,12 +30,6 @@ export default async function Page({ params }: any) {
             role: true,
             startedDate: true,
             endDate: true,
-          },
-        },
-        shareGroup: {
-          select: {
-            employee: true,
-            document: true,
           },
         },
         departmentEmployeeRole: {
@@ -49,6 +46,9 @@ export default async function Page({ params }: any) {
             state: true,
             startedDate: true,
             endDate: true,
+          },
+          orderBy: {
+            startedDate: "asc",
           },
         },
         attribute: true,
@@ -74,10 +74,39 @@ export default async function Page({ params }: any) {
             usedphone: true,
           },
         },
+        confirm: true,
       },
     });
-    return document;
+
+    const steps = await tx.departmentEmployeeRole.findMany({
+      where: { documentId: Number(detail) },
+      distinct: ["employeeId"],
+      include: {
+        employee: {
+          include: {
+            jobPosition: {
+              select: { jobPositionGroup: true },
+            },
+            department: true,
+            authUser: true,
+          },
+        },
+      },
+    });
+
+    const dataWithLevels = steps
+      .map((item) => ({
+        ...item,
+        level: DefineLevel(
+          item.employee?.jobPosition?.jobPositionGroup?.name || ""
+        ),
+      }))
+      .sort((a, b) => b.level - a.level);
+    return {
+      data,
+      steps: dataWithLevels,
+    };
   });
 
-  return <ShareDocument document={records} />;
+  return <ReportDetail document={record.data} step={record.steps} />;
 }

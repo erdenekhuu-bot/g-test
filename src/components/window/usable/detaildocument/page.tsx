@@ -1,6 +1,6 @@
 "use client";
 import { Form, Input, Table, Flex, Steps, Button, message, Modal } from "antd";
-import { useState, createContext, useRef, useEffect } from "react";
+import { useState, createContext, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -41,8 +41,66 @@ export function DetailDocument({ document, step }: any) {
   const [messageApi, contextHolder] = message.useMessage();
   const [append, setAppend] = useState("");
   const router = useRouter();
-  const { documentId } = globalState();
+  const { documentId, getNotification } = globalState();
 
+  const reference = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const transformStyle = useMemo(
+    () => ({
+      transform: `translateY(${scrollPosition}px)`,
+      willChange: "transform",
+    }),
+    [scrollPosition]
+  );
+
+  useEffect(() => {
+    if (reference.current) {
+      Object.assign(reference.current.style, transformStyle);
+    }
+  }, [transformStyle, scrollPosition]);
+
+  const showOTP = () => {
+    setOtp(true);
+  };
+
+  const cancelOTP = () => {
+    setOtp(false);
+  };
+
+  const sendOTP = async () => {
+    try {
+      const response = await axios.put("/api/otp/created", {
+        authuserId: session?.user.id,
+      });
+      if (response.status === 200) {
+        messageApi.success("Нэг удаагийн код илгээгдлээ!");
+      }
+    } catch (error) {
+      messageApi.error("Амжилтгүй боллоо.");
+      return;
+    }
+  };
+
+  const checkOTP = async () => {
+    try {
+      const response = await axios.post("/api/final/", {
+        authuserId: session?.user.id,
+        otp: parseInt(append),
+        reject: 2,
+        check: 2,
+        documentId,
+      });
+      if (response.data.success && session?.user?.id) {
+        getNotification(session?.user?.id);
+        cancelOTP();
+        router.refresh();
+      }
+    } catch (error) {
+      messageApi.error("Амжилтгүй боллоо.");
+      return;
+    }
+  };
   useEffect(() => {
     const formValues = {
       title: document.title,
@@ -82,50 +140,15 @@ export function DetailDocument({ document, step }: any) {
     setFilteredTableData(filteredAttributes);
   }, [document, attributeForm]);
 
-  const showOTP = () => {
-    setOtp(true);
-  };
-
-  const cancelOTP = () => {
-    setOtp(false);
-  };
-
-  const sendOTP = async () => {
-    try {
-      const response = await axios.put("/api/otp/created", {
-        authuserId: session?.user.id,
-      });
-      if (response.status === 200) {
-        messageApi.success("Нэг удаагийн код илгээгдлээ!");
-      }
-    } catch (error) {
-      messageApi.error("Амжилтгүй боллоо.");
-      return;
-    }
-  };
-
-  const checkOTP = async () => {
-    try {
-      const response = await axios.post("/api/final/", {
-        authuserId: session?.user.id,
-        otp: parseInt(append),
-        reject: 2,
-        check: 2,
-        documentId,
-      });
-
-      if (response.data.success && session?.user?.id) {
-        cancelOTP();
-        router.refresh();
-      }
-    } catch (error) {
-      messageApi.error("Амжилтгүй боллоо.");
-      return;
-    }
-  };
-
   return (
-    <Form form={attributeForm} className="p-2 flex gap-x-8">
+    <Form
+      form={attributeForm}
+      className="p-2 flex gap-x-8 h-screen overflow-auto scrollbar"
+      onScroll={(e: React.UIEvent<HTMLFormElement>) => {
+        const currentScroll = e.currentTarget.scrollTop;
+        setScrollPosition(currentScroll);
+      }}
+    >
       <ActionDetail.Provider value={document}>
         <section className="flex-1 w-3/4">
           <div className="first-column p-6">
@@ -284,7 +307,11 @@ export function DetailDocument({ document, step }: any) {
           </div>
         </section>
       </ActionDetail.Provider>
-      <div className="w-1/4 p-4 mt-8">
+      <div
+        className="w-1/4 p-4 mt-8 h-[700px] overflow-auto scrollbar"
+        ref={reference}
+        style={transformStyle}
+      >
         <Steps
           current={step.findIndex((item: any) => item.state === "ACCESS")}
           direction="vertical"

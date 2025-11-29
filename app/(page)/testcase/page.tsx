@@ -15,20 +15,15 @@ export default async function Page(props: {
   const page = Number(searchParams?.page) || 1;
   const pageSize = Number(searchParams?.pageSize) || 10;
   const session = await getServerSession(authOptions);
+
   const record = await prisma.document.findMany({
     where: {
-      AND: [
-        {
-          authUserId: Number(session?.user.id),
+      authUserId: Number(session?.user.id),
+      departmentEmployeeRole: {
+        every: {
+          state: "ACCESS",
         },
-        {
-          departmentEmployeeRole: {
-            every: {
-              state: "ACCESS",
-            },
-          },
-        },
-      ],
+      },
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -51,22 +46,18 @@ export default async function Page(props: {
       timeCreated: "asc",
     },
   });
+
   const totalCount = await prisma.document.count({
     where: {
-      AND: [
-        {
-          authUserId: Number(session?.user.id),
+      authUserId: Number(session?.user.id),
+      departmentEmployeeRole: {
+        every: {
+          state: "ACCESS",
         },
-        {
-          departmentEmployeeRole: {
-            every: {
-              state: "ACCESS",
-            },
-          },
-        },
-      ],
+      },
     },
   });
+
   return (
     <ClientTestCase
       data={record}

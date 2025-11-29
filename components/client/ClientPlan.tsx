@@ -1,5 +1,5 @@
 "use client";
-import { Table, Flex, Input, Button, message, Badge } from "antd";
+import { Table, Flex, Input, Button, message, Badge, Space } from "antd";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ZUSTAND } from "@/app/zustand";
@@ -156,13 +156,16 @@ export default function ClientPlan({
       {contextHolder}
       <div className="mb-8">
         <Flex gap={20} justify="space-between">
-          <Input.Search
-            placeholder="Тестийн нэрээр хайх"
-            onChange={(e) => {
-              generateSearch(e.target.value);
-            }}
-            allowClear
-          />
+          <Space.Compact>
+            <Input.Search
+              enterButton
+              placeholder="Тестийн нэрээр хайх"
+              onChange={(e) => {
+                generateSearch(e.target.value);
+              }}
+              allowClear
+            />
+          </Space.Compact>
 
           <Button
             type="primary"

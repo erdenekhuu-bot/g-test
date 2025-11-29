@@ -1,17 +1,6 @@
 "use client";
 
-import {
-  Form,
-  message,
-  Table,
-  Input,
-  Select,
-  Button,
-  Flex,
-  Steps,
-  Breadcrumb,
-  Layout,
-} from "antd";
+import { Form, message, Input, Button, Flex, Breadcrumb, Layout } from "antd";
 import type { FormProps } from "antd";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
